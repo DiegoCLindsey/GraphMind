@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GraphMind v0.0.5</title>
+<title>GraphMind v0.0.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -39,7 +39,7 @@ html,body{height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px;display:flex;flex-direction:column}
 
 /* ── TOPBAR ── */
-#topbar{height:42px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
+#topbar{height:42px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 10px;gap:6px;flex-shrink:0;overflow:hidden}
 #logo{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent);letter-spacing:-.3px;margin-right:6px}
 .vdiv{width:1px;height:18px;background:var(--b2);margin:0 4px}
 .tab{padding:4px 12px;border-radius:5px;border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:11px;font-family:var(--sans);transition:.12s all}
@@ -59,7 +59,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
 #sb-search input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:5px;padding:5px 9px;color:var(--t1);font-size:11px;font-family:var(--sans);outline:none}
 #sb-search input:focus{border-color:rgba(110,231,183,0.4)}
 #sb-search input::placeholder{color:var(--t4)}
-#sb-filter{padding:6px 10px;border-bottom:1px solid var(--b1);display:flex;gap:4px;flex-wrap:wrap}
+#sb-filter{padding:5px 8px;border-bottom:1px solid var(--b1);display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#sb-filter::-webkit-scrollbar{display:none}
 .sf{padding:2px 8px;border-radius:20px;border:1px solid var(--b2);background:transparent;color:var(--t3);font-size:10px;cursor:pointer;font-family:var(--sans);transition:.1s}
 .sf:hover,.sf.on{background:var(--s3);color:var(--t1)}
 #node-list{flex:1;overflow-y:auto;padding:5px}
@@ -230,12 +231,31 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
 #gantt-stats{margin-left:auto;display:flex;gap:14px;align-items:center}
 .g-stat{font-size:10px;font-family:var(--mono);color:var(--t3)}
 .g-stat span{color:var(--t1)}
-#gantt-body{flex:1;display:flex;overflow:hidden}
-#gantt-left{width:260px;min-width:260px;border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
-#gantt-left-header{height:50px;border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 12px;font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+/* GANTT — two-panel sticky scroll */
+#gantt-body{flex:1;display:flex;flex-direction:row;overflow:hidden}
+/* Left sticky panel */
+#gantt-left{width:var(--gl-w,260px);min-width:var(--gl-w,260px);flex-shrink:0;border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden;z-index:10;background:var(--s1)}
+#gantt-left-header{height:50px;flex-shrink:0;display:flex;align-items:center;padding:0 8px 0 12px;font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1);gap:6px}
+#gantt-left.collapsed{width:36px!important;min-width:36px!important}
+#gantt-left.collapsed .gantt-left-title{display:none}
+#gantt-left.collapsed #gantt-rows-left{display:none}
+#gantt-toggle-tree{background:none;border:none;color:var(--t3);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:3px;margin-left:auto;flex-shrink:0;transition:.1s}
+#gantt-toggle-tree:hover{color:var(--t1);background:var(--s3)}
 #gantt-rows-left{flex:1;overflow:hidden;position:relative}
-#gantt-rows-inner{position:absolute;top:0;left:0;right:0;will-change:transform}
-.gr-left{height:36px;display:flex;align-items:center;padding:0 8px;gap:6px;cursor:pointer;border-bottom:1px solid var(--b1);transition:.1s background;flex-shrink:0;overflow:hidden}
+#gantt-rows-inner{position:absolute;top:0;left:0;right:0}
+/* Right scrollable area */
+#gantt-right-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative}
+#gantt-header-canvas-wrap{height:50px;flex-shrink:0;border-bottom:1px solid var(--b1);overflow:hidden}
+#gantt-header-canvas{display:block}
+#gantt-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+#gantt-scroll::-webkit-scrollbar{height:8px;width:8px}
+#gantt-scroll::-webkit-scrollbar-thumb{background:var(--s4);border-radius:4px}
+#gantt-scroll::-webkit-scrollbar-corner{background:var(--s2)}
+#gantt-canvas-wrap{position:relative;display:inline-block;min-height:100%}
+#gantt-bars-canvas{position:absolute;top:0;left:0}
+/* legacy */
+#gantt-table{display:none}
+.gr-left{height:36px;display:flex;align-items:center;padding:0 8px;gap:6px;cursor:pointer;border-bottom:1px solid var(--b1);transition:.1s background;overflow:hidden}
 .gr-left:hover{background:var(--s2)}
 .gr-left.hl{background:rgba(167,139,250,0.08)}
 .gr-left.grl-parent{background:rgba(255,255,255,0.02)}
@@ -245,14 +265,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
 .gr-pct-lbl{font-size:9px;font-family:var(--mono);color:var(--t3);min-width:24px;text-align:right}
 .gr-col-btn{width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--t3);border-radius:2px;flex-shrink:0}
 .gr-col-btn:hover{color:var(--t1);background:var(--s4)}
-#gantt-right{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
-#gantt-header-canvas{flex-shrink:0;display:block}
-#gantt-chart-scroll{flex:1;overflow:auto;position:relative}
-#gantt-chart-scroll::-webkit-scrollbar{height:8px;width:8px}
-#gantt-chart-scroll::-webkit-scrollbar-thumb{background:var(--s4);border-radius:4px}
-#gantt-chart-scroll::-webkit-scrollbar-corner{background:var(--s2)}
-#gantt-canvas-wrap{position:relative;display:inline-block}
-#gantt-bars-canvas{position:absolute;top:0;left:0}
+/* legacy compat */
+#gantt-right{display:none}
+#gantt-chart-scroll{display:none}
 #gantt-tip{position:absolute;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:9px 13px;font-size:11px;pointer-events:none;opacity:0;transition:opacity .12s;z-index:9999;max-width:240px}
 #gantt-tip .gt-title{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:5px}
 #gantt-tip .gt-row{display:flex;justify-content:space-between;gap:14px;margin-bottom:2px;font-size:10px}
@@ -261,6 +276,40 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
 #gantt-tip .gt-pb{margin-top:6px;height:4px;background:var(--s4);border-radius:2px;overflow:hidden}
 #gantt-tip .gt-pf{height:100%;border-radius:2px}
 #gantt-empty{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;color:var(--t3);gap:8px;pointer-events:none;background:var(--bg)}
+
+
+
+/* Gantt toolbar mobile collapse */
+#gantt-cfg-btn{display:none;padding:4px 9px;background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--t2);cursor:pointer;font-size:14px;flex-shrink:0}
+#gantt-toolbar-inner{display:flex;align-items:center;gap:8px;flex:1;overflow:hidden}
+#gantt-toolbar-panel{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+@media(max-width:768px){
+  #gantt-cfg-btn{display:flex!important;align-items:center}
+  #gantt-toolbar{padding:0 8px;gap:6px;position:relative}
+  #gantt-toolbar-panel{
+    display:none;position:absolute;top:40px;left:0;right:0;z-index:30;
+    background:var(--s1);border-bottom:1px solid var(--b2);
+    padding:8px 12px;gap:8px;flex-wrap:wrap;box-shadow:0 4px 12px rgba(0,0,0,.4);
+  }
+  #gantt-toolbar-panel.open{display:flex!important}
+  #gantt-stats{gap:8px}
+  .g-stat{font-size:9px}
+}
+
+/* ── GANTT LANDSCAPE LOCK ── */
+#gantt-rotate-prompt{
+  display:none;position:absolute;inset:0;z-index:50;
+  background:var(--bg);flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  color:var(--t3);text-align:center;padding:32px;
+}
+#gantt-rotate-prompt .rp-icon{font-size:36px;animation:rotateHint 2s ease-in-out infinite}
+#gantt-rotate-prompt p{font-size:13px;line-height:1.6;max-width:240px}
+#gantt-rotate-prompt small{font-size:11px;color:var(--t4)}
+@keyframes rotateHint{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
+@media (max-width:600px) and (orientation:portrait){
+  #gantt-rotate-prompt{display:flex!important}
+}
 
 /* ── HELP ── */
 #help-view{flex:1;overflow-y:auto;display:none;flex-direction:column}
@@ -274,48 +323,146 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
 #sb-save-indicator{font-size:10px;font-family:var(--mono);color:var(--accent);opacity:0;transition:opacity .4s}
 
 
+
+/* Editor header snap-collapse on mobile scroll */
+#eh{transition:max-height .2s ease,padding .2s ease,opacity .15s ease;max-height:600px;opacity:1}
+#eh.snap-collapsed{max-height:52px;overflow:hidden;opacity:0.9;padding-bottom:4px}
+#eh.snap-collapsed #tag-row,
+#eh.snap-collapsed #metrics-collapse-btn,
+#eh.snap-collapsed #metrics-grid,
+#eh.snap-collapsed #agg-bar{display:none!important}
+#eh-snap-bar{
+  display:none;width:100%;height:3px;background:var(--b1);
+  border-radius:2px;margin:4px auto 0;cursor:pointer;
+}
+@media(max-width:768px){
+  #eh-snap-bar{display:block}
+}
+
 /* ── RESPONSIVE MOBILE ── */
 #hamburger{display:none}
-@media (max-width: 700px) {
+.logo-text{}
+.tab-icon{display:none}
+.tb-only{}
+
+/* Metrics collapsible — always available, collapsed by default on mobile */
+#metrics-collapse-btn{
+  display:none;width:100%;background:none;
+  border:none;border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);
+  color:var(--t3);font-size:10px;font-family:var(--mono);
+  padding:6px 0 6px 2px;cursor:pointer;
+  text-align:left;align-items:center;gap:6px;
+  margin:4px 0 0;
+}
+#metrics-collapse-btn:hover{color:var(--t2)}
+#metrics-grid{transition:max-height .22s ease,opacity .22s ease;overflow:hidden;max-height:500px;opacity:1}
+#metrics-grid.collapsed{max-height:0!important;overflow:hidden!important;opacity:0;margin:0!important;padding:0!important}
+#agg-bar{transition:max-height .22s ease,opacity .22s ease;max-height:300px;opacity:1;overflow:hidden}
+#agg-bar.collapsed{max-height:0!important;overflow:hidden!important;opacity:0;margin:0!important;padding:0!important}
+
+@media (max-width: 768px) {
+  /* Topbar: icon-only for action buttons, hide some labels */
   #hamburger{display:flex!important;align-items:center}
+  #note-count{display:none}
+  .tab-label{display:none}
+  .tab-icon{display:inline}
+  .tab{padding:5px 9px;font-size:13px}
+  .tbtn-label{display:none}
+  .tbtn{padding:5px 9px;font-size:13px}
+  .tb-only{display:none!important}
+  .logo-text{display:none}
+  #topbar{gap:2px;padding:0 4px}
+  #logo{font-size:16px;margin-right:2px}
+  .spacer{min-width:4px}
+
+  /* Sidebar: slide overlay */
   #sidebar{
     position:fixed;left:0;top:42px;bottom:0;z-index:200;
     transform:translateX(-100%);transition:transform .22s ease;
-    box-shadow:4px 0 20px rgba(0,0,0,.5);
+    box-shadow:6px 0 24px rgba(0,0,0,.6);
+    width:280px;min-width:280px;
   }
   #sidebar.open{transform:translateX(0)}
   #sidebar-backdrop{
-    display:none;position:fixed;inset:0;top:42px;background:rgba(0,0,0,.5);
-    z-index:199;
+    display:none;position:fixed;inset:0;top:42px;
+    background:rgba(0,0,0,.5);z-index:199;
   }
   #sidebar-backdrop.open{display:block}
-  #app{flex-direction:column}
-  #main{flex:1;overflow:hidden}
-  /* Editor on mobile */
-  #eh{padding:10px 12px 8px}
+
+  /* Filter: horizontal scroll, no wrap */
+  #sb-filter{padding:6px 10px;gap:5px}
+  .sf{padding:4px 11px;font-size:11px;white-space:nowrap;flex-shrink:0}
+
+  /* Editor: show collapse button, start collapsed */
+  #metrics-collapse-btn{display:flex!important}
+  #eh{padding:10px 12px 6px}
   #eh-row1{flex-wrap:wrap;gap:6px}
-  #node-title{font-size:15px}
+  #node-title{font-size:16px;width:100%}
   #metrics-grid{grid-template-columns:1fr 1fr!important}
   #conn-row{padding:6px 12px}
-  /* Gantt left panel narrower */
-  #gantt-left{width:160px;min-width:160px}
+
+  /* Gantt left panel */
+  #gantt-left{width:150px;min-width:150px}
+  :root{--gl-w:150px}
   .gr-title-lbl{font-size:10px}
-  /* Graph full width */
+
   #graph-view{min-height:350px}
-  /* Topbar compact */
-  #note-count{display:none}
-  .vdiv{display:none}
-  /* Tab labels shorten on very small screens */
-  #tab-gantt::after{content:''}
 }
+
 @media (max-width: 480px) {
+  .tab{padding:4px 7px;font-size:12px}
+  .tbtn{padding:4px 7px;font-size:12px}
   #metrics-grid{grid-template-columns:1fr!important}
-  #gantt-left{width:120px;min-width:120px}
-  .tbtn{padding:3px 7px;font-size:10px}
-  .tab{padding:3px 8px;font-size:10px}
+  #gantt-left{width:110px;min-width:110px}
+  :root{--gl-w:110px}
 }
+
+/* Gantt toolbar: hide desktop controls on mobile, show config button */
+.gt-desktop{}
+@media (max-width: 768px) {
+  .gt-desktop{display:none!important}
+  #gantt-cfg-btn{display:flex!important}
+  #gantt-toolbar{padding:0 10px;gap:6px}
+  #gantt-stats{gap:8px}
+}
+
 /* Sidebar backdrop (desktop hidden) */
 #sidebar-backdrop{display:none}
+
+
+/* ── ROTATE OVERLAY ── */
+#rotate-msg{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  color:var(--t2);font-size:13px;text-align:center;padding:32px;
+}
+#rotate-msg .rot-icon{font-size:48px;animation:rot-spin 2s ease-in-out infinite alternate}
+@keyframes rot-spin{from{transform:rotate(-15deg)}to{transform:rotate(15deg)}}
+
+
+/* Gantt toolbar mobile */
+#gantt-cfg-btn{display:none;padding:5px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--t2);font-size:12px;cursor:pointer;font-family:var(--sans);align-items:center;gap:5px}
+#gantt-cfg-btn:hover{color:var(--t1)}
+/* Bottom sheet */
+#gantt-cfg-sheet{
+  position:fixed;bottom:0;left:0;right:0;z-index:500;
+  background:var(--s1);border-top:1px solid var(--b2);
+  border-radius:16px 16px 0 0;
+  padding:0 16px 32px;
+  transform:translateY(100%);transition:transform .25s ease;
+  box-shadow:0 -8px 32px rgba(0,0,0,.5);
+}
+#gantt-cfg-sheet.open{transform:translateY(0)}
+#gantt-cfg-sheet-handle{width:40px;height:4px;background:var(--b3);border-radius:2px;margin:12px auto 16px}
+#gantt-cfg-sheet h4{font-size:11px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+#gantt-cfg-sheet .cfg-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b1)}
+#gantt-cfg-sheet .cfg-row:last-child{border-bottom:none}
+#gantt-cfg-sheet .cfg-label{font-size:13px;color:var(--t1)}
+#gantt-cfg-sheet select{background:var(--s2);border:1px solid var(--b2);border-radius:5px;padding:5px 10px;color:var(--t1);font-size:12px;font-family:var(--sans);outline:none}
+#gantt-cfg-sheet .cfg-zoom{display:flex;align-items:center;gap:8px}
+#gantt-cfg-sheet .cfg-zoom button{width:32px;height:32px;background:var(--s2);border:1px solid var(--b2);border-radius:6px;color:var(--t1);font-size:16px;cursor:pointer}
+#gantt-sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:499}
+#gantt-sheet-backdrop.open{display:block}
 
 </style>
 </head>
@@ -323,20 +470,20 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
 
 <!-- TOPBAR -->
 <div id="topbar">
-  <button id="hamburger" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:var(--t2);cursor:pointer;font-size:18px;padding:4px 6px;border-radius:5px;line-height:1">☰</button>
-  <span id="logo">⬡ GraphMind</span>
+  <button id="hamburger" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:var(--t2);cursor:pointer;font-size:20px;padding:2px 8px;border-radius:5px;line-height:1;flex-shrink:0">☰</button>
+  <span id="logo">⬡ <span class="logo-text">GraphMind</span></span>
   <span class="vdiv"></span>
-  <button class="tab on" id="tab-e" onclick="switchView('editor')">Tareas</button>
-  <button class="tab" id="tab-g" onclick="switchView('graph')">Grafo</button>
-  <button class="tab" id="tab-gantt" onclick="switchView('gantt')">Gantt</button>
-  <button class="tab" id="tab-help" onclick="switchView('help')">?</button>
+  <button class="tab on" id="tab-e" onclick="switchView('editor')"><span class="tab-icon">✎</span><span class="tab-label"> Tareas</span></button>
+  <button class="tab" id="tab-g" onclick="switchView('graph')"><span class="tab-icon">⬡</span><span class="tab-label"> Grafo</span></button>
+  <button class="tab" id="tab-gantt" onclick="switchView('gantt')"><span class="tab-icon">▤</span><span class="tab-label"> Gantt</span></button>
+  <button class="tab" id="tab-help" onclick="switchView('help')"><span class="tab-icon">?</span></button>
   <div class="spacer"></div>
   <span id="note-count">0 nodos</span>
-  <span class="vdiv"></span>
-  <button class="tbtn" onclick="recalcAll()" title="Recalcular todos los padres" style="color:var(--accent)">↻ Recalcular</button>
-  <span class="vdiv"></span>
-  <button class="tbtn" onclick="openIO('export')">Exportar</button>
-  <button class="tbtn" onclick="openIO('import')">Importar</button>
+  <span class="vdiv tb-only"></span>
+  <button class="tbtn tb-only" onclick="recalcAll()" title="Recalcular todos los padres" style="color:var(--accent)">↻ <span class="tbtn-label">Recalcular</span></button>
+  <span class="vdiv tb-only"></span>
+  <button class="tbtn" onclick="openIO('export')" title="Exportar JSON"><span class="tbtn-icon">↑</span><span class="tbtn-label"> Exportar</span></button>
+  <button class="tbtn" onclick="openIO('import')" title="Importar JSON"><span class="tbtn-icon">↓</span><span class="tbtn-label"> Importar</span></button>
 </div>
 
 <!-- APP -->
@@ -393,6 +540,9 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
       </div>
 
       <!-- METRICS -->
+      <button id="metrics-collapse-btn" onclick="toggleMetrics()" style="display:none;width:100%;background:none;border:none;border-top:1px solid var(--b1);color:var(--t3);font-size:10px;font-family:var(--mono);padding:5px 0;cursor:pointer;text-align:left;padding-left:2px;gap:6px;align-items:center">
+        <span id="metrics-toggle-icon">▼</span> <span id="metrics-toggle-label">DETALLES</span>
+      </button>
       <div id="metrics-grid">
         <div class="mfield">
           <label>Asignado a</label>
@@ -434,6 +584,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
         </div>
       </div>
 
+      <div id="eh-snap-bar" onclick="toggleEhSnap()"></div>
       <!-- AGGREGATED FROM CHILDREN -->
       <div id="agg-bar">
         <div class="agg-title" style="display:flex;align-items:center;gap:8px">Agregado de hijos ▾ <span id="agg-cp-badge" style="display:none;font-size:9px;padding:1px 7px;border-radius:20px;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.35);color:var(--danger);font-family:var(--mono)">CAMINO CRÍTICO</span></div>
@@ -505,43 +656,52 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
 <!-- GANTT VIEW -->
 <div id="gantt-view">
   <div id="gantt-toolbar">
-    <span class="gt-label">Zoom</span>
+    <!-- Desktop controls -->
+    <span class="gt-label gt-desktop">Zoom</span>
     <button class="gt-zoom-btn" onclick="ganttZoom(-1)">−</button>
     <button class="gt-zoom-btn" onclick="ganttZoom(1)">+</button>
-    <span class="vdiv"></span>
-    <span class="gt-label">Agrupar</span>
-    <select id="gantt-group-select" onchange="renderGantt()">
+    <span class="vdiv gt-desktop"></span>
+    <span class="gt-label gt-desktop">Agrupar</span>
+    <select id="gantt-group-select" class="gt-desktop" onchange="renderGantt()">
       <option value="flat">Plano</option>
       <option value="hierarchy" selected>Jerarquía</option>
       <option value="assignee">Asignado</option>
       <option value="tag">Tag</option>
     </select>
-    <span class="vdiv"></span>
-    <span class="gt-label">Filtrar</span>
-    <select id="gantt-filter-select" onchange="renderGantt()">
+    <span class="vdiv gt-desktop"></span>
+    <span class="gt-label gt-desktop">Filtrar</span>
+    <select id="gantt-filter-select" class="gt-desktop" onchange="renderGantt()">
       <option value="all">Todo</option>
       <option value="todo">Pendiente</option>
       <option value="doing">En curso</option>
       <option value="done">Hecho</option>
       <option value="blocked">Bloqueado</option>
     </select>
-    <span class="vdiv"></span>
+    <span class="vdiv gt-desktop"></span>
     <button id="gantt-today-btn" onclick="ganttScrollToday()">Hoy</button>
+    <!-- Mobile: config button -->
+    <button id="gantt-cfg-btn" onclick="openGanttSheet()">⚙ Config</button>
     <div id="gantt-stats">
       <span class="g-stat">Tareas: <span id="gs-count">0</span></span>
-      <span class="g-stat">Días: <span id="gs-hours">0d</span></span>
-      <span class="g-stat">Coste: <span id="gs-cost">€0</span></span>
+      <span class="g-stat gt-desktop">Días: <span id="gs-hours">0d</span></span>
+      <span class="g-stat gt-desktop">Coste: <span id="gs-cost">€0</span></span>
       <span class="g-stat">Progreso: <span id="gs-pct">0%</span></span>
     </div>
   </div>
   <div id="gantt-body">
+    <!-- Left sticky label panel -->
     <div id="gantt-left">
-      <div id="gantt-left-header">Tarea / Proyecto</div>
-      <div id="gantt-rows-left"><div id="gantt-rows-inner"></div></div>
+      <div id="gantt-left-header"><span class="gantt-left-title">Tarea / Proyecto</span><button id="gantt-toggle-tree" onclick="toggleGanttTree()" title="Colapsar panel">◀</button></div>
+      <div id="gantt-rows-left">
+        <div id="gantt-rows-inner"></div>
+      </div>
     </div>
-    <div id="gantt-right">
-      <canvas id="gantt-header-canvas"></canvas>
-      <div id="gantt-chart-scroll">
+    <!-- Right: header canvas + scrollable chart -->
+    <div id="gantt-right-wrap">
+      <div id="gantt-header-canvas-wrap">
+        <canvas id="gantt-header-canvas"></canvas>
+      </div>
+      <div id="gantt-scroll">
         <div id="gantt-canvas-wrap">
           <canvas id="gantt-grid-canvas"></canvas>
           <canvas id="gantt-bars-canvas"></canvas>
@@ -549,19 +709,22 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
       </div>
     </div>
   </div>
+  <div id="gantt-right" style="display:none"></div>
+  <div id="gantt-chart-scroll" style="display:none"></div>
   <div id="gantt-empty">
     <div style="font-size:28px;opacity:.2;font-family:var(--mono)">⬡</div>
     <p style="font-size:13px">Ninguna tarea tiene fechas asignadas</p>
     <p style="font-size:11px">Añade fechas inicio/fin en el editor</p>
   </div>
   <div id="gantt-tip"></div>
+  <div id="gantt-rotate-prompt"><div class="rp-icon">⟳</div><p>El Gantt se ve mejor en modo horizontal</p><small>Gira el dispositivo o amplía la ventana</small></div>
 </div>
 
 <!-- HELP VIEW -->
 <div id="help-view" style="display:none;flex:1;overflow-y:auto;padding:32px 40px;flex-direction:column;gap:0">
 <div style="max-width:720px;margin:0 auto">
   <h1 style="font-size:22px;font-weight:600;margin-bottom:6px;color:var(--t1)">GraphMind — Guía de uso</h1>
-  <p style="font-size:12px;color:var(--t3);font-family:var(--mono);margin-bottom:28px">v0.0.5 · gestor de proyectos basado en teoría de grafos</p>
+  <p style="font-size:12px;color:var(--t3);font-family:var(--mono);margin-bottom:28px">v0.0.7 · gestor de proyectos basado en teoría de grafos</p>
 
   <h2 style="font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;font-family:var(--mono)">Conceptos básicos</h2>
   <p style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:8px">GraphMind organiza el trabajo como un <strong style="color:var(--t1)">grafo de nodos</strong>. Cada nodo puede ser una tarea, proyecto, hito o idea. Los nodos se conectan entre sí formando jerarquías padre→hijo y relaciones de dependencia.</p>
@@ -669,7 +832,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px
     </div>
   </div>
 
-  <p style="font-size:11px;color:var(--t4);font-family:var(--mono);text-align:center;padding-bottom:20px">GraphMind v0.0.5 · archivo HTML autocontenido · sin servidor · sin suscripción</p>
+  <p style="font-size:11px;color:var(--t4);font-family:var(--mono);text-align:center;padding-bottom:20px">GraphMind v0.0.7 · archivo HTML autocontenido · sin servidor · sin suscripción</p>
 </div>
 </div>
 </div><!-- /main -->
@@ -877,7 +1040,7 @@ function aggregateMetrics(nodeId) {
   // Direct children for weighted completion
   const directKids = getDirectChildren(nodeId);
   const avgCompletion = directKids.length
-    ? directKids.reduce((s, c) => s + (aggregateCompletion(c.id)), 0) / directKids.length
+    ? directKids.reduce((s, c) => s + (aggregateCompletion(c.id, new Set([nodeId]))), 0) / directKids.length
     : 0;
   // Date range across all descendants with dates
   let minStart = null, maxEnd = null;
@@ -895,18 +1058,24 @@ function aggregateMetrics(nodeId) {
   };
 }
 
-function aggregateCompletion(nodeId) {
+function aggregateCompletion(nodeId, _visited) {
+  _visited = _visited || new Set();
+  if (_visited.has(nodeId)) return 0;   // cycle guard
+  _visited.add(nodeId);
   const kids = getDirectChildren(nodeId);
   if (!kids.length) {
     const n = S.nodes.find(x => x.id === nodeId);
     return n ? (parseInt(n.completion) || 0) : 0;
   }
-  return kids.reduce((s, c) => s + aggregateCompletion(c.id), 0) / kids.length;
+  return kids.reduce((s, c) => s + aggregateCompletion(c.id, _visited), 0) / kids.length;
 }
 
 // Critical path: longest path through the graph (by days) among all nodes with dates
 // Returns Set of node IDs on the critical path
+let _cpCache = null;
+function invalidateCPCache() { _cpCache = null; }
 function computeCriticalPath() {
+  if (_cpCache) return _cpCache;
   // Build adjacency: parent → children (hierarchy edges)
   // Duration = (end - start) in days, fallback 1 day
   const dur = (n) => {
@@ -947,6 +1116,7 @@ function computeCriticalPath() {
   const path = new Set();
   let cur = maxId;
   while (cur) { path.add(cur); cur = prev[cur]; }
+  _cpCache = path;
   return path;
 }
 
@@ -1206,6 +1376,7 @@ function renderEditor() {
   renderComments();
   renderAgg();
   updateSB(n);
+  applyMobileDefaults();
 }
 
 function renderList() {
@@ -1282,6 +1453,7 @@ function switchView(v) {
   document.getElementById('help-view').style.display = v==='help'?'flex':'none';
   if (v==='graph') renderGraph();
   if (v==='gantt') setTimeout(renderGantt, 30);
+  if (typeof checkOrientation === 'function') checkOrientation();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1290,6 +1462,7 @@ function switchView(v) {
 let sim, zoomB;
 
 function renderGraph() {
+  invalidateCPCache();
   const svgEl = document.getElementById('graph-svg');
   const W = svgEl.clientWidth || 800, H = svgEl.clientHeight || 600;
   svgEl.innerHTML = '';
@@ -1297,43 +1470,263 @@ function renderGraph() {
 
   zoomB = d3.zoom().scaleExtent([0.1,5]).on('zoom', e => g.attr('transform', e.transform));
   svg.call(zoomB);
-  const g = svg.append('g');
 
-  // nodes & links
-  const nodes = S.nodes.map(n => ({...n}));
-  const links = [];
-  const seen = new Set();
-  S.nodes.forEach(n => {
-    n.connections.forEach(cid => {
-      const key = [n.id, cid].sort().join('|');
-      if (!seen.has(key)) { seen.add(key); links.push({ source: n.id, target: cid, type: n.connTypes[cid] || 'related' }); }
-    });
-  });
-
-  // defs
+  // ── DEFS: filters for blob soft glow ──────────────────────────────────────
   const defs = svg.append('defs');
+
+  // Blur filter for hull fill (soft blob interior)
+  const fBlur = defs.append('filter').attr('id','blob-blur').attr('x','-30%').attr('y','-30%').attr('width','160%').attr('height','160%');
+  fBlur.append('feGaussianBlur').attr('in','SourceGraphic').attr('stdDeviation','14');
+
+  // Blur + dilate for blob outline
+  const fOutline = defs.append('filter').attr('id','blob-outline').attr('x','-30%').attr('y','-30%').attr('width','160%').attr('height','160%');
+  fOutline.append('feGaussianBlur').attr('in','SourceGraphic').attr('stdDeviation','8').attr('result','blur');
+  fOutline.append('feColorMatrix').attr('in','blur').attr('type','matrix')
+    .attr('values','1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7').attr('result','sharp');
+
+  // Arrow markers
   ['related','parent','child','blocks'].forEach(t => {
-    const col = t==='blocks'?'#f87171': t==='parent'||t==='child'?'#a78bfa':'rgba(255,255,255,0.2)';
+    const col = t==='blocks'?'#f87171':t==='parent'||t==='child'?'#a78bfa':'rgba(255,255,255,0.2)';
     defs.append('marker').attr('id','arr-'+t).attr('viewBox','0 -4 8 8').attr('refX',22).attr('refY',0)
       .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
       .append('path').attr('d','M0,-4L8,0L0,4').attr('fill',col);
   });
 
-  // links
+  const g = svg.append('g');
+
+  // ── DATA ──────────────────────────────────────────────────────────────────
+  const nodes = S.nodes.map(n => ({...n}));
+  const nodeById = new Map(nodes.map(n => [n.id, n]));
+
+  // Build parent→children map for hull grouping
+  const projectGroups = new Map(); // projectId → [childIds]
+  S.nodes.forEach(n => {
+    if (n.type === 'project') {
+      const kids = getDirectChildren(n.id).map(c => c.id);
+      if (kids.length > 0) projectGroups.set(n.id, kids);
+    }
+  });
+
+  // Links — skip parent/child links *into* a project blob (they're implicit in the hull)
+  // Type priority: blocks > parent/child > related/blocked-by
+  // We must resolve the canonical type independently of iteration order,
+  // because the first node seen for a pair may have the weaker reverse-type ('blocked-by','related')
+  // while the second has the real intent ('blocks','parent','child').
+  const TYPE_PRIORITY = { blocks: 4, parent: 3, child: 3, 'blocked-by': 2, related: 1 };
+  function canonicalLinkType(nId, otherId) {
+    const nNode   = S.nodes.find(x => x.id === nId);
+    const otherNode = S.nodes.find(x => x.id === otherId);
+    const typeA = nNode?.connTypes[otherId]   || 'related';
+    const typeB = otherNode?.connTypes[nId]   || 'related';
+    // If one side says 'blocks', that wins — preserve source/target direction
+    if (typeA === 'blocks') return { type: 'blocks', source: nId,    target: otherId };
+    if (typeB === 'blocks') return { type: 'blocks', source: otherId, target: nId    };
+    // parent/child next
+    if (typeA === 'parent') return { type: 'parent', source: nId,    target: otherId };
+    if (typeB === 'parent') return { type: 'parent', source: otherId, target: nId    };
+    if (typeA === 'child')  return { type: 'child',  source: nId,    target: otherId };
+    if (typeB === 'child')  return { type: 'child',  source: otherId, target: nId    };
+    // fallback
+    return { type: typeA !== 'blocked-by' ? typeA : typeB, source: nId, target: otherId };
+  }
+
+  const links = [];
+  const seen = new Set();
+  S.nodes.forEach(n => {
+    n.connections.forEach(cid => {
+      const key = [n.id, cid].sort().join('|');
+      if (seen.has(key)) return;
+      seen.add(key);
+      const { type, source, target } = canonicalLinkType(n.id, cid);
+      // Hide parent↔child links when either end is a project — visually redundant with hull
+      const srcIsProject = S.nodes.find(x=>x.id===source)?.type === 'project';
+      const tgtIsProject = S.nodes.find(x=>x.id===target)?.type === 'project';
+      if ((type==='parent'||type==='child') && (srcIsProject || tgtIsProject)) return;
+      links.push({ source, target, type });
+    });
+  });
+
   const cpSet = computeCriticalPath();
+
+  // ── HULL LAYER (drawn first, behind everything) ───────────────────────────
+  const hullLayer = g.append('g').attr('class','hull-layer');
+
+  // Project color palette (distinct per project)
+  const PROJECT_PALETTE = [
+    { fill:'#a78bfa', stroke:'#c4b5fd' },  // violet
+    { fill:'#6ee7b7', stroke:'#a7f3d0' },  // emerald
+    { fill:'#60a5fa', stroke:'#93c5fd' },  // blue
+    { fill:'#fb923c', stroke:'#fdba74' },  // orange
+    { fill:'#f472b6', stroke:'#f9a8d4' },  // pink
+    { fill:'#34d399', stroke:'#6ee7b7' },  // teal
+    { fill:'#fbbf24', stroke:'#fde68a' },  // amber
+  ];
+  const projectPaletteMap = new Map();
+  let pi = 0;
+  projectGroups.forEach((_, pid) => { projectPaletteMap.set(pid, PROJECT_PALETTE[pi++ % PROJECT_PALETTE.length]); });
+
+  // One path per project group
+  const hullPaths = new Map();
+  projectGroups.forEach((childIds, pid) => {
+    const pal = projectPaletteMap.get(pid);
+    const grp = hullLayer.append('g');
+
+    // Filled soft blob (blurred circle-union)
+    const pathFill = grp.append('path')
+      .attr('fill', pal.fill)
+      .attr('opacity', 0.07)
+      .attr('filter', 'url(#blob-outline)')
+      .style('pointer-events','none');
+
+    // Crisp outline
+    const pathOutline = grp.append('path')
+      .attr('fill', 'none')
+      .attr('stroke', pal.stroke)
+      .attr('stroke-width', 1.5)
+      .attr('stroke-dasharray','none')
+      .attr('opacity', 0.55)
+      .style('pointer-events','none');
+
+    // Project label (floats above blob)
+    const projNode = S.nodes.find(x => x.id === pid);
+    const labelEl = grp.append('text')
+      .text((projNode?.title || '').toUpperCase())
+      .attr('text-anchor','middle')
+      .attr('fill', pal.stroke)
+      .attr('font-size', 9)
+      .attr('font-weight', 600)
+      .attr('font-family','IBM Plex Mono,monospace')
+      .attr('opacity', 0.7)
+      .attr('letter-spacing', 1.2)
+      .style('pointer-events','none');
+
+    // Completion arc (thin ring around blob centroid)
+    const arcEl = grp.append('path')
+      .attr('fill','none')
+      .attr('stroke', pal.stroke)
+      .attr('stroke-width', 2.5)
+      .attr('opacity', 0.6)
+      .style('pointer-events','none');
+
+    // Clickable overlay (invisible, on top of fill)
+    const clickArea = grp.append('path')
+      .attr('fill', pal.fill)
+      .attr('opacity', 0)
+      .attr('filter', 'url(#blob-outline)')
+      .style('cursor','pointer')
+      .on('click', () => { select(pid); switchView('editor'); })
+      .on('mouseover', (e) => {
+        const pn = S.nodes.find(x=>x.id===pid);
+        if (pn) showTip(e, {...pn, _fromHull:true});
+      })
+      .on('mouseout', () => { document.getElementById('graph-tip').style.opacity='0'; });
+
+    hullPaths.set(pid, { pathFill, pathOutline, labelEl, arcEl, clickArea, childIds, pid });
+  });
+
+  // Helper: compute padded catmull-rom hull path from points
+  function hullPath(pts, pad) {
+    if (pts.length === 0) return '';
+    if (pts.length === 1) {
+      const [x,y] = pts[0];
+      return `M${x},${y-pad} A${pad},${pad},0,1,1,${x-0.01},${y-pad} Z`;
+    }
+    if (pts.length === 2) {
+      const mx=(pts[0][0]+pts[1][0])/2, my=(pts[0][1]+pts[1][1])/2;
+      const dx=pts[1][0]-pts[0][0], dy=pts[1][1]-pts[0][1];
+      const len=Math.sqrt(dx*dx+dy*dy)||1;
+      const nx=-dy/len*pad, ny=dx/len*pad;
+      // Make a lens shape
+      return `M${pts[0][0]+nx},${pts[0][1]+ny}
+              Q${mx+nx*2},${my+ny*2},${pts[1][0]+nx},${pts[1][1]+ny}
+              Q${pts[1][0]+nx*0.5},${pts[1][1]+ny*0.5},${pts[1][0]-nx},${pts[1][1]-ny}
+              Q${mx-nx*2},${my-ny*2},${pts[0][0]-nx},${pts[0][1]-ny}
+              Q${pts[0][0]-nx*0.5},${pts[0][1]-ny*0.5},${pts[0][0]+nx},${pts[0][1]+ny} Z`;
+    }
+    // Pad each point outward from centroid
+    const cx = pts.reduce((s,p)=>s+p[0],0)/pts.length;
+    const cy2 = pts.reduce((s,p)=>s+p[1],0)/pts.length;
+    const hull = d3.polygonHull(pts);
+    if (!hull) return '';
+    const padded = hull.map(([x,y]) => {
+      const dx=x-cx, dy=y-cy2, len=Math.sqrt(dx*dx+dy*dy)||1;
+      return [x + dx/len*pad, y + dy/len*pad];
+    });
+    const line = d3.line().curve(d3.curveCatmullRomClosed.alpha(0.5));
+    return line(padded);
+  }
+
+  function updateHulls() {
+    hullPaths.forEach(({ pathFill, pathOutline, labelEl, arcEl, clickArea, childIds, pid }) => {
+      const projNode = nodeById.get(pid);
+      const pts = childIds
+        .map(cid => nodeById.get(cid))
+        .filter(n => n && n.x != null)
+        .map(n => [n.x, n.y]);
+      // Include project node itself in hull
+      if (projNode && projNode.x != null) pts.push([projNode.x, projNode.y]);
+      if (pts.length === 0) return;
+
+      const PAD = 38;
+      const d = hullPath(pts, PAD);
+      pathFill.attr('d', d);
+      pathOutline.attr('d', d);
+      clickArea.attr('d', d);
+
+      // Centroid for label + arc
+      const cx = pts.reduce((s,p)=>s+p[0],0)/pts.length;
+      const cy2 = pts.reduce((s,p)=>s+p[1],0)/pts.length;
+
+      // Push label above blob
+      const minY = Math.min(...pts.map(p=>p[1]));
+      labelEl.attr('x', cx).attr('y', minY - PAD - 6);
+
+      // Completion arc around centroid
+      const agg = aggregateMetrics(pid);
+      const pct = agg ? agg.avgCompletion : (projNode?.completion || 0);
+      if (pct > 0) {
+        const R = 14;
+        const startAngle = -Math.PI/2;
+        const endAngle = startAngle + (pct/100)*2*Math.PI;
+        const x1 = cx + R*Math.cos(startAngle), y1 = cy2 + R*Math.sin(startAngle);
+        const x2 = cx + R*Math.cos(endAngle),   y2 = cy2 + R*Math.sin(endAngle);
+        const large = pct > 50 ? 1 : 0;
+        arcEl.attr('d', pct >= 100
+          ? `M${cx},${cy2-R} A${R},${R},0,1,1,${cx-0.01},${cy2-R} Z`
+          : `M${x1},${y1} A${R},${R},0,${large},1,${x2},${y2}`);
+        arcEl.attr('opacity', 0.7);
+      } else {
+        arcEl.attr('d','');
+      }
+    });
+  }
+
+  // ── LINKS ─────────────────────────────────────────────────────────────────
   const link = g.append('g').selectAll('line').data(links).enter().append('line')
-    .attr('stroke', d => { const onCP = cpSet.has(d.source.id||d.source) && cpSet.has(d.target.id||d.target); if(onCP&&(d.type==='parent'||d.type==='child')) return 'rgba(248,113,113,0.6)'; return d.type==='blocks'?'rgba(248,113,113,0.35)':d.type==='parent'||d.type==='child'?'rgba(167,139,250,0.35)':'rgba(255,255,255,0.07)'; })
-    .attr('stroke-width', d => { const onCP = cpSet.has(d.source.id||d.source) && cpSet.has(d.target.id||d.target); return (onCP&&(d.type==='parent'||d.type==='child'))?2.5:d.type==='parent'||d.type==='child'?2:1; })
+    .attr('stroke', d => {
+      const onCP = cpSet.has(d.source.id||d.source) && cpSet.has(d.target.id||d.target);
+      if (onCP&&(d.type==='parent'||d.type==='child')) return 'rgba(248,113,113,0.6)';
+      return d.type==='blocks'?'rgba(248,113,113,0.35)':d.type==='parent'||d.type==='child'?'rgba(167,139,250,0.35)':'rgba(255,255,255,0.07)';
+    })
+    .attr('stroke-width', d => {
+      const onCP = cpSet.has(d.source.id||d.source) && cpSet.has(d.target.id||d.target);
+      return (onCP&&(d.type==='parent'||d.type==='child'))?2.5:d.type==='parent'||d.type==='child'?2:1;
+    })
     .attr('stroke-dasharray', d => d.type==='related'?'3,3':'none')
     .attr('marker-end', d => `url(#arr-${d.type})`);
 
-  // nodes
+  // ── NODES ─────────────────────────────────────────────────────────────────
   const nRadius = d => {
+    if (d.type === 'project') return 0; // invisible anchor
     const children = getDirectChildren(d.id);
-    return 8 + Math.min(children.length * 4 + d.connections.length * 2, 20);
+    return 7 + Math.min(children.length * 3 + d.connections.length * 1.5, 18);
   };
 
-  const nodeG = g.append('g').selectAll('g').data(nodes).enter().append('g')
+  // Filter out project nodes from the visual node group — they render as blobs
+  const visibleNodes = nodes.filter(d => d.type !== 'project' || !projectGroups.has(d.id));
+  const hiddenProjectIds = new Set(nodes.filter(d => d.type === 'project' && projectGroups.has(d.id)).map(d=>d.id));
+
+  const nodeG = g.append('g').selectAll('g').data(visibleNodes).enter().append('g')
     .style('cursor','pointer')
     .call(d3.drag()
       .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(.3).restart(); d.fx=d.x;d.fy=d.y; })
@@ -1344,71 +1737,85 @@ function renderGraph() {
     .on('mouseover',(e,d)=>showTip(e,d))
     .on('mouseout',()=>{ document.getElementById('graph-tip').style.opacity='0'; });
 
-  // outer ring for project/milestone
-  nodeG.filter(d=>d.type==='project'||d.type==='milestone').append('circle')
-    .attr('r', d => nRadius(d)+4)
+  // milestone outer ring
+  nodeG.filter(d=>d.type==='milestone').append('circle')
+    .attr('r', d=>nRadius(d)+4)
     .attr('fill','none')
-    .attr('stroke', d => d.type==='project'?'rgba(167,139,250,0.4)':'rgba(251,191,36,0.4)')
+    .attr('stroke','rgba(251,191,36,0.4)')
     .attr('stroke-width',1.5)
-    .attr('stroke-dasharray', d => d.type==='milestone'?'4,2':'none');
+    .attr('stroke-dasharray','4,2');
 
-  // progress arc (pie slice)
+  // progress pie
   nodeG.each(function(d) {
-    const pct = d.id === getCurrent()?.id ? (aggregateMetrics(d.id)?.avgCompletion ?? d.completion) : d.completion;
-    if (pct > 0) {
-      const r = nRadius(d);
-      const angle = (pct/100)*2*Math.PI - Math.PI/2;
-      const x2 = r * Math.cos(angle), y2 = r * Math.sin(angle);
-      const large = pct > 50 ? 1 : 0;
+    const pct = d.id===getCurrent()?.id ? (aggregateMetrics(d.id)?.avgCompletion??d.completion) : d.completion;
+    if (pct>0) {
+      const r=nRadius(d);
+      const angle=(pct/100)*2*Math.PI-Math.PI/2;
+      const x2=r*Math.cos(angle), y2=r*Math.sin(angle);
+      const large=pct>50?1:0;
       d3.select(this).append('path')
-        .attr('d', `M0,${-r} A${r},${r},0,${large},1,${x2},${y2} L0,0 Z`)
-        .attr('fill', pct>=80?'rgba(110,231,183,0.25)':pct>=40?'rgba(251,191,36,0.2)':'rgba(96,165,250,0.2)');
+        .attr('d',`M0,${-r} A${r},${r},0,${large},1,${x2},${y2} L0,0 Z`)
+        .attr('fill',pct>=80?'rgba(110,231,183,0.25)':pct>=40?'rgba(251,191,36,0.2)':'rgba(96,165,250,0.2)');
     }
   });
 
   // main circle
   nodeG.append('circle')
     .attr('r', nRadius)
-    .attr('fill', d => (STATUS_COLORS[d.status]||'#555')+'33')
-    .attr('stroke', d => {
-      if (d.id === S.currentId) return '#f0f0f0';
-      return STATUS_COLORS[d.status] || '#555';
-    })
-    .attr('stroke-width', d => d.id===S.currentId?2:1);
+    .attr('fill', d=>(STATUS_COLORS[d.status]||'#555')+'33')
+    .attr('stroke', d=>d.id===S.currentId?'#f0f0f0':(STATUS_COLORS[d.status]||'#555'))
+    .attr('stroke-width', d=>d.id===S.currentId?2:1);
 
   // priority dot
   nodeG.filter(d=>d.priority==='critical'||d.priority==='high').append('circle')
-    .attr('cx', d => nRadius(d)-2).attr('cy', d => -(nRadius(d)-2))
+    .attr('cx',d=>nRadius(d)-2).attr('cy',d=>-(nRadius(d)-2))
     .attr('r',3).attr('fill',d=>d.priority==='critical'?'#f87171':'#fbbf24');
 
   // label
-  nodeG.append('text')
-    .text(d => (d.title||'(sin título)').slice(0,20))
+  nodeG.filter(d=>nRadius(d)>0).append('text')
+    .text(d=>(d.title||'(sin título)').slice(0,20))
     .attr('text-anchor','middle')
-    .attr('dy', d => nRadius(d)+13)
+    .attr('dy',d=>nRadius(d)+13)
     .attr('fill','rgba(255,255,255,0.5)')
     .attr('font-size',10)
     .attr('font-family','IBM Plex Sans,sans-serif');
 
-  // completion % label
-  nodeG.filter(d => d.completion > 0 || getDirectChildren(d.id).length > 0).append('text')
-    .text(d => {
-      const agg = aggregateMetrics(d.id);
-      const pct = agg ? agg.avgCompletion : d.completion;
-      return pct + '%';
-    })
+  // completion %
+  nodeG.filter(d=>d.completion>0||getDirectChildren(d.id).length>0).append('text')
+    .text(d=>{ const agg=aggregateMetrics(d.id); return (agg?agg.avgCompletion:d.completion)+'%'; })
     .attr('text-anchor','middle').attr('dy','0.35em')
     .attr('fill','rgba(255,255,255,0.7)').attr('font-size',9)
     .attr('font-family','IBM Plex Mono,monospace');
 
+  // ── SIMULATION ────────────────────────────────────────────────────────────
+  // Extra clustering force: pull children toward their project anchor
+  function clusterForce(alpha) {
+    projectGroups.forEach((childIds, pid) => {
+      const proj = nodeById.get(pid);
+      if (!proj || proj.x==null) return;
+      childIds.forEach(cid => {
+        const child = nodeById.get(cid);
+        if (!child || child.x==null) return;
+        const dx = proj.x - child.x, dy = proj.y - child.y;
+        const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+        const strength = 0.08 * alpha;
+        child.vx += dx/dist * strength * 30;
+        child.vy += dy/dist * strength * 30;
+      });
+    });
+  }
+
   sim = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>d.type==='parent'||d.type==='child'?80:120).strength(.6))
-    .force('charge', d3.forceManyBody().strength(-200))
+    .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>d.type==='parent'||d.type==='child'?70:130).strength(.5))
+    .force('charge', d3.forceManyBody().strength(d=>d.type==='project'?-80:-180))
     .force('center', d3.forceCenter(W/2,H/2))
-    .force('collision', d3.forceCollide(d=>nRadius(d)+15))
+    .force('collision', d3.forceCollide(d=>d.type==='project'?20:nRadius(d)+12))
+    .force('cluster', clusterForce)
     .on('tick', ()=>{
-      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
       nodeG.attr('transform',d=>`translate(${d.x},${d.y})`);
+      updateHulls();
     });
 }
 
@@ -1443,7 +1850,7 @@ const LS_KEY = 'graphmind_session';
 
 function saveToLS() {
   try {
-    const data = JSON.stringify({ version:'0.0.5', nodes: S.nodes, tagColorMap, tci });
+    const data = JSON.stringify({ version:'0.0.7', nodes: S.nodes, tagColorMap, tci });
     localStorage.setItem(LS_KEY, data);
     const ind = document.getElementById('sb-save-indicator');
     if (ind) { ind.textContent = '💾 Guardado'; ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 2000); }
@@ -1470,7 +1877,7 @@ let _autoSaveTimer = null;
 function autoSaveLS() {
   clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(() => {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ version:'0.0.5', nodes: S.nodes, tagColorMap, tci })); } catch(e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ version:'0.0.7', nodes: S.nodes, tagColorMap, tci })); } catch(e) {}
   }, 800);
 }
 
@@ -1483,7 +1890,7 @@ function openIO(mode) {
   const btn = document.getElementById('io-btn');
   if (mode === 'export') {
     title.textContent = 'Exportar JSON';
-    ta.value = JSON.stringify({version:'0.0.5', nodes:S.nodes, tagColorMap}, null, 2);
+    ta.value = JSON.stringify({version:'0.0.7', nodes:S.nodes, tagColorMap}, null, 2);
     ta.readOnly = true;
     btn.textContent = 'Copiar';
     btn.onclick = () => { navigator.clipboard.writeText(ta.value).then(()=>{ btn.textContent='✓ Copiado'; setTimeout(()=>btn.textContent='Copiar',2000); }); };
@@ -1524,8 +1931,44 @@ document.getElementById('status-select').addEventListener('change', function() {
 });
 
 // ══════════════════════════════════════════════════════
-//  MOBILE SIDEBAR
+//  MOBILE SIDEBAR & COLLAPSIBLE METRICS
 // ══════════════════════════════════════════════════════
+let metricsCollapsed = false;
+function toggleMetrics() {
+  metricsCollapsed = !metricsCollapsed;
+  const grid = document.getElementById('metrics-grid');
+  const agg = document.getElementById('agg-bar');
+  const icon = document.getElementById('metrics-toggle-icon');
+  const lbl = document.getElementById('metrics-toggle-label');
+  if (metricsCollapsed) {
+    grid.classList.add('collapsed');
+    if (agg) agg.classList.add('collapsed');
+    icon.textContent = '▶';
+    lbl.textContent = 'DETALLES (oculto)';
+  } else {
+    grid.classList.remove('collapsed');
+    if (agg) agg.classList.remove('collapsed');
+    icon.textContent = '▼';
+    lbl.textContent = 'DETALLES';
+  }
+}
+
+// Auto-collapse metrics on mobile when opening editor
+function applyMobileDefaults() {
+  if (window.innerWidth <= 700 && !metricsCollapsed) {
+    // collapse by default on mobile
+    metricsCollapsed = true;
+    const grid = document.getElementById('metrics-grid');
+    const icon = document.getElementById('metrics-toggle-icon');
+    const lbl = document.getElementById('metrics-toggle-label');
+    if (grid) {
+      grid.classList.add('collapsed');
+      icon.textContent = '▶';
+      lbl.textContent = 'DETALLES (oculto)';
+    }
+  }
+}
+
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const bd = document.getElementById('sidebar-backdrop');
@@ -1533,9 +1976,83 @@ function toggleSidebar() {
   bd.classList.toggle('open');
 }
 
+
+// ── Gantt config panel (mobile) ──────────────────────────────────────────────
+function toggleGanttCfg() {
+  document.getElementById('gantt-toolbar-panel').classList.toggle('open');
+}
+// Close config panel when clicking outside
+document.addEventListener('click', e => {
+  const panel = document.getElementById('gantt-toolbar-panel');
+  const btn   = document.getElementById('gantt-cfg-btn');
+  if (panel && !panel.contains(e.target) && e.target !== btn) {
+    panel.classList.remove('open');
+  }
+});
+
+// ── Gantt tree panel collapse ─────────────────────────────────────────────────
+let ganttTreeCollapsed = false;
+function toggleGanttTree() {
+  ganttTreeCollapsed = !ganttTreeCollapsed;
+  const left = document.getElementById('gantt-left');
+  const btn  = document.getElementById('gantt-toggle-tree');
+  left.classList.toggle('collapsed', ganttTreeCollapsed);
+  btn.textContent = ganttTreeCollapsed ? '▶' : '◀';
+  // Trigger re-render so header canvas resizes
+  setTimeout(renderGantt, 60);
+}
+
+// ── Editor header snap-collapse on mobile scroll ──────────────────────────────
+let ehSnapped = false;
+function toggleEhSnap(force) {
+  if (window.innerWidth > 768) return;
+  ehSnapped = force !== undefined ? force : !ehSnapped;
+  const eh = document.getElementById('eh');
+  eh.classList.toggle('snap-collapsed', ehSnapped);
+  const bar = document.getElementById('eh-snap-bar');
+  if (bar) bar.style.background = ehSnapped ? 'var(--accent)' : 'var(--b1)';
+}
+
+// Attach scroll listener to editor body area (run once after DOM ready)
+(function attachEditorScroll() {
+  const area = document.getElementById('editor-body-area');
+  if (!area) return;
+  let lastScrollY = 0;
+  area.addEventListener('scroll', () => {
+    if (window.innerWidth > 768) return;
+    const sy = area.scrollTop;
+    if (sy > 60 && !ehSnapped) toggleEhSnap(true);
+    if (sy < 10 && ehSnapped)  toggleEhSnap(false);
+    lastScrollY = sy;
+  }, { passive: true });
+})();
+
 // ══════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════
+
+// Auto-collapse editor header on mobile when scrolling body area
+document.getElementById('editor-body-area').addEventListener('scroll', function() {
+  if (window.innerWidth > 768) return;
+  const eh = document.getElementById('eh');
+  const grid = document.getElementById('metrics-grid');
+  const agg  = document.getElementById('agg-bar');
+  if (this.scrollTop > 20) {
+    // Compact: hide metrics, shrink header
+    if (!grid.classList.contains('collapsed')) {
+      grid.classList.add('collapsed');
+      if (agg) agg.classList.add('collapsed');
+      const icon = document.getElementById('metrics-toggle-icon');
+      const lbl  = document.getElementById('metrics-toggle-label');
+      if (icon) icon.textContent = '▶';
+      if (lbl)  lbl.textContent  = 'DETALLES';
+      eh.style.paddingBottom = '4px';
+    }
+  } else if (this.scrollTop === 0) {
+    eh.style.paddingBottom = '';
+  }
+}, { passive: true });
+
 function init() {
   // Load from localStorage; start empty if nothing saved
   try {
@@ -1573,7 +2090,7 @@ function ganttScrollToday() {
   if (!G.minDate) return;
   const today = new Date(); today.setHours(0,0,0,0);
   const x = daysBetween(G.minDate, today) * G.dayW - 200;
-  document.getElementById('gantt-chart-scroll').scrollLeft = Math.max(0, x);
+  const sc2=document.getElementById('gantt-scroll'); sc2.scrollLeft=Math.max(0,x);
 }
 
 function daysBetween(a, b) {
@@ -1673,6 +2190,7 @@ function rRect(ctx, x, y, w, h, r) {
 }
 
 function renderGantt() {
+  invalidateCPCache();
   const view = document.getElementById('gantt-view');
   if (view.style.display === 'none') return;
 
@@ -1689,9 +2207,8 @@ function renderGantt() {
   const today = new Date(); today.setHours(0,0,0,0);
 
   // LEFT PANEL
-  const leftEl = document.getElementById('gantt-rows-left');
-  const innerEl2 = document.getElementById('gantt-rows-inner');
-  innerEl2.innerHTML = rows.map((r,i) => {
+  const leftEl = document.getElementById('gantt-rows-inner');
+  leftEl.innerHTML = rows.map((r,i) => {
     if (r.grp) {
       const coll = G.collapsed.has(r.gid);
       return `<div class="gr-left grl-parent" onclick="gCollapse('${r.gid}')">
@@ -1721,37 +2238,44 @@ function renderGantt() {
     </div>`;
   }).join('');
 
-  // Sync scroll: only gantt-chart-scroll scrolls; left panel tracks via translateY
-  const scrollEl = document.getElementById('gantt-chart-scroll');
-  const innerEl = document.getElementById('gantt-rows-inner');
-  scrollEl.onscroll = function() {
-    // Sync left panel vertical position
-    innerEl.style.transform = 'translateY(' + (-this.scrollTop) + 'px)';
-    drawHeader(totalW, totalDays, this.scrollLeft);
-  };
-  // Reset transform on fresh render
-  innerEl.style.transform = 'translateY(0)';
-
   // CANVAS SETUP
-  const rightEl = document.getElementById('gantt-right');
-  const W = rightEl.clientWidth || 700;
+  const rightWrapEl = document.getElementById('gantt-right-wrap');
+  const W = Math.max(rightWrapEl.clientWidth || 600, 100);
 
+  // Header canvas — fixed width = right panel width
   const hCanvas = document.getElementById('gantt-header-canvas');
   hCanvas.width = W; hCanvas.height = G.headerH;
-  hCanvas.style.width = W+'px'; hCanvas.style.height = G.headerH+'px';
+  hCanvas.style.width = W + 'px'; hCanvas.style.height = G.headerH + 'px';
 
+  // Canvas wrap — full content width, force scroll container to know the real width
   const wrap = document.getElementById('gantt-canvas-wrap');
-  wrap.style.width = totalW+'px'; wrap.style.height = totalH+'px';
-  // Set inner rows container height (enables full scroll range)
-  document.getElementById('gantt-rows-inner').style.height = totalH+'px';
+  wrap.style.width = totalW + 'px';
+  wrap.style.height = totalH + 'px';
+  wrap.style.minWidth = totalW + 'px'; // critical: prevents flex from collapsing width
+
+  // Set inner rows height so left panel can measure it
+  const innerEl = document.getElementById('gantt-rows-inner');
+  innerEl.style.height = totalH + 'px';
+
+  // Single scroll handler: sync left panel + redraw header
+  const scrollEl = document.getElementById('gantt-scroll');
+  const leftRowsEl = document.getElementById('gantt-rows-left');
+  scrollEl.onscroll = function() {
+    // Sync left panel vertical offset via translateY
+    innerEl.style.transform = 'translateY(' + (-this.scrollTop) + 'px)';
+    // Redraw sticky header with new horizontal offset
+    drawHeader(totalW, totalDays, this.scrollLeft);
+  };
+  // Reset on fresh render
+  innerEl.style.transform = 'translateY(0)';
 
   const gCanvas = document.getElementById('gantt-grid-canvas');
   gCanvas.width = totalW; gCanvas.height = totalH;
-  gCanvas.style.width = totalW+'px'; gCanvas.style.height = totalH+'px';
+  gCanvas.style.width = totalW + 'px'; gCanvas.style.height = totalH + 'px';
 
   const bCanvas = document.getElementById('gantt-bars-canvas');
   bCanvas.width = totalW; bCanvas.height = totalH;
-  bCanvas.style.width = totalW+'px'; bCanvas.style.height = totalH+'px';
+  bCanvas.style.width = totalW + 'px'; bCanvas.style.height = totalH + 'px';
 
   // GRID
   const gc = gCanvas.getContext('2d');
@@ -1784,6 +2308,7 @@ function renderGantt() {
   const bc = bCanvas.getContext('2d');
   bc.clearRect(0,0,totalW,totalH);
   G.hitRects = [];
+  const _ganttCPSet = computeCriticalPath(); // compute once for all bars
 
   rows.forEach((r,i) => {
     if (r.grp) return;
@@ -1838,7 +2363,7 @@ function renderGantt() {
     const doneColor   = '#6ee7b7'; // accent green
     const activeColor = '#60a5fa'; // blue — in-progress fill
     const emptyColor  = sc + '25'; // dim status color bg
-    const onCP = computeCriticalPath().has(n.id);
+    const onCP = _ganttCPSet.has(n.id);
 
     // BG (empty part of bar)
     bc.fillStyle = emptyColor;
@@ -1923,7 +2448,7 @@ function renderGantt() {
     G.hitRects.push({x:x1,y:y+2,w:bw,h:G.rowH-4,n});
   });
 
-  drawHeader(totalW, totalDays, document.getElementById('gantt-chart-scroll').scrollLeft || 0);
+  drawHeader(totalW, totalDays, scrollEl.scrollLeft || 0);
   updateGanttStats(rows);
 
   // TOOLTIP + CLICK
@@ -2019,9 +2544,61 @@ function gCollapse(id) {
   renderGantt();
 }
 
-new ResizeObserver(()=>{ if(currentView==='gantt') renderGantt(); }).observe(document.getElementById('gantt-right'));
+
+// ── ROTATE LOCK ──
+function checkOrientation() {
+  const msg = document.getElementById('rotate-msg');
+  const isNarrow = window.innerWidth < 520;
+  const onVisual = currentView === 'gantt' || currentView === 'graph';
+  msg.style.display = (isNarrow && onVisual) ? 'flex' : 'none';
+}
+window.addEventListener('resize', checkOrientation);
+
+new ResizeObserver(()=>{ if(currentView==='gantt') renderGantt(); }).observe(document.getElementById('gantt-right-wrap'));
 
 init();
 </script>
+<!-- Gantt config bottom sheet (mobile) -->
+<div id="gantt-sheet-backdrop" onclick="closeGanttSheet()"></div>
+<div id="gantt-cfg-sheet">
+  <div id="gantt-cfg-sheet-handle"></div>
+  <h4>Configuración Gantt</h4>
+  <div class="cfg-row">
+    <span class="cfg-label">Zoom</span>
+    <div class="cfg-zoom">
+      <button onclick="ganttZoom(-1)">−</button>
+      <span id="gantt-zoom-label" style="font-size:11px;font-family:var(--mono);color:var(--t2);min-width:32px;text-align:center">26px</span>
+      <button onclick="ganttZoom(1)">+</button>
+    </div>
+  </div>
+  <div class="cfg-row">
+    <span class="cfg-label">Agrupar</span>
+    <select id="gantt-group-select-m" onchange="document.getElementById('gantt-group-select').value=this.value;renderGantt()">
+      <option value="flat">Plano</option>
+      <option value="hierarchy" selected>Jerarquía</option>
+      <option value="assignee">Asignado</option>
+      <option value="tag">Tag</option>
+    </select>
+  </div>
+  <div class="cfg-row">
+    <span class="cfg-label">Filtrar</span>
+    <select id="gantt-filter-select-m" onchange="document.getElementById('gantt-filter-select').value=this.value;renderGantt()">
+      <option value="all">Todo</option>
+      <option value="todo">Pendiente</option>
+      <option value="doing">En curso</option>
+      <option value="done">Hecho</option>
+      <option value="blocked">Bloqueado</option>
+    </select>
+  </div>
+  <div class="cfg-row">
+    <span class="cfg-label">Hoy</span>
+    <button onclick="ganttScrollToday();closeGanttSheet()" style="padding:6px 16px;background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.3);border-radius:5px;color:var(--accent);font-size:12px;cursor:pointer">Ir a hoy</button>
+  </div>
+</div>
+<div id="rotate-msg">
+  <div class="rot-icon">📱</div>
+  <div style="font-weight:600;color:var(--t1)">Gira el dispositivo</div>
+  <div style="font-size:11px;color:var(--t3)">El Gantt y el Grafo necesitan modo horizontal</div>
+</div>
 </body>
 </html>
