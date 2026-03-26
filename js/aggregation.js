@@ -1,20 +1,6 @@
 ﻿// ══════════════════════════════════════════════════════
 //  AGGREGATION
 // ══════════════════════════════════════════════════════
-function getChildren(nodeId) {
-  const n = S.nodes.find(x => x.id === nodeId);
-  if (!n) return [];
-  // direct children: nodes where this node marked them as "child", OR nodes that marked this as "parent"
-  return S.nodes.filter(c =>
-    (n.connTypes[c.id] === 'child' || n.connTypes[c.id] === 'parent')
-    // "this is parent" from n's side means c is child
-    // but also if c says this is their parent:
-    || (c.connections.includes(nodeId) && c.connTypes[nodeId] === 'child')
-    || (c.connections.includes(nodeId) && c.connTypes[nodeId] === 'parent' && n.connections.includes(c.id) && n.connTypes[c.id] === 'parent')
-  );
-}
-
-// Simpler: children = nodes connected where relationship type indicates hierarchy
 function getDirectChildren(nodeId) {
   const n = S.nodes.find(x => x.id === nodeId);
   if (!n) return [];
