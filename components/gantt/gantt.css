@@ -31,7 +31,8 @@
 #gantt-scroll::-webkit-scrollbar-thumb{background:var(--s4);border-radius:4px}
 #gantt-scroll::-webkit-scrollbar-corner{background:var(--s2)}
 #gantt-canvas-wrap{position:relative;display:inline-block;min-height:100%}
-#gantt-bars-canvas{position:absolute;top:0;left:0}
+#gantt-grid-canvas{pointer-events:none;display:block}
+#gantt-bars-canvas{position:absolute;top:0;left:0;user-select:none;-webkit-user-select:none;touch-action:pan-y}
 /* legacy */
 #gantt-table{display:none}
 .gr-left{height:36px;display:flex;align-items:center;padding:0 8px;gap:6px;cursor:pointer;border-bottom:1px solid var(--b1);transition:.1s background;overflow:hidden}
