@@ -185,7 +185,9 @@ function applyTheme() {
     root.removeAttribute('data-theme');
     CUSTOM_VARS.forEach(v => root.style.removeProperty(v));
   }
-}──────
+}
+
+// ── SAVE / RESET ──────────────────────────────────────────────────────────────
 function saveCfg() {
   CFG = JSON.parse(JSON.stringify(_cfgDraft));
   autoSaveLS();
