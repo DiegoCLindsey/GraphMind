@@ -33,6 +33,10 @@
     <span class="cfg-label">Hoy</span>
     <button onclick="ganttScrollToday();closeGanttSheet()" style="padding:6px 16px;background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.3);border-radius:5px;color:var(--accent);font-size:12px;cursor:pointer">Ir a hoy</button>
   </div>
+  <div class="cfg-row">
+    <span class="cfg-label" data-i18n="gantt.edit_label">Edición</span>
+    <button id="gantt-edit-btn-m" onclick="ganttToggleEdit();closeGanttSheet()" style="padding:6px 16px;background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--t2);font-size:12px;cursor:pointer" data-i18n="gantt.edit_off">🔒 Edición off</button>
+  </div>
 </div>
 <div id="rotate-msg">
   <div class="rot-icon">📱</div>

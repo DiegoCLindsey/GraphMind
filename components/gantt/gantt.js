@@ -11,6 +11,20 @@ let _ganttDrag = { active: false, nodeId: null, origEnd: null, origStart: null, 
 let _ganttDragRAF = 0;
 // Pan state for click-drag-to-scroll
 let _ganttPan  = { active: false, startX: 0, startY: 0, scrollL: 0, scrollT: 0, moved: false };
+// Edit mode (gates date assignment and bar stretching)
+let _ganttEditMode = false;
+// Scroll-to-today on next renderGantt call
+let _ganttScrollOnLoad = false;
+
+function ganttToggleEdit() {
+  _ganttEditMode = !_ganttEditMode;
+  const btn = document.getElementById('gantt-edit-btn');
+  const btnM = document.getElementById('gantt-edit-btn-m');
+  const label = _ganttEditMode ? '🔓 ' + t('gantt.edit_on') : '🔒 ' + t('gantt.edit_off');
+  if (btn)  { btn.textContent = label; btn.style.background = _ganttEditMode ? 'rgba(110,231,183,0.15)' : ''; btn.style.borderColor = _ganttEditMode ? 'rgba(110,231,183,0.4)' : ''; btn.style.color = _ganttEditMode ? 'var(--accent)' : ''; }
+  if (btnM) { btnM.textContent = label; btnM.style.background = _ganttEditMode ? 'rgba(110,231,183,0.15)' : ''; btnM.style.borderColor = _ganttEditMode ? 'rgba(110,231,183,0.4)' : ''; btnM.style.color = _ganttEditMode ? 'var(--accent)' : ''; }
+  renderGantt();
+}
 
 function ganttZoom(dir) {
   const step = G.dayW < 16 ? 2 : G.dayW < 32 ? 4 : 8;
@@ -414,6 +428,8 @@ function renderGantt() {
   drawHeader(totalW, totalDays, scrollEl.scrollLeft || 0);
   updateGanttStats(rows);
 
+  if (_ganttScrollOnLoad) { _ganttScrollOnLoad = false; setTimeout(ganttScrollToday, 30); }
+
   // ── TOOLTIP + CLICK + STRETCH + PAN ─────────────────────────────────────────
   const EDGE_W = Math.max(10, Math.round(G.dayW * 0.45));
   const tip = document.getElementById('gantt-tip');
@@ -450,7 +466,7 @@ function renderGantt() {
   const _startInteraction = (clientX, clientY) => {
     const { mx, my } = _canvasXY(clientX, clientY);
     const hit = G.hitRects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
-    if (hit && mx >= hit.x + hit.w - EDGE_W) {
+    if (_ganttEditMode && hit && mx >= hit.x + hit.w - EDGE_W) {
       _ganttDrag = { active: true, nodeId: hit.n.id, origEnd: hit.n.end, origStart: hit.n.start, startX: mx, lastDelta: 0, moved: false };
       return 'stretch';
     }
@@ -511,12 +527,12 @@ function renderGantt() {
     const { mx, my } = _canvasXY(e.clientX, e.clientY);
     const hit = G.hitRects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
     if (hit) {
-      if (mx >= hit.x + hit.w - EDGE_W) { hideTip(); bCanvas.style.cursor = 'ew-resize'; }
+      if (_ganttEditMode && mx >= hit.x + hit.w - EDGE_W) { hideTip(); bCanvas.style.cursor = 'ew-resize'; }
       else { showTip(e, hit); bCanvas.style.cursor = 'pointer'; }
     } else {
       hideTip();
       const row = G.rows[Math.floor(my / G.rowH)];
-      bCanvas.style.cursor = (row && !row.grp && row.n && !getNodeRange(row.n)) ? 'cell' : 'grab';
+      bCanvas.style.cursor = (_ganttEditMode && row && !row.grp && row.n && !getNodeRange(row.n)) ? 'cell' : 'grab';
     }
   };
 
@@ -529,7 +545,7 @@ function renderGantt() {
     const hit = G.hitRects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
     if (hit) {
       if (mx < hit.x + hit.w - EDGE_W) { select(hit.n.id); switchView('editor'); }
-    } else {
+    } else if (_ganttEditMode) {
       const row = G.rows[Math.floor(my / G.rowH)];
       if (!row || row.grp || !row.n) return;
       const dayOffset = Math.floor(mx / G.dayW);
@@ -542,6 +558,7 @@ function renderGantt() {
 
   // ── Touch events (stretch only; pan is native via #gantt-scroll) ─────────
   bCanvas.ontouchstart = (e) => {
+    if (!_ganttEditMode) return;
     const t = e.changedTouches[0];
     const { mx } = _canvasXY(t.clientX, t.clientY);
     const hit = G.hitRects.find(r => {
