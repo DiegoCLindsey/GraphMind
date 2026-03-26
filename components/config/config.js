@@ -162,7 +162,27 @@ function updateCfgUnitPreview() {
   if (dp && dur) dp.textContent = `Ej: 3.5${dur.value || 'd'}`;
 }
 
-// ── SAVE / RESET ──────────────────────────────────────────────────────────────
+// ── THEME ENGINE ────────────────────────────────────────────────────────
+function applyTheme() {
+  const root = document.documentElement;
+  const CUSTOM_VARS = ['--bg','--s1','--accent','--t1']; // cleanup on theme change
+
+  if (CFG.theme === 'light') {
+    root.setAttribute('data-theme', 'light');
+    CUSTOM_VARS.forEach(v => root.style.removeProperty(v));
+  } else if (CFG.theme === 'custom') {
+    root.removeAttribute('data-theme');
+    const t = CFG.themeTokens || {};
+    if (t.bg)      root.style.setProperty('--bg', t.bg);
+    if (t.surface) root.style.setProperty('--s1', t.surface);
+    if (t.accent)  root.style.setProperty('--accent', t.accent);
+    if (t.text)    root.style.setProperty('--t1', t.text);
+  } else {
+    // dark (default) — remove all overrides
+    root.removeAttribute('data-theme');
+    CUSTOM_VARS.forEach(v => root.style.removeProperty(v));
+  }
+}──────
 function saveCfg() {
   CFG = JSON.parse(JSON.stringify(_cfgDraft));
   autoSaveLS();

@@ -60,6 +60,7 @@
   // DOM listo — conectar listeners y arrancar
   setupListeners();
   init();
+  applyTheme();
   populateEditorSelects();
   renderStatusFilterButtons();
 })();
