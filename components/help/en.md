@@ -1,6 +1,6 @@
 # GraphMind — User Guide
 
-`v1.1.0` · visual project manager based on graph theory
+`v1.2.0` · visual project manager based on graph theory
 
 ---
 
@@ -183,4 +183,4 @@ Click the 🇬🇧 / 🇪🇸 button in the top bar to switch between **English*
 
 ---
 
-*GraphMind v1.1.0 · self-contained HTML · no server · no subscription*
+*GraphMind v1.2.0 · self-contained HTML · no server · no subscription*
