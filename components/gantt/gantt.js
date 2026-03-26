@@ -3,8 +3,12 @@
 const G = {
   dayW: 26, rowH: 36, headerH: 50,
   collapsed: new Set(), minDate: null, maxDate: null,
-  hitRects: []
+  hitRects: [], rows: []
 };
+
+// Drag state for right-edge stretch (persists across renders)
+let _ganttDrag = { active: false, nodeId: null, origEnd: null, origStart: null, startX: 0, lastDelta: 0, moved: false };
+let _ganttDragRAF = 0;
 
 function ganttZoom(dir) {
   const step = G.dayW < 16 ? 2 : G.dayW < 32 ? 4 : 8;
@@ -25,6 +29,13 @@ function daysBetween(a, b) {
 
 function parseDay(s) {
   return s ? new Date(s + 'T00:00:00') : null;
+}
+
+function toGMDDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
 }
 
 function getNodeRange(n) {
@@ -121,6 +132,7 @@ function renderGantt() {
   if (view.style.display === 'none') return;
 
   const rows = buildRows();
+  G.rows = rows; // stored for empty-row click handler
   const range = computeRange(rows);
   const emptyEl = document.getElementById('gantt-empty');
 
@@ -377,42 +389,110 @@ function renderGantt() {
   drawHeader(totalW, totalDays, scrollEl.scrollLeft || 0);
   updateGanttStats(rows);
 
-  // TOOLTIP + CLICK
+  // TOOLTIP + CLICK + STRETCH DRAG
+  const _showTip = (e, hit) => {
+    const tip = document.getElementById('gantt-tip');
+    if (!hit) { tip.style.opacity = '0'; return; }
+    const n = hit.n; const agg = aggregateMetrics(n.id); const pct = agg ? agg.avgCompletion : (n.completion || 0);
+    const overdue = n.deadline && parseDay(n.deadline) < today && n.status !== 'done';
+    let h = `<div class="gt-title">${esc(n.title || '(sin título)')}</div>`;
+    if (n.assignee) h += `<div class="gt-row"><span class="gt-k">Asignado</span><span class="gt-v">${esc(n.assignee)}</span></div>`;
+    if (n.start) h += `<div class="gt-row"><span class="gt-k">Inicio</span><span class="gt-v">${fmtDate(n.start)}</span></div>`;
+    if (n.end) h += `<div class="gt-row"><span class="gt-k">Fin</span><span class="gt-v">${fmtDate(n.end)}</span></div>`;
+    if (n.deadline) h += `<div class="gt-row"><span class="gt-k">Límite</span><span class="gt-v" style="color:${overdue ? 'var(--danger)' : 'var(--warn)'}">${fmtDate(n.deadline)}</span></div>`;
+    if (n.days || n.hours) h += `<div class="gt-row"><span class="gt-k">Horas</span><span class="gt-v">${fmtH(n.days || n.hours)}</span></div>`;
+    if (n.cost) h += `<div class="gt-row"><span class="gt-k">Coste</span><span class="gt-v">${fmtCur(n.cost)}</span></div>`;
+    if (agg) h += `<div class="gt-row"><span class="gt-k">Subtareas</span><span class="gt-v">${agg.done}/${agg.count} · €${agg.totalCost.toFixed(0)}</span></div>`;
+    const fillC = pct >= 80 ? '#6ee7b7' : pct >= 40 ? '#fbbf24' : '#60a5fa';
+    h += `<div class="gt-pb"><div class="gt-pf" style="width:${pct}%;background:${fillC}"></div></div>`;
+    tip.innerHTML = h;
+    const gv = document.getElementById('gantt-view');
+    const gvRect = gv.getBoundingClientRect();
+    let tx = e.clientX - gvRect.left + 14, ty = e.clientY - gvRect.top + 14;
+    if (tx + 244 > gvRect.width) tx = e.clientX - gvRect.left - 258;
+    if (ty + 160 > gvRect.height) ty = e.clientY - gvRect.top - 170;
+    tip.style.left = tx + 'px'; tip.style.top = ty + 'px'; tip.style.opacity = '1';
+  };
+
+  bCanvas.onmousedown = (e) => {
+    if (e.button !== 0) return;
+    const rect = bCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const hit = G.hitRects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
+    if (!hit) return;
+    const edgeX = hit.x + hit.w;
+    if (mx >= edgeX - 9) {
+      e.preventDefault();
+      _ganttDrag = { active: true, nodeId: hit.n.id, origEnd: hit.n.end, origStart: hit.n.start, startX: mx, lastDelta: 0, moved: false };
+      bCanvas.style.cursor = 'ew-resize';
+    }
+  };
+
   bCanvas.onmousemove = (e) => {
     const rect = bCanvas.getBoundingClientRect();
-    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-    const hit = G.hitRects.find(r=>mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h);
-    const tip = document.getElementById('gantt-tip');
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+
+    // — Drag: stretch right edge
+    if (_ganttDrag.active) {
+      const deltaX = mx - _ganttDrag.startX;
+      const deltaDays = Math.round(deltaX / G.dayW);
+      if (deltaDays !== _ganttDrag.lastDelta) {
+        _ganttDrag.lastDelta = deltaDays;
+        _ganttDrag.moved = Math.abs(deltaX) > 4;
+        const n = S.nodes.find(nd => nd.id === _ganttDrag.nodeId);
+        if (n) {
+          const base = parseDay(_ganttDrag.origEnd) || parseDay(_ganttDrag.origStart) || new Date();
+          const newEnd = new Date(base); newEnd.setDate(newEnd.getDate() + deltaDays);
+          const minEnd = parseDay(_ganttDrag.origStart) || newEnd;
+          if (newEnd >= minEnd) {
+            n.end = toGMDDate(newEnd);
+            cancelAnimationFrame(_ganttDragRAF);
+            _ganttDragRAF = requestAnimationFrame(renderGantt);
+          }
+        }
+      }
+      document.getElementById('gantt-tip').style.opacity = '0';
+      bCanvas.style.cursor = 'ew-resize';
+      return;
+    }
+
+    // — Hover: tooltip + cursor
+    const hit = G.hitRects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
     if (hit) {
-      const n=hit.n; const agg=aggregateMetrics(n.id); const pct=agg?agg.avgCompletion:(n.completion||0);
-      const overdue=n.deadline&&parseDay(n.deadline)<today&&n.status!=='done';
-      let h=`<div class="gt-title">${esc(n.title||'(sin título)')}</div>`;
-      if(n.assignee) h+=`<div class="gt-row"><span class="gt-k">Asignado</span><span class="gt-v">${esc(n.assignee)}</span></div>`;
-      if(n.start) h+=`<div class="gt-row"><span class="gt-k">Inicio</span><span class="gt-v">${fmtDate(n.start)}</span></div>`;
-      if(n.end) h+=`<div class="gt-row"><span class="gt-k">Fin</span><span class="gt-v">${fmtDate(n.end)}</span></div>`;
-      if(n.deadline) h+=`<div class="gt-row"><span class="gt-k">Límite</span><span class="gt-v" style="color:${overdue?'var(--danger)':'var(--warn)'}">${fmtDate(n.deadline)}</span></div>`;
-      if(n.days||n.hours) h+=`<div class="gt-row"><span class="gt-k">Horas</span><span class="gt-v">${fmtH(n.days||n.hours)}</span></div>`;
-      if(n.cost) h+=`<div class="gt-row"><span class="gt-k">Coste</span><span class="gt-v">${fmtCur(n.cost)}</span></div>`;
-      if(agg) h+=`<div class="gt-row"><span class="gt-k">Subtareas</span><span class="gt-v">${agg.done}/${agg.count} · €${agg.totalCost.toFixed(0)}</span></div>`;
-      const fillC=pct>=80?'#6ee7b7':pct>=40?'#fbbf24':'#60a5fa';
-      h+=`<div class="gt-pb"><div class="gt-pf" style="width:${pct}%;background:${fillC}"></div></div>`;
-      tip.innerHTML=h;
-      const gv = document.getElementById('gantt-view');
-      const gvRect = gv.getBoundingClientRect();
-      let tx = e.clientX - gvRect.left + 14;
-      let ty = e.clientY - gvRect.top + 14;
-      // keep in bounds
-      if (tx + 244 > gvRect.width) tx = e.clientX - gvRect.left - 258;
-      if (ty + 160 > gvRect.height) ty = e.clientY - gvRect.top - 170;
-      tip.style.left=tx+'px'; tip.style.top=ty+'px'; tip.style.opacity='1';
-      bCanvas.style.cursor='pointer';
-    } else { tip.style.opacity='0'; bCanvas.style.cursor='default'; }
+      const onEdge = mx >= hit.x + hit.w - 9;
+      bCanvas.style.cursor = onEdge ? 'ew-resize' : 'pointer';
+      _showTip(e, onEdge ? null : hit); // hide tooltip when on resize edge
+      if (onEdge) document.getElementById('gantt-tip').style.opacity = '0';
+    } else {
+      document.getElementById('gantt-tip').style.opacity = '0';
+      // Show click-hint cursor on empty rows that have a node
+      const rowIdx = Math.floor(my / G.rowH);
+      const row = G.rows[rowIdx];
+      bCanvas.style.cursor = (row && !row.grp && row.n && !getNodeRange(row.n)) ? 'cell' : 'default';
+    }
   };
-  bCanvas.onmouseleave=()=>{ document.getElementById('gantt-tip').style.opacity='0'; };
-  bCanvas.onclick=(e)=>{
-    const rect=bCanvas.getBoundingClientRect();
-    const hit=G.hitRects.find(r=>e.clientX-rect.left>=r.x&&e.clientX-rect.left<=r.x+r.w&&e.clientY-rect.top>=r.y&&e.clientY-rect.top<=r.y+r.h);
-    if(hit){ select(hit.n.id); switchView('editor'); }
+
+  bCanvas.onmouseleave = () => { document.getElementById('gantt-tip').style.opacity = '0'; };
+
+  bCanvas.onclick = (e) => {
+    if (_ganttDrag.moved) { _ganttDrag.moved = false; return; } // swallow click after drag
+    const rect = bCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const hit = G.hitRects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
+    if (hit) {
+      if (mx < hit.x + hit.w - 9) { select(hit.n.id); switchView('editor'); } // not on resize edge
+    } else {
+      // Empty area click: assign start date to that row's node
+      const rowIdx = Math.floor(my / G.rowH);
+      const row = G.rows[rowIdx];
+      if (!row || row.grp || !row.n) return;
+      const n = row.n;
+      const dayOffset = Math.floor(mx / G.dayW);
+      const clickDate = new Date(G.minDate); clickDate.setDate(clickDate.getDate() + dayOffset);
+      n.start = toGMDDate(clickDate);
+      if (!n.end) n.end = toGMDDate(clickDate);
+      autoSaveLS(); recalcAll(); renderGantt();
+    }
   };
 }
 
@@ -470,6 +550,21 @@ function gCollapse(id) {
   renderGantt();
 }
 
+
+// Commit stretch drag on mouseup (fires even if mouse left the canvas)
+document.addEventListener('mouseup', () => {
+  if (!_ganttDrag.active) return;
+  _ganttDrag.active = false;
+  cancelAnimationFrame(_ganttDragRAF);
+  const n = S.nodes.find(nd => nd.id === _ganttDrag.nodeId);
+  if (n && _ganttDrag.moved) {
+    autoSaveLS(); recalcAll(); renderGantt();
+  } else if (n && !_ganttDrag.moved) {
+    // tiny or no movement — revert to original end
+    n.end = _ganttDrag.origEnd;
+    renderGantt();
+  }
+});
 
 // ── ROTATE LOCK ──
 function checkOrientation() {
