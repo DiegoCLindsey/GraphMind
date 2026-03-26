@@ -63,13 +63,18 @@ function buildRows() {
     nodes.forEach(n => getDirectChildren(n.id).forEach(c => { if (ids.has(c.id)) hasParent.add(c.id); }));
     const roots = nodes.filter(n => !hasParent.has(n.id));
     const rows = [];
+    const visited = new Set(); // guard against multi-parent duplicates
     function walk(node, depth) {
+      if (visited.has(node.id)) return;
+      visited.add(node.id);
       rows.push({ n: node, depth, grp: false });
       if (!G.collapsed.has(node.id)) {
-        getDirectChildren(node.id).filter(c => ids.has(c.id)).forEach(c => walk(c, depth+1));
+        getDirectChildren(node.id).filter(c => ids.has(c.id)).forEach(c => walk(c, depth + 1));
       }
     }
     roots.forEach(r => walk(r, 0));
+    // Append any remaining nodes not reached (e.g. isolated cycles) at depth 0
+    nodes.forEach(n => { if (!visited.has(n.id)) rows.push({ n, depth: 0, grp: false }); });
     return rows;
   }
 
