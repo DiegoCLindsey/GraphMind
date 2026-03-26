@@ -1,0 +1,291 @@
+/* ── CONFIG VIEW ─────────────────────────────────────────────────────────── */
+#config-view {
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cfg-view-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--b1);
+  flex-shrink: 0;
+}
+.cfg-view-title {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--t1);
+}
+.cfg-view-hint {
+  font-size: 10px;
+  color: var(--t4);
+  font-family: var(--sans);
+}
+
+/* ── Tabs ── */
+.cfg-tabs {
+  display: flex;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--b1);
+  flex-shrink: 0;
+  background: var(--bg);
+}
+.cfg-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 8px 14px;
+  margin-bottom: -1px;
+  transition: color .1s, border-color .1s;
+}
+.cfg-tab:hover  { color: var(--t1); }
+.cfg-tab.on     { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Panel body ── */
+.cfg-tab-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.cfg-panel {
+  padding: 16px 20px;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.cfg-panel::-webkit-scrollbar       { width: 3px; }
+.cfg-panel::-webkit-scrollbar-thumb { background: var(--s4); border-radius: 2px; }
+
+.cfg-hint {
+  font-size: 10px;
+  color: var(--t3);
+  font-family: var(--sans);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.cfg-section-label {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--t4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+/* ── Status rows ── */
+.cfg-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 6px;
+  background: var(--s2);
+  border-radius: 7px;
+  padding: 7px 10px;
+  transition: background .1s;
+}
+.cfg-row:hover { background: var(--s3); }
+
+.cfg-color {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--b2);
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 2px;
+  background: none;
+  flex-shrink: 0;
+}
+.cfg-name {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--b2);
+  border-radius: 5px;
+  color: var(--t1);
+  font-size: 12px;
+  font-family: var(--sans);
+  padding: 5px 9px;
+  outline: none;
+  transition: border-color .1s;
+}
+.cfg-name:focus { border-color: rgba(110,231,183,.4); }
+
+.cfg-id-badge {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--t4);
+  background: var(--s4);
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.cfg-del {
+  background: none;
+  border: 1px solid var(--b2);
+  border-radius: 4px;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+  transition: color .1s, border-color .1s;
+}
+.cfg-del:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); }
+.cfg-del:disabled              { opacity: .3; cursor: not-allowed; }
+
+.cfg-add-btn {
+  margin-top: 10px;
+  background: none;
+  border: 1px dashed var(--b2);
+  border-radius: 6px;
+  color: var(--t3);
+  cursor: pointer;
+  font-size: 11px;
+  font-family: var(--sans);
+  padding: 7px 14px;
+  width: 100%;
+  transition: color .1s, border-color .1s;
+}
+.cfg-add-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── Type cards ── */
+.cfg-type-card {
+  background: var(--s2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background .1s;
+}
+.cfg-type-card:hover { background: var(--s3); }
+
+.cfg-type-row1, .cfg-type-row2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cfg-select {
+  background: var(--s3);
+  border: 1px solid var(--b2);
+  border-radius: 5px;
+  color: var(--t1);
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 4px 7px;
+  outline: none;
+  cursor: pointer;
+}
+.cfg-select:focus { border-color: rgba(110,231,183,.4); }
+
+.cfg-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-family: var(--sans);
+  color: var(--t2);
+  cursor: pointer;
+  user-select: none;
+}
+.cfg-toggle-label input[type=checkbox] { accent-color: var(--accent); }
+
+.cfg-color-pair {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--t3);
+  font-family: var(--sans);
+}
+
+/* ── Appearance ── */
+.cfg-theme-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.cfg-theme-btn {
+  flex: 1;
+  padding: 8px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: 7px;
+  color: var(--t2);
+  font-size: 11px;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: color .1s, border-color .1s, background .1s;
+}
+.cfg-theme-btn:hover { color: var(--t1); }
+.cfg-theme-btn.on {
+  border-color: rgba(110,231,183,.5);
+  background: rgba(110,231,183,.08);
+  color: var(--accent);
+}
+
+.cfg-tokens-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 12px;
+  background: var(--s2);
+  border-radius: 8px;
+}
+.cfg-token-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--t2);
+  font-family: var(--sans);
+}
+.cfg-token-label input[type=color] {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--b2);
+  border-radius: 5px;
+  cursor: pointer;
+  background: none;
+  padding: 2px;
+}
+
+.cfg-units-row     { display: flex; gap: 20px; }
+.cfg-unit-label    { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--t2); font-family: var(--sans); }
+.cfg-unit-label input {
+  width: 80px;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: 5px;
+  color: var(--t1);
+  font-size: 16px;
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 6px 10px;
+  outline: none;
+  text-align: center;
+  transition: border-color .1s;
+}
+.cfg-unit-label input:focus { border-color: rgba(110,231,183,.4); }
+.cfg-unit-preview { font-size: 9px; color: var(--t4); font-family: var(--mono); text-align: center; }
+
+/* ── Footer ── */
+.cfg-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid var(--b1);
+  flex-shrink: 0;
+  background: var(--bg);
+}

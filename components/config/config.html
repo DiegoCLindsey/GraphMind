@@ -1,0 +1,79 @@
+<div id="config-view" style="display:none">
+
+  <div class="cfg-view-header">
+    <span class="cfg-view-title">⚙ Configuración</span>
+    <span class="cfg-view-hint">Los cambios se aplican al pulsar "Guardar cambios"</span>
+  </div>
+
+  <div class="cfg-tabs">
+    <button class="cfg-tab on" data-tab="states" onclick="switchCfgTab(this,'states')">Estados</button>
+    <button class="cfg-tab" data-tab="types"  onclick="switchCfgTab(this,'types')">Tipos</button>
+    <button class="cfg-tab" data-tab="appearance" onclick="switchCfgTab(this,'appearance')">Apariencia</button>
+  </div>
+
+  <div class="cfg-tab-body">
+
+    <!-- ── ESTADOS ── -->
+    <div class="cfg-panel" id="cfg-panel-states">
+      <p class="cfg-hint">Define los estados posibles de una tarea. El <strong>id</strong> es inmutable y se usa en los datos existentes; solo edita nombre y color.</p>
+      <div id="cfg-statuses-list"></div>
+      <button class="cfg-add-btn" onclick="addCfgStatus()">+ Añadir estado</button>
+    </div>
+
+    <!-- ── TIPOS ── -->
+    <div class="cfg-panel" id="cfg-panel-types" style="display:none">
+      <p class="cfg-hint">Configura los tipos de nodo: nombre visible, forma e color en el grafo, y si <strong>agrupa hijos</strong> (como el tipo Proyecto).</p>
+      <div id="cfg-types-list"></div>
+      <button class="cfg-add-btn" onclick="addCfgType()">+ Añadir tipo</button>
+    </div>
+
+    <!-- ── APARIENCIA ── -->
+    <div class="cfg-panel" id="cfg-panel-appearance" style="display:none">
+
+      <div class="cfg-section-label">Tema de color</div>
+      <div class="cfg-theme-btns">
+        <button class="cfg-theme-btn" data-t="dark"   onclick="setCfgThemeDraft('dark'  )">🌑 Oscuro</button>
+        <button class="cfg-theme-btn" data-t="light"  onclick="setCfgThemeDraft('light' )">☀ Claro</button>
+        <button class="cfg-theme-btn" data-t="custom" onclick="setCfgThemeDraft('custom')">🎨 Personalizado</button>
+      </div>
+      <div id="cfg-custom-tokens" class="cfg-tokens-grid" style="display:none">
+        <label class="cfg-token-label">Fondo
+          <input type="color" id="cfg-tok-bg"      oninput="updateCfgToken('bg',this.value)">
+        </label>
+        <label class="cfg-token-label">Superficie
+          <input type="color" id="cfg-tok-surface"  oninput="updateCfgToken('surface',this.value)">
+        </label>
+        <label class="cfg-token-label">Color de acento
+          <input type="color" id="cfg-tok-accent"   oninput="updateCfgToken('accent',this.value)">
+        </label>
+        <label class="cfg-token-label">Texto principal
+          <input type="color" id="cfg-tok-text"     oninput="updateCfgToken('text',this.value)">
+        </label>
+      </div>
+
+      <div class="cfg-section-label" style="margin-top:22px">Unidades</div>
+      <div class="cfg-units-row">
+        <label class="cfg-unit-label">
+          Símbolo moneda
+          <input id="cfg-currency" type="text" maxlength="3" placeholder="€"
+                 oninput="updateCfgUnit('currency',this.value)">
+          <span class="cfg-unit-preview" id="cfg-currency-preview"></span>
+        </label>
+        <label class="cfg-unit-label">
+          Unidad duración
+          <input id="cfg-duration" type="text" maxlength="3" placeholder="d"
+                 oninput="updateCfgUnit('durationUnit',this.value)">
+          <span class="cfg-unit-preview" id="cfg-duration-preview"></span>
+        </label>
+      </div>
+
+    </div>
+
+  </div><!-- /cfg-tab-body -->
+
+  <div class="cfg-actions">
+    <button class="btn-s" onclick="resetCfgToDefaults()">↺ Restaurar defaults</button>
+    <button class="btn-p" onclick="saveCfg()">✓ Guardar cambios</button>
+  </div>
+
+</div>
