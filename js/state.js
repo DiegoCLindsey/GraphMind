@@ -1,6 +1,8 @@
 ﻿// ══════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════
+const APP_VERSION = '1.0.0';
+
 let S = { nodes: [], currentId: null };
 let activeFilter = 'all';
 let connType = 'related';
