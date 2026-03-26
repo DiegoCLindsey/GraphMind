@@ -114,16 +114,17 @@ function setFilter(el) {
 let currentView = 'editor';
 function switchView(v) {
   currentView = v;
-  document.getElementById('editor-view').style.display  = v==='editor' ?'flex':'none';
-  document.getElementById('graph-view').style.display   = v==='graph'  ?'flex':'none';
-  document.getElementById('gantt-view').style.display   = v==='gantt'  ?'flex':'none';
-  document.getElementById('help-view').style.display    = v==='help'   ?'flex':'none';
-  document.getElementById('config-view').style.display  = v==='config' ?'flex':'none';
-  document.getElementById('tab-e').classList.toggle('on',      v==='editor');
-  document.getElementById('tab-g').classList.toggle('on',      v==='graph');
-  document.getElementById('tab-gantt').classList.toggle('on',  v==='gantt');
-  document.getElementById('tab-help').classList.toggle('on',   v==='help');
-  document.getElementById('tab-cfg').classList.toggle('on',    v==='config');
+  const show = id => { const el = document.getElementById(id); if (el) el.style.display = 'flex'; };
+  const hide = id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+  const views = { 'editor':'editor-view', 'graph':'graph-view', 'gantt':'gantt-view', 'help':'help-view', 'config':'config-view' };
+  Object.values(views).forEach(hide);
+  if (views[v]) show(views[v]);
+  document.getElementById('tab-e').classList.toggle('on',     v==='editor');
+  document.getElementById('tab-g').classList.toggle('on',     v==='graph');
+  document.getElementById('tab-gantt').classList.toggle('on', v==='gantt');
+  document.getElementById('tab-help').classList.toggle('on',  v==='help');
+  const tabCfg = document.getElementById('tab-cfg');
+  if (tabCfg) tabCfg.classList.toggle('on', v==='config');
   if (v==='graph')  renderGraph();
   if (v==='gantt')  setTimeout(renderGantt, 30);
   if (v==='config') renderCfgPanel();
