@@ -1,0 +1,16 @@
+﻿<div id="topbar">
+  <button id="hamburger" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:var(--t2);cursor:pointer;font-size:20px;padding:2px 8px;border-radius:5px;line-height:1;flex-shrink:0">☰</button>
+  <span id="logo">⬡ <span class="logo-text">GraphMind</span></span>
+  <span class="vdiv"></span>
+  <button class="tab on" id="tab-e" onclick="switchView('editor')"><span class="tab-icon">✎</span><span class="tab-label"> Tareas</span></button>
+  <button class="tab" id="tab-g" onclick="switchView('graph')"><span class="tab-icon">⬡</span><span class="tab-label"> Grafo</span></button>
+  <button class="tab" id="tab-gantt" onclick="switchView('gantt')"><span class="tab-icon">▤</span><span class="tab-label"> Gantt</span></button>
+  <button class="tab" id="tab-help" onclick="switchView('help')"><span class="tab-icon">?</span></button>
+  <div class="spacer"></div>
+  <span id="note-count">0 nodos</span>
+  <span class="vdiv tb-only"></span>
+  <button class="tbtn tb-only" onclick="recalcAll()" title="Recalcular todos los padres" style="color:var(--accent)">↻ <span class="tbtn-label">Recalcular</span></button>
+  <span class="vdiv tb-only"></span>
+  <button class="tbtn" onclick="openIO('export')" title="Exportar JSON"><span class="tbtn-icon">↑</span><span class="tbtn-label"> Exportar</span></button>
+  <button class="tbtn" onclick="openIO('import')" title="Importar JSON"><span class="tbtn-icon">↓</span><span class="tbtn-label"> Importar</span></button>
+</div>

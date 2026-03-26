@@ -1,0 +1,26 @@
+﻿/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .15s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:11px;padding:18px;width:420px;max-width:92vw;max-height:85vh;overflow-y:auto}
+.modal::-webkit-scrollbar{width:3px}
+.modal::-webkit-scrollbar-thumb{background:var(--s4)}
+.modal h3{font-size:14px;font-weight:600;margin-bottom:14px}
+.modal textarea,.modal input[type=text],.modal input[type=number]{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:7px 10px;color:var(--t1);font-size:12px;font-family:var(--sans);outline:none;margin-bottom:9px}
+.modal textarea{resize:vertical;min-height:70px}
+.modal textarea:focus,.modal input:focus{border-color:rgba(110,231,183,0.35)}
+.modal-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:8px}
+.btn-p{padding:6px 15px;background:var(--accent);color:#000;border:none;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);transition:opacity .12s}
+.btn-p:hover{opacity:.85}
+.btn-s{padding:6px 15px;background:transparent;color:var(--t2);border:1px solid var(--b2);border-radius:5px;cursor:pointer;font-size:11px;font-family:var(--sans)}
+.btn-s:hover{color:var(--t1)}
+#conn-pick-list{max-height:220px;overflow-y:auto;border:1px solid var(--b1);border-radius:6px;margin-bottom:10px}
+.cpi{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--b1);font-size:12px;display:flex;align-items:center;gap:8px;transition:.1s background}
+.cpi:last-child{border-bottom:none}
+.cpi:hover{background:var(--s2)}
+.cpi.sel{background:rgba(110,231,183,0.07)}
+.cpi .ck{color:var(--accent);font-weight:700}
+.io-ta{font-family:var(--mono)!important;font-size:10px!important;min-height:140px!important}
+/* relationship type selector */
+.conn-type-row{display:flex;gap:6px;margin:4px 0 8px}
+.ct-btn{flex:1;padding:5px;border-radius:5px;border:1px solid var(--b2);background:transparent;color:var(--t3);font-size:10px;font-family:var(--sans);cursor:pointer;transition:.1s;text-align:center}
+.ct-btn.on{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.1);color:var(--accent2)}

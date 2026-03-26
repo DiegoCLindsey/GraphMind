@@ -1,0 +1,4 @@
+﻿/* ── HELP ── */
+#help-view{flex:1;overflow-y:auto;display:none;flex-direction:column}
+#help-view::-webkit-scrollbar{width:5px}
+#help-view::-webkit-scrollbar-thumb{background:var(--s4);border-radius:3px}
