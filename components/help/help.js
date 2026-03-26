@@ -5,7 +5,7 @@
 //  the result into #help-content.
 // ══════════════════════════════════════════════════════
 
-const _helpCache = window._helpCache = {};  // locale → rendered HTML string
+const _helpCache = {};  // locale → rendered HTML string
 
 async function renderHelp() {
   const locale = (typeof getLocale === 'function') ? getLocale() : 'es';
