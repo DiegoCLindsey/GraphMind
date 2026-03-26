@@ -59,6 +59,8 @@
 
   // DOM listo — conectar listeners y arrancar
   setupListeners();
+  applyTranslations();   // i18n: traduce todos los data-i18n del DOM
+  _updateLangBtn();      // i18n: sincroniza el botón de idioma
   applyTheme();
   populateEditorSelects();   // debe ir antes de init() para que renderEditor tenga opciones
   renderStatusFilterButtons();

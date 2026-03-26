@@ -83,8 +83,8 @@ function calcEndFromDuration(n) {
 function deleteNode() {
   if (!S.currentId) return;
   const n = getCurrent();
-  const title = n?.title || '(sin título)';
-  if (!confirm(`¿Eliminar "${title}"? Esta acción no se puede deshacer.`)) return;
+  const title = n?.title || t('common.untitled');
+  if (!confirm(t('common.confirm_delete').replace('{title}', title))) return;
   const delId = S.currentId;
   S.nodes = S.nodes.filter(n => n.id !== delId);
   S.nodes.forEach(n => { n.connections = n.connections.filter(c => c !== delId); delete n.connTypes[delId]; });

@@ -1,13 +1,13 @@
 ﻿<div id="sidebar">
-  <div id="sb-search"><input id="search" placeholder="Buscar..." oninput="renderList()"></div>
+  <div id="sb-search"><input id="search" data-i18n-placeholder="sidebar.search_placeholder" placeholder="Buscar..." oninput="renderList()"></div>
   <div id="sb-filter">
-    <button class="sf on" data-f="all" onclick="setFilter(this)">Todo</button>
+    <button class="sf on" data-f="all" onclick="setFilter(this)" data-i18n="sidebar.filter_all">Todo</button>
     <button class="sf" data-f="todo" onclick="setFilter(this)">Pendiente</button>
     <button class="sf" data-f="doing" onclick="setFilter(this)">En curso</button>
     <button class="sf" data-f="done" onclick="setFilter(this)">Hecho</button>
     <button class="sf" data-f="blocked" onclick="setFilter(this)">Bloqueado</button>
   </div>
   <div id="node-list"></div>
-  <div id="sb-footer"><button id="new-btn" onclick="newNode()">+ Nueva tarea</button></div>
+  <div id="sb-footer"><button id="new-btn" onclick="newNode()" data-i18n="sidebar.new_task">+ Nueva tarea</button></div>
 </div>
 <div id="sidebar-backdrop" onclick="toggleSidebar()"></div>

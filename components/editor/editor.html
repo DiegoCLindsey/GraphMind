@@ -2,7 +2,7 @@
 
   <div id="empty-state">
     <div class="ei">⬡</div>
-    <p style="font-size:12px">Selecciona o crea una tarea</p>
+    <p style="font-size:12px" data-i18n="editor.empty_state">Selecciona o crea una tarea</p>
   </div>
 
   <div id="node-editor">
@@ -10,7 +10,7 @@
     <!-- EDITOR HEADER -->
     <div id="eh">
       <div id="eh-row1">
-        <input id="node-title" type="text" placeholder="Título de la tarea..." oninput="saveNode()">
+        <input id="node-title" type="text" data-i18n-placeholder="editor.title_placeholder" placeholder="Título de la tarea..." oninput="saveNode()">
         <select id="type-select"   onchange="saveNode(); renderAgg()"></select>
         <select id="status-select" onchange="saveNode(); renderList()"></select>
       </div>
@@ -26,41 +26,41 @@
       </button>
       <div id="metrics-grid">
         <div class="mfield">
-          <label>Asignado a</label>
+          <label data-i18n="editor.field_assignee">Asignado a</label>
           <input id="f-assignee" type="text" placeholder="Nombre..." oninput="saveNode()">
         </div>
         <div class="mfield">
-          <label>Fecha inicio</label>
+          <label data-i18n="editor.field_start">Fecha inicio</label>
           <input id="f-start" type="date" oninput="saveNode()">
         </div>
         <div class="mfield">
-          <label>Fecha fin</label>
+          <label data-i18n="editor.field_end">Fecha fin</label>
           <input id="f-end" type="date" oninput="saveNode()">
         </div>
         <div class="mfield">
-          <label>Fecha límite</label>
+          <label data-i18n="editor.field_deadline">Fecha límite</label>
           <input id="f-deadline" type="date" oninput="saveNode()">
         </div>
         <div class="mfield">
-          <label>Duración (días)</label>
+          <label data-i18n="editor.field_duration">Duración (días)</label>
           <input id="f-hours" type="number" min="0" step="0.5" placeholder="0.0" oninput="onDurationChange()">
         </div>
         <div class="mfield">
-          <label>Coste est. (€)</label>
+          <label data-i18n="editor.field_cost">Coste est. (€)</label>
           <input id="f-cost" type="number" min="0" step="0.01" placeholder="0.00" oninput="saveNode(); renderAgg()">
         </div>
         <div class="mfield">
-          <label>Completitud (%)</label>
+          <label data-i18n="editor.field_progress">Completitud (%)</label>
           <input id="f-completion" type="number" min="0" max="100" step="1" placeholder="0" oninput="saveNode(); renderList()">
         </div>
         <div class="mfield">
-          <label>Prioridad</label>
+          <label data-i18n="editor.field_priority">Prioridad</label>
           <select id="f-priority" onchange="saveNode()">
             <option value="">—</option>
-            <option value="low">Baja</option>
-            <option value="medium">Media</option>
-            <option value="high">Alta</option>
-            <option value="critical">Crítica</option>
+            <option value="low" data-i18n="editor.priority_low">Baja</option>
+            <option value="medium" data-i18n="editor.priority_medium">Media</option>
+            <option value="high" data-i18n="editor.priority_high">Alta</option>
+            <option value="critical" data-i18n="editor.priority_critical">Crítica</option>
           </select>
         </div>
       </div>
@@ -68,10 +68,10 @@
       <div id="eh-snap-bar" onclick="toggleEhSnap()"></div>
       <!-- AGGREGATED FROM CHILDREN -->
       <div id="agg-bar">
-        <div class="agg-title" style="display:flex;align-items:center;gap:8px">Agregado de hijos ▾ <span id="agg-cp-badge" style="display:none;font-size:9px;padding:1px 7px;border-radius:20px;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.35);color:var(--danger);font-family:var(--mono)">CAMINO CRÍTICO</span></div>
+        <div class="agg-title" style="display:flex;align-items:center;gap:8px"><span data-i18n="editor.agg_title">Agregado de hijos</span> ▾ <span id="agg-cp-badge" style="display:none;font-size:9px;padding:1px 7px;border-radius:20px;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.35);color:var(--danger);font-family:var(--mono)">CAMINO CRÍTICO</span></div>
         <div id="agg-metrics"></div>
         <div id="agg-progress-wrap">
-          <div id="agg-progress-label"><span>Progreso conjunto</span><span id="agg-pct">0%</span></div>
+          <div id="agg-progress-label"><span data-i18n="editor.agg_progress">Progreso conjunto</span><span id="agg-pct">0%</span></div>
           <div id="agg-progress-bar"><div id="agg-progress-fill" style="width:0%"></div></div>
         </div>
       </div>
@@ -79,23 +79,28 @@
 
     <!-- CONNECTIONS -->
     <div id="conn-row">
-      <span class="conn-lbl">Conexiones</span>
+      <span class="conn-lbl" data-i18n="editor.connections_label">Conexiones</span>
       <div id="conn-display"></div>
-      <button class="cp" onclick="openConnModal()" style="border-style:dashed;font-size:10px">+ enlazar</button>
+      <button class="cp" onclick="openConnModal()" style="border-style:dashed;font-size:10px" data-i18n="editor.connect_btn">+ enlazar</button>
     </div>
 
     <!-- BODY + COMMENTS -->
     <div id="editor-body-area">
       <div id="body-wrap">
-        <textarea id="node-body" placeholder="Descripción, notas, contexto..." rows="4" oninput="saveNode()"></textarea>
+        <div id="body-toolbar">
+          <button class="body-mode-btn on" id="body-edit-btn" onclick="switchBodyMode('edit')" data-i18n="editor.edit_btn">Editar</button>
+          <button class="body-mode-btn" id="body-preview-btn" onclick="switchBodyMode('preview')" data-i18n="editor.preview_btn">Vista previa</button>
+        </div>
+        <textarea id="node-body" data-i18n-placeholder="editor.md_placeholder" placeholder="Descripción, notas, contexto... (Markdown soportado)" rows="4" oninput="saveNode()"></textarea>
+        <div id="body-preview" class="md-render" style="display:none"></div>
       </div>
       <div id="comments-section">
-        <div id="comments-title">Comentarios</div>
+        <div id="comments-title" data-i18n="editor.comments_title">Comentarios</div>
         <div id="comments-list"></div>
         <div id="new-comment">
-          <input id="comment-author-inp" type="text" placeholder="Tu nombre">
-          <textarea id="comment-inp" rows="2" placeholder="Añadir comentario..."></textarea>
-          <button id="add-comment-btn" onclick="addComment()">Enviar</button>
+          <input id="comment-author-inp" type="text" data-i18n-placeholder="editor.comment_author_ph" placeholder="Tu nombre">
+          <textarea id="comment-inp" rows="2" data-i18n-placeholder="editor.comment_ph" placeholder="Añadir comentario..."></textarea>
+          <button id="add-comment-btn" onclick="addComment()" data-i18n="editor.comment_send">Enviar</button>
         </div>
       </div>
     </div>
@@ -105,7 +110,7 @@
       <span id="sb-updated"></span>
       <span id="sb-save-indicator" style="font-size:10px;font-family:var(--mono);color:var(--accent);opacity:0;transition:opacity .4s;margin-left:8px"></span>
       <div class="spacer"></div>
-      <button id="del-node-btn" onclick="deleteNode()" style="color:var(--danger)">✕ Borrar tarea</button>
+      <button id="del-node-btn" onclick="deleteNode()" style="color:var(--danger)" data-i18n="editor.delete_task">✕ Borrar tarea</button>
     </div>
   </div><!-- /node-editor -->
 </div><!-- /editor-view -->

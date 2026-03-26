@@ -149,7 +149,7 @@ function recalcAll() {
   renderList();
   renderEditor();
   autoSaveLS();
-  showIndicator('✓ Recalculado');
+  showIndicator(t('common.recalculated'));
 }
 
 function renderAgg() {
@@ -160,11 +160,11 @@ function renderAgg() {
   if (!metrics) { agg.style.display = 'none'; return; }
   agg.style.display = 'block';
   document.getElementById('agg-metrics').innerHTML = `
-    <div class="agg-m"><div class="av" style="color:var(--accent2)">${metrics.count}</div><div class="al">subtareas</div></div>
-    <div class="agg-m"><div class="av" style="color:var(--accent)">${metrics.done}</div><div class="al">completadas</div></div>
-    <div class="agg-m"><div class="av" style="color:var(--info)">${fmtH(metrics.totalHours.toFixed(1))}</div><div class="al">tiempo total</div></div>
-    <div class="agg-m"><div class="av" style="color:var(--warn)">${fmtCur(metrics.totalCost.toFixed(2))}</div><div class="al">coste total</div></div>
-    ${metrics.overdue ? `<div class="agg-m"><div class="av" style="color:var(--danger)">${metrics.overdue}</div><div class="al">vencidas</div></div>` : ''}
+    <div class="agg-m"><div class="av" style="color:var(--accent2)">${metrics.count}</div><div class="al">${t('editor.agg_subtasks')}</div></div>
+    <div class="agg-m"><div class="av" style="color:var(--accent)">${metrics.done}</div><div class="al">${t('editor.agg_done')}</div></div>
+    <div class="agg-m"><div class="av" style="color:var(--info)">${fmtH(metrics.totalHours.toFixed(1))}</div><div class="al">${t('editor.agg_time')}</div></div>
+    <div class="agg-m"><div class="av" style="color:var(--warn)">${fmtCur(metrics.totalCost.toFixed(2))}</div><div class="al">${t('editor.agg_cost')}</div></div>
+    ${metrics.overdue ? `<div class="agg-m"><div class="av" style="color:var(--danger)">${metrics.overdue}</div><div class="al">${t('editor.agg_overdue')}</div></div>` : ''}
   `;
   document.getElementById('agg-pct').textContent = metrics.avgCompletion + '%';
   // Critical path indicator

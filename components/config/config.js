@@ -54,7 +54,7 @@ function addCfgStatus() {
 function deleteCfgStatus(id) {
   if (_cfgDraft.statuses.length <= 1) return;
   const inUse = S.nodes.some(n => n.status === id);
-  if (inUse && !confirm(`El estado "${id}" está en uso en una o más tareas. ¿Eliminar igualmente?`)) return;
+  if (inUse && !confirm(t('config.confirm_del_status').replace('{id}', id))) return;
   _cfgDraft.statuses = _cfgDraft.statuses.filter(s => s.id !== id);
   renderCfgStatuses();
 }
@@ -113,7 +113,7 @@ function addCfgType() {
 function deleteCfgType(id) {
   if (_cfgDraft.types.length <= 1) return;
   const inUse = S.nodes.some(n => n.type === id);
-  if (inUse && !confirm(`El tipo "${id}" está en uso en una o más tareas. ¿Eliminar igualmente?`)) return;
+  if (inUse && !confirm(t('config.confirm_del_type').replace('{id}', id))) return;
   _cfgDraft.types = _cfgDraft.types.filter(t => t.id !== id);
   renderCfgTypes();
 }
@@ -196,11 +196,11 @@ function saveCfg() {
   renderStatusFilterButtons();
   renderList();
   renderEditor();
-  showIndicator('⚙ Configuración guardada');
+  showIndicator(t('config.saved'));
 }
 
 function resetCfgToDefaults() {
-  if (!confirm('¿Restaurar todos los ajustes a los valores por defecto?')) return;
+  if (!confirm(t('config.confirm_reset'))) return;
   _cfgDraft = JSON.parse(JSON.stringify(CFG_DEFAULTS));
   renderCfgStatuses();
   renderCfgTypes();

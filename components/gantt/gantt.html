@@ -1,41 +1,41 @@
 ﻿<div id="gantt-view">
   <div id="gantt-toolbar">
     <!-- Desktop controls -->
-    <span class="gt-label gt-desktop">Zoom</span>
+    <span class="gt-label gt-desktop" data-i18n="gantt.zoom_label">Zoom</span>
     <button class="gt-zoom-btn" onclick="ganttZoom(-1)">−</button>
     <button class="gt-zoom-btn" onclick="ganttZoom(1)">+</button>
     <span class="vdiv gt-desktop"></span>
-    <span class="gt-label gt-desktop">Agrupar</span>
+    <span class="gt-label gt-desktop" data-i18n="gantt.group_label">Agrupar</span>
     <select id="gantt-group-select" class="gt-desktop" onchange="renderGantt()">
-      <option value="flat">Plano</option>
-      <option value="hierarchy" selected>Jerarquía</option>
-      <option value="assignee">Asignado</option>
-      <option value="tag">Tag</option>
+      <option value="flat" data-i18n="gantt.group_flat">Plano</option>
+      <option value="hierarchy" selected data-i18n="gantt.group_hierarchy">Jerarquía</option>
+      <option value="assignee" data-i18n="gantt.group_assignee">Asignado</option>
+      <option value="tag" data-i18n="gantt.group_tag">Tag</option>
     </select>
     <span class="vdiv gt-desktop"></span>
-    <span class="gt-label gt-desktop">Filtrar</span>
+    <span class="gt-label gt-desktop" data-i18n="gantt.filter_label">Filtrar</span>
     <select id="gantt-filter-select" class="gt-desktop" onchange="renderGantt()">
-      <option value="all">Todo</option>
+      <option value="all" data-i18n="gantt.filter_all">Todo</option>
       <option value="todo">Pendiente</option>
       <option value="doing">En curso</option>
       <option value="done">Hecho</option>
       <option value="blocked">Bloqueado</option>
     </select>
     <span class="vdiv gt-desktop"></span>
-    <button id="gantt-today-btn" onclick="ganttScrollToday()">Hoy</button>
+    <button id="gantt-today-btn" onclick="ganttScrollToday()" data-i18n="gantt.today_btn">Hoy</button>
     <!-- Mobile: config button -->
-    <button id="gantt-cfg-btn" onclick="openGanttSheet()">⚙ Config</button>
+    <button id="gantt-cfg-btn" onclick="openGanttSheet()" data-i18n="gantt.cfg_btn">⚙ Config</button>
     <div id="gantt-stats">
-      <span class="g-stat">Tareas: <span id="gs-count">0</span></span>
-      <span class="g-stat gt-desktop">Días: <span id="gs-hours">0d</span></span>
-      <span class="g-stat gt-desktop">Coste: <span id="gs-cost">€0</span></span>
-      <span class="g-stat">Progreso: <span id="gs-pct">0%</span></span>
+      <span class="g-stat"><span data-i18n="gantt.gs_tasks">Tareas</span>: <span id="gs-count">0</span></span>
+      <span class="g-stat gt-desktop"><span data-i18n="gantt.gs_days">Días</span>: <span id="gs-hours">0d</span></span>
+      <span class="g-stat gt-desktop"><span data-i18n="gantt.gs_cost">Coste</span>: <span id="gs-cost">€0</span></span>
+      <span class="g-stat"><span data-i18n="gantt.gs_progress">Progreso</span>: <span id="gs-pct">0%</span></span>
     </div>
   </div>
   <div id="gantt-body">
     <!-- Left sticky label panel -->
     <div id="gantt-left">
-      <div id="gantt-left-header"><span class="gantt-left-title">Tarea / Proyecto</span><button id="gantt-toggle-tree" onclick="toggleGanttTree()" title="Colapsar panel">◀</button></div>
+      <div id="gantt-left-header"><span class="gantt-left-title" data-i18n="gantt.col_task">Tarea / Proyecto</span><button id="gantt-toggle-tree" onclick="toggleGanttTree()" title="Colapsar panel">◀</button></div>
       <div id="gantt-rows-left">
         <div id="gantt-rows-inner"></div>
       </div>
@@ -57,9 +57,9 @@
   <div id="gantt-chart-scroll" style="display:none"></div>
   <div id="gantt-empty">
     <div style="font-size:28px;opacity:.2;font-family:var(--mono)">⬡</div>
-    <p style="font-size:13px">Ninguna tarea tiene fechas asignadas</p>
-    <p style="font-size:11px">Añade fechas inicio/fin en el editor</p>
+    <p style="font-size:13px" data-i18n="gantt.empty_line1">Ninguna tarea tiene fechas asignadas</p>
+    <p style="font-size:11px" data-i18n="gantt.empty_line2">Añade fechas inicio/fin en el editor</p>
   </div>
   <div id="gantt-tip"></div>
-  <div id="gantt-rotate-prompt"><div class="rp-icon">⟳</div><p>El Gantt se ve mejor en modo horizontal</p><small>Gira el dispositivo o amplía la ventana</small></div>
+  <div id="gantt-rotate-prompt"><div class="rp-icon">⟳</div><p data-i18n="gantt.rotate_title">El Gantt se ve mejor en modo horizontal</p><small data-i18n="gantt.rotate_sub">Gira el dispositivo o amplía la ventana</small></div>
 </div>

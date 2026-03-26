@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GraphMind v1.1.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<!-- Markdown + Mermaid -->
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <!-- Base: design tokens, reset, layout -->
 <link rel="stylesheet" href="css/base.css">
@@ -26,6 +29,28 @@
 <div id="app">
   <div id="main"></div>
 </div>
+
+<!-- i18n: motor primero, luego todos los archivos de idioma -->
+<script src="i18n/engine.js"></script>
+<script src="i18n/es/common.js"></script>
+<script src="i18n/es/topbar.js"></script>
+<script src="i18n/es/sidebar.js"></script>
+<script src="i18n/es/editor.js"></script>
+<script src="i18n/es/graph.js"></script>
+<script src="i18n/es/gantt.js"></script>
+<script src="i18n/es/modals.js"></script>
+<script src="i18n/es/config.js"></script>
+<script src="i18n/en/common.js"></script>
+<script src="i18n/en/topbar.js"></script>
+<script src="i18n/en/sidebar.js"></script>
+<script src="i18n/en/editor.js"></script>
+<script src="i18n/en/graph.js"></script>
+<script src="i18n/en/gantt.js"></script>
+<script src="i18n/en/modals.js"></script>
+<script src="i18n/en/config.js"></script>
+
+<!-- Markdown/Mermaid helper -->
+<script src="js/markdown.js"></script>
 
 <!-- Core: estado global, datos, cálculos (sin componente) -->
 <script src="js/defaults.js"></script>
