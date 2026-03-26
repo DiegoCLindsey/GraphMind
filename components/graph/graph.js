@@ -326,13 +326,33 @@ function renderGraph() {
     }
   });
 
-  // main circle
-  nodeG.append('circle')
-    .attr('class', 'node-main-circle')
-    .attr('r', nRadius)
-        .attr('fill', d=>statusColor(d.status)+'33')
-    .attr('stroke', d=>d.id===S.currentId?'#f0f0f0':statusColor(d.status))
-    .attr('stroke-width', d=>d.id===S.currentId?2:1);
+  // main shape — circle / rect / diamond driven by typeConfig
+  nodeG.each(function(d) {
+    const r      = nRadius(d);
+    const tCfg   = typeConfig(d.type);
+    const fill   = statusColor(d.status) + '33';
+    const stroke = d.id === S.currentId ? '#f0f0f0' : (tCfg.borderColor || statusColor(d.status));
+    const sw     = d.id === S.currentId ? 2 : 1;
+    const el     = d3.select(this);
+    if (tCfg.shape === 'rect') {
+      const w = r * 2.4, h = r * 1.7;
+      el.append('rect')
+        .attr('class','node-main-circle')
+        .attr('x',-w/2).attr('y',-h/2).attr('width',w).attr('height',h).attr('rx',4)
+        .attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw);
+    } else if (tCfg.shape === 'diamond') {
+      const s = r * 1.4;
+      el.append('polygon')
+        .attr('class','node-main-circle')
+        .attr('points',`0,${-s} ${s},0 0,${s} ${-s},0`)
+        .attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw);
+    } else {
+      el.append('circle')
+        .attr('class','node-main-circle')
+        .attr('r',r)
+        .attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw);
+    }
+  });
 
   _nodeG = nodeG; // expose for highlight updates
 
