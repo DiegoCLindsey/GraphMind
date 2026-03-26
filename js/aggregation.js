@@ -1,20 +1,6 @@
 ﻿// ══════════════════════════════════════════════════════
 //  AGGREGATION
 // ══════════════════════════════════════════════════════
-function getChildren(nodeId) {
-  const n = S.nodes.find(x => x.id === nodeId);
-  if (!n) return [];
-  // direct children: nodes where this node marked them as "child", OR nodes that marked this as "parent"
-  return S.nodes.filter(c =>
-    (n.connTypes[c.id] === 'child' || n.connTypes[c.id] === 'parent')
-    // "this is parent" from n's side means c is child
-    // but also if c says this is their parent:
-    || (c.connections.includes(nodeId) && c.connTypes[nodeId] === 'child')
-    || (c.connections.includes(nodeId) && c.connTypes[nodeId] === 'parent' && n.connections.includes(c.id) && n.connTypes[c.id] === 'parent')
-  );
-}
-
-// Simpler: children = nodes connected where relationship type indicates hierarchy
 function getDirectChildren(nodeId) {
   const n = S.nodes.find(x => x.id === nodeId);
   if (!n) return [];
@@ -135,13 +121,8 @@ function computeCriticalPath() {
   return path;
 }
 
-// Recalculate all parent nodes' derived fields bottom-up
-function recalcAll() {
-  // Process in topological order (leaves first)
-  const inDeg = {};
-  S.nodes.forEach(n => inDeg[n.id] = 0);
-  S.nodes.forEach(n => getDirectChildren(n.id).forEach(c => { inDeg[n.id] = (inDeg[n.id]||0) + 0; }));
-  // BFS from leaves
+// Pure data mutation: recalculates all parent nodes' derived fields bottom-up (no DOM)
+function recalcMetrics() {
   const visited = new Set();
   function processNode(id) {
     if (visited.has(id)) return;
@@ -150,7 +131,6 @@ function recalcAll() {
     children.forEach(c => processNode(c.id)); // recurse children first
     const n = S.nodes.find(x => x.id === id);
     if (!n || !children.length) return;
-    // Aggregate from children
     const agg = aggregateMetrics(id);
     if (!agg) return;
     n.days = agg.totalHours.toFixed(1);
@@ -161,13 +141,15 @@ function recalcAll() {
     n.updated = new Date().toISOString();
   }
   S.nodes.forEach(n => processNode(n.id));
-  // Re-render everything
+}
+
+// Recalculate all parent nodes' derived fields, then re-render
+function recalcAll() {
+  recalcMetrics();
   renderList();
   renderEditor();
   autoSaveLS();
-  // Flash indicator
-  const ind = document.getElementById('sb-save-indicator');
-  if (ind) { ind.textContent = '✓ Recalculado'; ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 2000); }
+  showIndicator('✓ Recalculado');
 }
 
 function renderAgg() {
@@ -197,6 +179,6 @@ function renderAgg() {
   }
   document.getElementById('agg-progress-fill').style.width = metrics.avgCompletion + '%';
   const fillEl = document.getElementById('agg-progress-fill');
-  fillEl.style.background = metrics.avgCompletion >= 80 ? 'var(--accent)' : metrics.avgCompletion >= 40 ? 'var(--warn)' : 'var(--info)';
+  fillEl.style.background = progressColor(metrics.avgCompletion);
 }
 

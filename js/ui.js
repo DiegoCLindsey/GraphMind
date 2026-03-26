@@ -92,13 +92,14 @@ function toggleEhSnap(force) {
 function attachEditorScroll() {
   const area = document.getElementById('editor-body-area');
   if (!area) return;
-  let lastScrollY = 0;
   area.addEventListener('scroll', () => {
     if (window.innerWidth > 768) return;
     const sy = area.scrollTop;
+    // Snap editor header at 60px
     if (sy > 60 && !ehSnapped) toggleEhSnap(true);
     if (sy < 10 && ehSnapped)  toggleEhSnap(false);
-    lastScrollY = sy;
+    // Auto-collapse metrics at 20px (via toggleMetrics para mantener el estado sincronizado)
+    if (sy > 20 && !metricsCollapsed) toggleMetrics();
   }, { passive: true });
 }
 

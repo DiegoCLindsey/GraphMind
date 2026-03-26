@@ -5,10 +5,9 @@ const LS_KEY = 'graphmind_session';
 
 function saveToLS() {
   try {
-    const data = JSON.stringify({ version:'1.0.0', nodes: S.nodes, tagColorMap, tci });
+    const data = JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci });
     localStorage.setItem(LS_KEY, data);
-    const ind = document.getElementById('sb-save-indicator');
-    if (ind) { ind.textContent = '💾 Guardado'; ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 2000); }
+    showIndicator('💾 Guardado');
   } catch(e) { alert('Error al guardar: ' + e.message); }
 }
 
@@ -18,13 +17,9 @@ function loadFromLS() {
     if (!raw) { alert('No hay sesión guardada en este navegador.'); return; }
     const data = JSON.parse(raw);
     if (!data.nodes) throw new Error('Datos inválidos');
-    S.nodes = data.nodes;
-    tagColorMap = data.tagColorMap || {};
-    tci = data.tci || Object.keys(tagColorMap).length;
-    S.currentId = S.nodes.length ? S.nodes[0].id : null;
+    applySnapshot(data);
     renderList(); renderEditor(); updateCount();
-    const ind = document.getElementById('sb-save-indicator');
-    if (ind) { ind.textContent = '📂 Recuperado'; ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 2000); }
+    showIndicator('📂 Recuperado');
   } catch(e) { alert('Error al recuperar: ' + e.message); }
 }
 
@@ -32,7 +27,7 @@ let _autoSaveTimer = null;
 function autoSaveLS() {
   clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(() => {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ version:'1.0.0', nodes: S.nodes, tagColorMap, tci })); } catch(e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci })); } catch(e) {}
   }, 800);
 }
 
@@ -45,7 +40,7 @@ function openIO(mode) {
   const btn = document.getElementById('io-btn');
   if (mode === 'export') {
     title.textContent = 'Exportar JSON';
-    ta.value = JSON.stringify({version:'1.0.0', nodes:S.nodes, tagColorMap}, null, 2);
+    ta.value = JSON.stringify({version: APP_VERSION, nodes:S.nodes, tagColorMap}, null, 2);
     ta.readOnly = true;
     btn.textContent = 'Copiar';
     btn.onclick = () => { navigator.clipboard.writeText(ta.value).then(()=>{ btn.textContent='✓ Copiado'; setTimeout(()=>btn.textContent='Copiar',2000); }); };
@@ -57,10 +52,7 @@ function openIO(mode) {
       try {
         const data = JSON.parse(ta.value);
         if (!data.nodes) throw new Error('Formato inválido — falta "nodes"');
-        S.nodes = data.nodes;
-        tagColorMap = data.tagColorMap || {};
-        tci = Object.keys(tagColorMap).length;
-        S.currentId = S.nodes.length ? S.nodes[0].id : null;
+        applySnapshot(data);
         renderList(); renderEditor(); updateCount();
         closeModal('io-modal');
       } catch(err) { alert('Error al importar: ' + err.message); }
