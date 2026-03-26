@@ -5,7 +5,7 @@ const LS_KEY = 'graphmind_session';
 
 function saveToLS() {
   try {
-    const data = JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci });
+    const data = JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci, cfg: CFG });
     localStorage.setItem(LS_KEY, data);
     showIndicator('💾 Guardado');
   } catch(e) { alert('Error al guardar: ' + e.message); }
@@ -27,7 +27,7 @@ let _autoSaveTimer = null;
 function autoSaveLS() {
   clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(() => {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci })); } catch(e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci, cfg: CFG })); } catch(e) {}
   }, 800);
 }
 
@@ -40,7 +40,7 @@ function openIO(mode) {
   const btn = document.getElementById('io-btn');
   if (mode === 'export') {
     title.textContent = 'Exportar JSON';
-    ta.value = JSON.stringify({version: APP_VERSION, nodes:S.nodes, tagColorMap}, null, 2);
+    ta.value = JSON.stringify({version: APP_VERSION, nodes:S.nodes, tagColorMap, cfg: CFG}, null, 2);
     ta.readOnly = true;
     btn.textContent = 'Copiar';
     btn.onclick = () => { navigator.clipboard.writeText(ta.value).then(()=>{ btn.textContent='✓ Copiado'; setTimeout(()=>btn.textContent='Copiar',2000); }); };

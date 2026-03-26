@@ -326,8 +326,8 @@ function renderGraph() {
   // main circle
   nodeG.append('circle')
     .attr('r', nRadius)
-    .attr('fill', d=>(STATUS_COLORS[d.status]||'#555')+'33')
-    .attr('stroke', d=>d.id===S.currentId?'#f0f0f0':(STATUS_COLORS[d.status]||'#555'))
+        .attr('fill', d=>statusColor(d.status)+'33')
+    .attr('stroke', d=>d.id===S.currentId?'#f0f0f0':statusColor(d.status))
     .attr('stroke-width', d=>d.id===S.currentId?2:1);
 
   // priority dot
@@ -399,7 +399,7 @@ function showTip(e, d) {
   const overdue = d.deadline && new Date(d.deadline) < new Date() && d.status!=='done';
   const pct = agg ? agg.avgCompletion : (d.completion||0);
   let html = `<div class="gt-title">${esc(d.title||'(sin título)')}</div>`;
-  html += `<div class="gt-row"><span class="gk">Estado</span><span class="gv" style="color:${STATUS_COLORS[d.status]||'#555'}">${d.status}</span></div>`;
+  html += `<div class="gt-row"><span class="gk">Estado</span><span class="gv" style="color:${statusColor(d.status)}">${statusLabel(d.status)}</span></div>`;
   if (d.assignee) html += `<div class="gt-row"><span class="gk">Asignado</span><span class="gv">${esc(d.assignee)}</span></div>`;
   if (d.hours) html += `<div class="gt-row"><span class="gk">Est. horas</span><span class="gv">${fmtH(d.days||d.hours)}</span></div>`;
   if (d.cost) html += `<div class="gt-row"><span class="gk">Coste est.</span><span class="gv">${fmtCur(d.cost)}</span></div>`;

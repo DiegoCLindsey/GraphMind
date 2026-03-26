@@ -25,7 +25,7 @@ function renderConnPickList() {
   list.innerHTML = others.map(o => {
     const conn = n?.connections.includes(o.id);
     const ct = conn ? (n.connTypes[o.id] || 'related') : '';
-    const sdot = STATUS_COLORS[o.status] || '#555';
+    const sdot = statusColor(o.status);
     return `<div class="cpi ${conn?'sel':''}" onclick="toggleConn('${o.id}')">
       <span class="ck">${conn ? '✓' : '○'}</span>
       <div style="width:6px;height:6px;border-radius:50%;background:${sdot};flex-shrink:0"></div>

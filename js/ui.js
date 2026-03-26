@@ -114,7 +114,7 @@ function setupListeners() {
 
   // Status select color sync
   document.getElementById('status-select').addEventListener('change', function() {
-    const sc = STATUS_COLORS[this.value] || '#555';
+    const sc = statusColor(this.value);
     this.style.background = sc + '22';
     this.style.borderColor = sc + '55';
     this.style.color = sc;
