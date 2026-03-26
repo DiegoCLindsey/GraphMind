@@ -19,6 +19,8 @@ function select(id) {
   S.currentId = id;
   renderList();
   renderEditor();
+  // Follow node in graph view without switching away from current view
+  if (currentView === 'graph') focusGraphNode(id);
   // Close sidebar on mobile after selection
   if (window.innerWidth <= 700) {
     document.getElementById('sidebar').classList.remove('open');

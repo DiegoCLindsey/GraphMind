@@ -2,6 +2,8 @@
 //  GRAPH
 // ══════════════════════════════════════════════════════
 let sim, zoomB;
+let _graphNodes = []; // live positions (mutated by D3 sim)
+let _nodeG;           // D3 selection for node groups
 
 function renderGraph() {
   invalidateCPCache();
@@ -38,6 +40,7 @@ function renderGraph() {
 
   // ── DATA ──────────────────────────────────────────────────────────────────
   const nodes = S.nodes.map(n => ({...n}));
+  _graphNodes = nodes; // expose live positions to focusGraphNode
   const nodeById = new Map(nodes.map(n => [n.id, n]));
 
   // Build parent→children map for hull grouping
@@ -325,10 +328,13 @@ function renderGraph() {
 
   // main circle
   nodeG.append('circle')
+    .attr('class', 'node-main-circle')
     .attr('r', nRadius)
         .attr('fill', d=>statusColor(d.status)+'33')
     .attr('stroke', d=>d.id===S.currentId?'#f0f0f0':statusColor(d.status))
     .attr('stroke-width', d=>d.id===S.currentId?2:1);
+
+  _nodeG = nodeG; // expose for highlight updates
 
   // priority dot
   nodeG.filter(d=>d.priority==='critical'||d.priority==='high').append('circle')
@@ -417,4 +423,29 @@ function showTip(e, d) {
 
 function gReset() { if(zoomB) d3.select('#graph-svg').transition().duration(400).call(zoomB.transform, d3.zoomIdentity); }
 function gZoom(f) { if(zoomB) d3.select('#graph-svg').transition().duration(250).call(zoomB.scaleBy,f); }
+
+// ── Follow selected node: center view + highlight (called from select()) ────────
+function focusGraphNode(id) {
+  if (!_graphNodes.length || !zoomB) return;
+  const node = _graphNodes.find(n => n.id === id);
+  if (!node || node.x == null) return;
+
+  // Highlight: update only the main circle stroke of each node without full rerender
+  if (_nodeG) {
+    _nodeG.select('.node-main-circle')
+      .attr('stroke', d => d.id === id ? '#f0f0f0' : statusColor(d.status))
+      .attr('stroke-width', d => d.id === id ? 2 : 1);
+  }
+
+  // Pan + zoom to center the node
+  const svgEl = document.getElementById('graph-svg');
+  const W = svgEl.clientWidth || 800, H = svgEl.clientHeight || 600;
+  const k = 1.8;
+  d3.select('#graph-svg')
+    .transition().duration(450)
+    .call(zoomB.transform, d3.zoomIdentity
+      .translate(W / 2 - k * node.x, H / 2 - k * node.y)
+      .scale(k)
+    );
+}
 
