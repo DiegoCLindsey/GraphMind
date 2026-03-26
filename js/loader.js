@@ -59,8 +59,8 @@
 
   // DOM listo — conectar listeners y arrancar
   setupListeners();
-  init();
   applyTheme();
-  populateEditorSelects();
+  populateEditorSelects();   // debe ir antes de init() para que renderEditor tenga opciones
   renderStatusFilterButtons();
+  init();
 })();
