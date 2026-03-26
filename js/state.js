@@ -1,7 +1,7 @@
 ﻿// ══════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════
-const APP_VERSION = '1.0.0';
+// APP_VERSION is defined in js/defaults.js (loaded first)
 
 let S = { nodes: [], currentId: null };
 let activeFilter = 'all';
