@@ -7,7 +7,7 @@ const G = {
 };
 
 // Drag state for right-edge stretch (persists across renders)
-let _ganttDrag = { active: false, nodeId: null, origEnd: null, origStart: null, startX: 0, lastDelta: 0, moved: false };
+let _ganttDrag = { active: false, nodeId: null, origEnd: null, origStart: null, startX: 0, canvasLeft: 0, lastDelta: 0, moved: false };
 let _ganttDragRAF = 0;
 // Pan state for click-drag-to-scroll
 let _ganttPan  = { active: false, startX: 0, startY: 0, scrollL: 0, scrollT: 0, moved: false };
@@ -459,15 +459,19 @@ function renderGantt() {
 
   // ── Shared pointer-down logic (mouse + touch) ────────────────────────────
   const _canvasXY = (clientX, clientY) => {
-    const r = bCanvas.getBoundingClientRect();
-    return { mx: clientX - r.left, my: clientY - r.top };
+    // Use snapshotted canvasLeft during drag to avoid drift across RAF rerenders
+    const left = _ganttDrag.active ? _ganttDrag.canvasLeft : bCanvas.getBoundingClientRect().left;
+    const top  = bCanvas.getBoundingClientRect().top;
+    return { mx: clientX - left, my: clientY - top };
   };
 
   const _startInteraction = (clientX, clientY) => {
-    const { mx, my } = _canvasXY(clientX, clientY);
+    const r = bCanvas.getBoundingClientRect();
+    const mx = clientX - r.left, my = clientY - r.top;
     const hit = G.hitRects.find(r => mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h);
     if (_ganttEditMode && hit && mx >= hit.x + hit.w - EDGE_W) {
-      _ganttDrag = { active: true, nodeId: hit.n.id, origEnd: hit.n.end, origStart: hit.n.start, startX: mx, lastDelta: 0, moved: false };
+      _ganttDrag = { active: true, nodeId: hit.n.id, origEnd: hit.n.end, origStart: hit.n.start,
+                    startX: mx, canvasLeft: r.left, lastDelta: 0, moved: false };
       return 'stretch';
     }
     if (!hit) {
@@ -480,12 +484,14 @@ function renderGantt() {
 
   const _moveInteraction = (clientX, clientY) => {
     if (_ganttDrag.active) {
-      const { mx } = _canvasXY(clientX, clientY);
+      // Use snapshotted canvasLeft so coordinate is stable across RAF rerenders
+      const mx = clientX - _ganttDrag.canvasLeft;
       const deltaX = mx - _ganttDrag.startX;
       const deltaDays = Math.round(deltaX / G.dayW);
       if (deltaDays !== _ganttDrag.lastDelta) {
         _ganttDrag.lastDelta = deltaDays;
-        _ganttDrag.moved = Math.abs(deltaX) > 4;
+        // sticky: once moved, stays moved
+        _ganttDrag.moved = _ganttDrag.moved || Math.abs(deltaX) > 4;
         const n = S.nodes.find(nd => nd.id === _ganttDrag.nodeId);
         if (n) {
           const base = parseDay(_ganttDrag.origEnd) || parseDay(_ganttDrag.origStart) || new Date();
