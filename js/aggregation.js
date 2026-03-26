@@ -121,13 +121,8 @@ function computeCriticalPath() {
   return path;
 }
 
-// Recalculate all parent nodes' derived fields bottom-up
-function recalcAll() {
-  // Process in topological order (leaves first)
-  const inDeg = {};
-  S.nodes.forEach(n => inDeg[n.id] = 0);
-  S.nodes.forEach(n => getDirectChildren(n.id).forEach(c => { inDeg[n.id] = (inDeg[n.id]||0) + 0; }));
-  // BFS from leaves
+// Pure data mutation: recalculates all parent nodes' derived fields bottom-up (no DOM)
+function recalcMetrics() {
   const visited = new Set();
   function processNode(id) {
     if (visited.has(id)) return;
@@ -136,7 +131,6 @@ function recalcAll() {
     children.forEach(c => processNode(c.id)); // recurse children first
     const n = S.nodes.find(x => x.id === id);
     if (!n || !children.length) return;
-    // Aggregate from children
     const agg = aggregateMetrics(id);
     if (!agg) return;
     n.days = agg.totalHours.toFixed(1);
@@ -147,11 +141,14 @@ function recalcAll() {
     n.updated = new Date().toISOString();
   }
   S.nodes.forEach(n => processNode(n.id));
-  // Re-render everything
+}
+
+// Recalculate all parent nodes' derived fields, then re-render
+function recalcAll() {
+  recalcMetrics();
   renderList();
   renderEditor();
   autoSaveLS();
-  // Flash indicator
   showIndicator('✓ Recalculado');
 }
 
