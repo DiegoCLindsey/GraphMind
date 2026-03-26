@@ -1,0 +1,23 @@
+window.GM_I18N = window.GM_I18N || {};
+window.GM_I18N.en = window.GM_I18N.en || {};
+window.GM_I18N.en.common = {
+  save:           'Save',
+  cancel:         'Cancel',
+  close:          'Close',
+  delete:         'Delete',
+  add:            'Add',
+  copy:           'Copy',
+  copied:         'Copied!',
+  saved:          '💾 Saved',
+  loaded:         '📂 Session loaded',
+  recalculated:   '✓ Recalculated',
+  cfg_saved:      '⚙ Settings saved',
+  error_save:     'Error saving: ',
+  error_load:     'Error loading: ',
+  error_import:   'Error importing: ',
+  no_session:     'No saved session found.',
+  invalid_data:   'Invalid data.',
+  invalid_format: 'Unrecognised format.',
+  confirm_delete: 'Are you sure you want to delete this item?',
+  untitled:       '(untitled)',
+};

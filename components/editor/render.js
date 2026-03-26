@@ -1,12 +1,23 @@
 ﻿// ══════════════════════════════════════════════════════
 //  RENDER
 // ══════════════════════════════════════════════════════
+let _lastRenderedId = null;
+let _bodyMode = 'edit';
+
 function renderEditor() {
   const n = getCurrent();
   const editor = document.getElementById('node-editor');
   const empty = document.getElementById('empty-state');
-  if (!n) { editor.style.display='none'; empty.style.display='flex'; return; }
+  if (!n) { editor.style.display='none'; empty.style.display='flex'; _lastRenderedId = null; return; }
   empty.style.display='none'; editor.style.display='flex';
+
+  // Reset body mode when switching to a different task
+  if (n.id !== _lastRenderedId) {
+    _bodyMode = 'edit';
+    document.getElementById('body-edit-btn')?.classList.add('on');
+    document.getElementById('body-preview-btn')?.classList.remove('on');
+    _lastRenderedId = n.id;
+  }
 
   document.getElementById('node-title').value = n.title;
   document.getElementById('node-body').value = n.body;
@@ -46,7 +57,37 @@ function renderEditor() {
   renderComments();
   renderAgg();
   updateSB(n);
+  _refreshBodyPreview();
   applyMobileDefaults();
+}
+
+// ── Body edit / preview toggle ──────────────────────────────────
+function switchBodyMode(mode) {
+  _bodyMode = mode;
+  _refreshBodyPreview();
+  document.getElementById('body-edit-btn')?.classList.toggle('on', mode === 'edit');
+  document.getElementById('body-preview-btn')?.classList.toggle('on', mode === 'preview');
+}
+
+function _refreshBodyPreview() {
+  const ta     = document.getElementById('node-body');
+  const pv     = document.getElementById('body-preview');
+  if (!ta || !pv) return;
+  if (_bodyMode === 'preview') {
+    ta.style.display = 'none';
+    pv.style.display = '';
+    const n = getCurrent();
+    const src = n?.body || '';
+    if (src.trim()) {
+      pv.innerHTML = renderMd(src);
+      runMermaid(pv);
+    } else {
+      pv.innerHTML = t('editor.body_empty');
+    }
+  } else {
+    ta.style.display = '';
+    pv.style.display = 'none';
+  }
 }
 
 function renderList() {
@@ -58,13 +99,13 @@ function renderList() {
   });
   const list = document.getElementById('node-list');
   list.innerHTML = filtered.length ? filtered.map(n => nodeItemHTML(n)).join('') :
-    '<div style="padding:14px;color:var(--t3);font-size:11px;text-align:center">Sin resultados</div>';
+    `<div style="padding:14px;color:var(--t3);font-size:11px;text-align:center">${t('sidebar.no_results')}</div>`;
 }
 
 function nodeItemHTML(n) {
   const on = n.id === S.currentId;
   const sc = statusColor(n.status);
-  const title = esc(n.title || '(sin título)');
+  const title = esc(n.title || t('common.untitled'));
   const pct = n.completion || 0;
   const agg = aggregateMetrics(n.id);
   const dispPct = agg ? agg.avgCompletion : pct;
@@ -128,6 +169,7 @@ function switchView(v) {
   if (v==='graph')  renderGraph();
   if (v==='gantt')  setTimeout(renderGantt, 30);
   if (v==='config') renderCfgPanel();
+  if (v==='help')   renderHelp();
   if (typeof checkOrientation === 'function') checkOrientation();
 }
 

@@ -1,15 +1,15 @@
 ﻿<div class="overlay" id="conn-modal">
   <div class="modal">
-    <h3>Enlazar nodo</h3>
-    <div style="font-size:10px;color:var(--t3);margin-bottom:8px;font-family:var(--mono)">Tipo de relación:</div>
+    <h3 data-i18n="modals.conn_title">Enlazar nodo</h3>
+    <div style="font-size:10px;color:var(--t3);margin-bottom:8px;font-family:var(--mono)" data-i18n="modals.conn_rel_label">Tipo de relación:</div>
     <div class="conn-type-row">
-      <button class="ct-btn on" data-ct="related" onclick="setConnType(this)">Relacionado</button>
-      <button class="ct-btn" data-ct="parent" onclick="setConnType(this)">Este es padre</button>
-      <button class="ct-btn" data-ct="child" onclick="setConnType(this)">Este es hijo</button>
-      <button class="ct-btn" data-ct="blocks" onclick="setConnType(this)">Bloquea</button>
+      <button class="ct-btn on" data-ct="related" onclick="setConnType(this)" data-i18n="modals.conn_related">Relacionado</button>
+      <button class="ct-btn" data-ct="parent" onclick="setConnType(this)" data-i18n="modals.conn_parent">Este es padre</button>
+      <button class="ct-btn" data-ct="child" onclick="setConnType(this)" data-i18n="modals.conn_child">Este es hijo</button>
+      <button class="ct-btn" data-ct="blocks" onclick="setConnType(this)" data-i18n="modals.conn_blocks">Bloquea</button>
     </div>
     <div id="conn-pick-list"></div>
-    <div class="modal-actions"><button class="btn-s" onclick="closeModal('conn-modal')">Cerrar</button></div>
+    <div class="modal-actions"><button class="btn-s" onclick="closeModal('conn-modal')" data-i18n="common.close">Cerrar</button></div>
   </div>
 </div>
 
@@ -17,10 +17,10 @@
 <div class="overlay" id="io-modal">
   <div class="modal" style="width:500px">
     <h3 id="io-title">Exportar JSON</h3>
-    <textarea id="io-ta" class="io-ta"></textarea>
+    <textarea id="io-ta" class="io-ta" data-i18n-placeholder="modals.io_import_ph"></textarea>
     <div class="modal-actions">
-      <button class="btn-s" onclick="closeModal('io-modal')">Cerrar</button>
-      <button class="btn-p" id="io-btn">Copiar</button>
+      <button class="btn-s" onclick="closeModal('io-modal')" data-i18n="common.close">Cerrar</button>
+      <button class="btn-p" id="io-btn" data-i18n="modals.io_copy_btn">Copiar</button>
     </div>
   </div>
 </div>

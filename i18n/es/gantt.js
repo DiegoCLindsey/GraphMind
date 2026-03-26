@@ -1,0 +1,25 @@
+window.GM_I18N = window.GM_I18N || {};
+window.GM_I18N.es = window.GM_I18N.es || {};
+window.GM_I18N.es.gantt = {
+  zoom_label:       'Zoom',
+  group_label:      'Agrupar',
+  filter_label:     'Filtrar',
+  today_btn:        'Hoy',
+  go_today:         'Ir a hoy',
+  cfg_btn:          '⚙ Config',
+  cfg_title:        'Configuración Gantt',
+  group_flat:       'Plano',
+  group_hierarchy:  'Jerarquía',
+  group_assignee:   'Asignado',
+  group_tag:        'Tag',
+  filter_all:       'Todo',
+  col_task:         'Tarea / Proyecto',
+  gs_tasks:         'Tareas',
+  gs_days:          'Días',
+  gs_cost:          'Coste',
+  gs_progress:      'Progreso',
+  empty_line1:      'Ninguna tarea tiene fechas asignadas',
+  empty_line2:      'Añade fechas inicio/fin en el editor',
+  rotate_title:     'Gira el dispositivo',
+  rotate_sub:       'El Gantt y el Grafo necesitan modo horizontal',
+};

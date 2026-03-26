@@ -7,20 +7,20 @@ function saveToLS() {
   try {
     const data = JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci, cfg: CFG });
     localStorage.setItem(LS_KEY, data);
-    showIndicator('💾 Guardado');
-  } catch(e) { alert('Error al guardar: ' + e.message); }
+    showIndicator(t('common.saved'));
+  } catch(e) { alert(t('common.error_save') + e.message); }
 }
 
 function loadFromLS() {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) { alert('No hay sesión guardada en este navegador.'); return; }
+    if (!raw) { alert(t('common.no_session')); return; }
     const data = JSON.parse(raw);
-    if (!data.nodes) throw new Error('Datos inválidos');
+    if (!data.nodes) throw new Error(t('common.invalid_data'));
     applySnapshot(data);
     renderList(); renderEditor(); updateCount();
-    showIndicator('📂 Recuperado');
-  } catch(e) { alert('Error al recuperar: ' + e.message); }
+    showIndicator(t('common.loaded'));
+  } catch(e) { alert(t('common.error_load') + e.message); }
 }
 
 let _autoSaveTimer = null;
@@ -39,23 +39,23 @@ function openIO(mode) {
   const ta = document.getElementById('io-ta');
   const btn = document.getElementById('io-btn');
   if (mode === 'export') {
-    title.textContent = 'Exportar JSON';
+    title.textContent = t('modals.io_export_title');
     ta.value = JSON.stringify({version: APP_VERSION, nodes:S.nodes, tagColorMap, cfg: CFG}, null, 2);
     ta.readOnly = true;
-    btn.textContent = 'Copiar';
-    btn.onclick = () => { navigator.clipboard.writeText(ta.value).then(()=>{ btn.textContent='✓ Copiado'; setTimeout(()=>btn.textContent='Copiar',2000); }); };
+    btn.textContent = t('modals.io_copy_btn');
+    btn.onclick = () => { navigator.clipboard.writeText(ta.value).then(()=>{ btn.textContent=t('common.copied'); setTimeout(()=>btn.textContent=t('modals.io_copy_btn'),2000); }); };
   } else {
-    title.textContent = 'Importar JSON';
-    ta.value = ''; ta.readOnly = false; ta.placeholder = 'Pega aquí tu JSON de GraphMind...';
-    btn.textContent = 'Importar';
+    title.textContent = t('modals.io_import_title');
+    ta.value = ''; ta.readOnly = false; ta.placeholder = t('modals.io_import_ph');
+    btn.textContent = t('modals.io_import_btn');
     btn.onclick = () => {
       try {
         const data = JSON.parse(ta.value);
-        if (!data.nodes) throw new Error('Formato inválido — falta "nodes"');
+        if (!data.nodes) throw new Error(t('common.invalid_format'));
         applySnapshot(data);
         renderList(); renderEditor(); updateCount();
         closeModal('io-modal');
-      } catch(err) { alert('Error al importar: ' + err.message); }
+      } catch(err) { alert(t('common.error_import') + err.message); }
     };
   }
   openModal('io-modal');

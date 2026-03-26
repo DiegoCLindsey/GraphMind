@@ -1,0 +1,25 @@
+window.GM_I18N = window.GM_I18N || {};
+window.GM_I18N.en = window.GM_I18N.en || {};
+window.GM_I18N.en.gantt = {
+  zoom_label:    'Zoom:',
+  group_label:   'Group:',
+  filter_label:  'Filter:',
+  today_btn:     'Today',
+  go_today:      'Go to today',
+  cfg_btn:       '⚙',
+  cfg_title:     'Gantt settings',
+  group_flat:    'No grouping',
+  group_hierarchy: 'Hierarchy',
+  group_assignee: 'Assignee',
+  group_tag:     'Tag',
+  filter_all:    'All',
+  col_task:      'Task',
+  gs_tasks:      'Tasks',
+  gs_days:       'Days',
+  gs_cost:       'Cost',
+  gs_progress:   'Progress',
+  empty_line1:   'No tasks to display.',
+  empty_line2:   'Create a task in the Tasks tab.',
+  rotate_title:  'Rotate your device',
+  rotate_sub:    'The Gantt chart is better viewed in landscape mode.',
+};

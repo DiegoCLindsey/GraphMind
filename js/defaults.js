@@ -5,7 +5,7 @@
 //  defaults that ship with new / reset sessions.
 // ══════════════════════════════════════════════════════
 // App version — bump here on every release
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 
 const CFG_DEFAULTS = {
   statuses: [
