@@ -18,7 +18,8 @@
     ['components/graph/graph.html',           main,          'beforeend' ],
     ['components/gantt/gantt.html',           main,          'beforeend' ],
     ['components/help/help.html',             main,          'beforeend' ],
-    ['components/modals/modals.html',         document.body, 'beforeend' ],
+    ['components/config/config.html',          main,          'beforeend' ],
+    ['components/modals/modals.html',          document.body, 'beforeend' ],
     ['components/gantt/gantt-sheet.html',     document.body, 'beforeend' ],
   ];
 
@@ -58,5 +59,8 @@
 
   // DOM listo — conectar listeners y arrancar
   setupListeners();
+  applyTheme();
+  populateEditorSelects();   // debe ir antes de init() para que renderEditor tenga opciones
+  renderStatusFilterButtons();
   init();
 })();

@@ -25,6 +25,27 @@
   --c-done: #6ee7b7;
   --c-blocked: #f87171;
 }
+
+/* ── LIGHT THEME ───────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:  #f4f4f5;
+  --s1:  #ffffff;
+  --s2:  #ececed;
+  --s3:  #e2e2e4;
+  --s4:  #d4d4d6;
+  --b1:  rgba(0,0,0,0.06);
+  --b2:  rgba(0,0,0,0.11);
+  --b3:  rgba(0,0,0,0.20);
+  --t1:  #111111;
+  --t2:  #555555;
+  --t3:  #999999;
+  --t4:  #cccccc;
+  --accent:  #059669;
+  --accent2: #7c3aed;
+  --warn:    #d97706;
+  --danger:  #dc2626;
+  --info:    #2563eb;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px;display:flex;flex-direction:column}

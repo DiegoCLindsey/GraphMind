@@ -2,17 +2,11 @@
   <svg id="graph-svg"></svg>
   <div id="graph-tip"></div>
   <div id="g-legend">
-    <div class="gl-title">Estado</div>
-    <div class="gl-item"><div class="gl-dot" style="background:var(--c-todo)"></div>Pendiente</div>
-    <div class="gl-item"><div class="gl-dot" style="background:var(--c-doing)"></div>En curso</div>
-    <div class="gl-item"><div class="gl-dot" style="background:var(--c-review)"></div>Revisión</div>
-    <div class="gl-item"><div class="gl-dot" style="background:var(--c-done)"></div>Hecho</div>
-    <div class="gl-item"><div class="gl-dot" style="background:var(--c-blocked)"></div>Bloqueado</div>
-    <div class="gl-sep"></div>
-    <div class="gl-title" style="margin-bottom:5px">Tipo</div>
-    <div class="gl-item"><div class="gl-sq" style="border-color:var(--accent2)"></div>Proyecto</div>
-    <div class="gl-item"><div class="gl-sq" style="border-color:var(--warn)"></div>Hito</div>
-    <div class="gl-item"><div class="gl-sq" style="border-color:var(--b3)"></div>Tarea/Idea</div>
+    <div id="g-legend-header">
+      <span class="gl-title" style="margin-bottom:0">Leyenda</span>
+      <button id="g-legend-toggle" onclick="toggleGraphLegend()" title="Ocultar leyenda">&#8722;</button>
+    </div>
+    <div id="g-legend-body"></div>
   </div>
   <div id="g-controls">
     <button class="gcb" onclick="gReset()" title="Reset">⊙</button>

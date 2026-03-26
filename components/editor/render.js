@@ -38,7 +38,7 @@ function renderEditor() {
   // Status select color
   const ss = document.getElementById('status-select');
   ss.value = n.status;
-  const sc = STATUS_COLORS[n.status] || '#555';
+  const sc = statusColor(n.status);
   ss.style.background = sc + '22'; ss.style.borderColor = sc + '55'; ss.style.color = sc;
 
   renderTagBadges();
@@ -63,14 +63,15 @@ function renderList() {
 
 function nodeItemHTML(n) {
   const on = n.id === S.currentId;
-  const sc = STATUS_COLORS[n.status] || '#555';
+  const sc = statusColor(n.status);
   const title = esc(n.title || '(sin título)');
   const pct = n.completion || 0;
   const agg = aggregateMetrics(n.id);
   const dispPct = agg ? agg.avgCompletion : pct;
   const tagHTML = n.tags.slice(0,2).map(t => `<span style="font-size:9px;padding:1px 5px;border-radius:10px;background:${gTC(t)}22;color:${gTC(t)}">#${esc(t)}</span>`).join('');
-  const typeLabel = { task:'task', project:'proj', milestone:'hito', idea:'idea' }[n.type] || n.type;
-  const typeColor = { task:'var(--b3)', project:'var(--accent2)', milestone:'var(--warn)', idea:'var(--info)' }[n.type] || 'var(--b3)';
+  const tCfg     = typeConfig(n.type);
+  const typeLabel = tCfg.name;
+  const typeColor = tCfg.color;
   const prioHTML = n.priority ? `<span style="color:${PRIORITY_COLOR[n.priority]||'var(--t3)'};font-size:11px;font-weight:700">${PRIORITY_ICON[n.priority]||''}</span>` : '';
   const dlColor = n.deadline && new Date(n.deadline) < new Date() && n.status !== 'done' ? 'var(--danger)' : 'var(--t3)';
   const dlHTML = n.deadline ? `<span style="font-size:9px;font-family:var(--mono);color:${dlColor}">📅${new Date(n.deadline+'T12:00').toLocaleDateString('es',{day:'numeric',month:'short'})}</span>` : '';
@@ -113,16 +114,20 @@ function setFilter(el) {
 let currentView = 'editor';
 function switchView(v) {
   currentView = v;
-  document.getElementById('editor-view').style.display = v==='editor'?'flex':'none';
-  document.getElementById('graph-view').style.display = v==='graph'?'flex':'none';
-  document.getElementById('gantt-view').style.display = v==='gantt'?'flex':'none';
-  document.getElementById('tab-e').classList.toggle('on', v==='editor');
-  document.getElementById('tab-g').classList.toggle('on', v==='graph');
+  const show = id => { const el = document.getElementById(id); if (el) el.style.display = 'flex'; };
+  const hide = id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+  const views = { 'editor':'editor-view', 'graph':'graph-view', 'gantt':'gantt-view', 'help':'help-view', 'config':'config-view' };
+  Object.values(views).forEach(hide);
+  if (views[v]) show(views[v]);
+  document.getElementById('tab-e').classList.toggle('on',     v==='editor');
+  document.getElementById('tab-g').classList.toggle('on',     v==='graph');
   document.getElementById('tab-gantt').classList.toggle('on', v==='gantt');
-  document.getElementById('tab-help').classList.toggle('on', v==='help');
-  document.getElementById('help-view').style.display = v==='help'?'flex':'none';
-  if (v==='graph') renderGraph();
-  if (v==='gantt') setTimeout(renderGantt, 30);
+  document.getElementById('tab-help').classList.toggle('on',  v==='help');
+  const tabCfg = document.getElementById('tab-cfg');
+  if (tabCfg) tabCfg.classList.toggle('on', v==='config');
+  if (v==='graph')  renderGraph();
+  if (v==='gantt')  setTimeout(renderGantt, 30);
+  if (v==='config') renderCfgPanel();
   if (typeof checkOrientation === 'function') checkOrientation();
 }
 

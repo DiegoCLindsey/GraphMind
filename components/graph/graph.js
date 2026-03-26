@@ -2,6 +2,8 @@
 //  GRAPH
 // ══════════════════════════════════════════════════════
 let sim, zoomB;
+let _graphNodes = []; // live positions (mutated by D3 sim)
+let _nodeG;           // D3 selection for node groups
 
 function renderGraph() {
   invalidateCPCache();
@@ -38,6 +40,7 @@ function renderGraph() {
 
   // ── DATA ──────────────────────────────────────────────────────────────────
   const nodes = S.nodes.map(n => ({...n}));
+  _graphNodes = nodes; // expose live positions to focusGraphNode
   const nodeById = new Map(nodes.map(n => [n.id, n]));
 
   // Build parent→children map for hull grouping
@@ -323,12 +326,35 @@ function renderGraph() {
     }
   });
 
-  // main circle
-  nodeG.append('circle')
-    .attr('r', nRadius)
-    .attr('fill', d=>(STATUS_COLORS[d.status]||'#555')+'33')
-    .attr('stroke', d=>d.id===S.currentId?'#f0f0f0':(STATUS_COLORS[d.status]||'#555'))
-    .attr('stroke-width', d=>d.id===S.currentId?2:1);
+  // main shape — circle / rect / diamond driven by typeConfig
+  nodeG.each(function(d) {
+    const r      = nRadius(d);
+    const tCfg   = typeConfig(d.type);
+    const fill   = statusColor(d.status) + '33';
+    const stroke = d.id === S.currentId ? '#f0f0f0' : (tCfg.borderColor || statusColor(d.status));
+    const sw     = d.id === S.currentId ? 2 : 1;
+    const el     = d3.select(this);
+    if (tCfg.shape === 'rect') {
+      const w = r * 2.4, h = r * 1.7;
+      el.append('rect')
+        .attr('class','node-main-circle')
+        .attr('x',-w/2).attr('y',-h/2).attr('width',w).attr('height',h).attr('rx',4)
+        .attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw);
+    } else if (tCfg.shape === 'diamond') {
+      const s = r * 1.4;
+      el.append('polygon')
+        .attr('class','node-main-circle')
+        .attr('points',`0,${-s} ${s},0 0,${s} ${-s},0`)
+        .attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw);
+    } else {
+      el.append('circle')
+        .attr('class','node-main-circle')
+        .attr('r',r)
+        .attr('fill',fill).attr('stroke',stroke).attr('stroke-width',sw);
+    }
+  });
+
+  _nodeG = nodeG; // expose for highlight updates
 
   // priority dot
   nodeG.filter(d=>d.priority==='critical'||d.priority==='high').append('circle')
@@ -392,6 +418,8 @@ function renderGraph() {
       nodeG.attr('transform',d=>`translate(${d.x},${d.y})`);
       updateHulls();
     });
+
+  renderGraphLegend();
 }
 
 function showTip(e, d) {
@@ -399,7 +427,7 @@ function showTip(e, d) {
   const overdue = d.deadline && new Date(d.deadline) < new Date() && d.status!=='done';
   const pct = agg ? agg.avgCompletion : (d.completion||0);
   let html = `<div class="gt-title">${esc(d.title||'(sin título)')}</div>`;
-  html += `<div class="gt-row"><span class="gk">Estado</span><span class="gv" style="color:${STATUS_COLORS[d.status]||'#555'}">${d.status}</span></div>`;
+  html += `<div class="gt-row"><span class="gk">Estado</span><span class="gv" style="color:${statusColor(d.status)}">${statusLabel(d.status)}</span></div>`;
   if (d.assignee) html += `<div class="gt-row"><span class="gk">Asignado</span><span class="gv">${esc(d.assignee)}</span></div>`;
   if (d.hours) html += `<div class="gt-row"><span class="gk">Est. horas</span><span class="gv">${fmtH(d.days||d.hours)}</span></div>`;
   if (d.cost) html += `<div class="gt-row"><span class="gk">Coste est.</span><span class="gv">${fmtCur(d.cost)}</span></div>`;
@@ -417,4 +445,67 @@ function showTip(e, d) {
 
 function gReset() { if(zoomB) d3.select('#graph-svg').transition().duration(400).call(zoomB.transform, d3.zoomIdentity); }
 function gZoom(f) { if(zoomB) d3.select('#graph-svg').transition().duration(250).call(zoomB.scaleBy,f); }
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+function renderGraphLegend() {
+  const body = document.getElementById('g-legend-body');
+  if (!body) return;
+
+  const SHAPE_ICON = {
+    circle:  '<div class="gl-dot" style="background:{c};border-radius:50%"></div>',
+    rect:    '<div class="gl-sq" style="border-color:{c};background:{c}33;border-radius:2px"></div>',
+    diamond: '<div class="gl-sq" style="border-color:{c};background:{c}33;transform:rotate(45deg)"></div>',
+  };
+
+  const statusRows = CFG.statuses.map(s =>
+    `<div class="gl-item"><div class="gl-dot" style="background:${s.color}"></div>${esc(s.name)}</div>`
+  ).join('');
+
+  const typeRows = CFG.types.map(t => {
+    const icon = (SHAPE_ICON[t.shape] || SHAPE_ICON.circle).replace(/\{c\}/g, t.borderColor || t.color);
+    return `<div class="gl-item">${icon}${esc(t.name)}</div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="gl-title">Estado</div>
+    ${statusRows}
+    <div class="gl-sep"></div>
+    <div class="gl-title" style="margin-bottom:5px">Tipo</div>
+    ${typeRows}
+  `;
+}
+
+let _legendCollapsed = false;
+function toggleGraphLegend() {
+  _legendCollapsed = !_legendCollapsed;
+  const legend = document.getElementById('g-legend');
+  const btn    = document.getElementById('g-legend-toggle');
+  legend.classList.toggle('collapsed', _legendCollapsed);
+  if (btn) btn.innerHTML = _legendCollapsed ? '&#43;' : '&#8722;';
+}
+
+// ── Follow selected node: center view + highlight (called from select()) ────────
+function focusGraphNode(id) {
+  if (!_graphNodes.length || !zoomB) return;
+  const node = _graphNodes.find(n => n.id === id);
+  if (!node || node.x == null) return;
+
+  // Highlight: update only the main circle stroke of each node without full rerender
+  if (_nodeG) {
+    _nodeG.select('.node-main-circle')
+      .attr('stroke', d => d.id === id ? '#f0f0f0' : statusColor(d.status))
+      .attr('stroke-width', d => d.id === id ? 2 : 1);
+  }
+
+  // Pan + zoom to center the node
+  const svgEl = document.getElementById('graph-svg');
+  const W = svgEl.clientWidth || 800, H = svgEl.clientHeight || 600;
+  const k = 1.8;
+  d3.select('#graph-svg')
+    .transition().duration(450)
+    .call(zoomB.transform, d3.zoomIdentity
+      .translate(W / 2 - k * node.x, H / 2 - k * node.y)
+      .scale(k)
+    );
+}
 

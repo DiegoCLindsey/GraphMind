@@ -143,7 +143,7 @@ function renderGantt() {
       </div>`;
     }
     const n = r.n;
-    const sc = STATUS_COLORS[n.status]||'#555';
+    const sc = statusColor(n.status);
     const kids = getDirectChildren(n.id);
     const agg = aggregateMetrics(n.id);
     const pct = agg ? agg.avgCompletion : (n.completion||0);
@@ -241,7 +241,7 @@ function renderGantt() {
     const n = r.n;
     const y = i * G.rowH;
     const cy = y + G.rowH/2;
-    const sc = STATUS_COLORS[n.status]||'#888';
+    const sc = statusColor(n.status);
     const agg = aggregateMetrics(n.id);
     const pct = (agg ? agg.avgCompletion : (n.completion||0)) / 100;
     const rng = getNodeRange(n);

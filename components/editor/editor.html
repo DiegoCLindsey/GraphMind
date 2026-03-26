@@ -11,19 +11,8 @@
     <div id="eh">
       <div id="eh-row1">
         <input id="node-title" type="text" placeholder="Título de la tarea..." oninput="saveNode()">
-        <select id="type-select" onchange="saveNode(); renderAgg()">
-          <option value="task">Tarea</option>
-          <option value="project">Proyecto</option>
-          <option value="milestone">Hito</option>
-          <option value="idea">Idea</option>
-        </select>
-        <select id="status-select" onchange="saveNode(); renderList()">
-          <option value="todo">Pendiente</option>
-          <option value="doing">En curso</option>
-          <option value="review">Revisión</option>
-          <option value="done">Hecho</option>
-          <option value="blocked">Bloqueado</option>
-        </select>
+        <select id="type-select"   onchange="saveNode(); renderAgg()"></select>
+        <select id="status-select" onchange="saveNode(); renderList()"></select>
       </div>
 
       <div id="tag-row">
