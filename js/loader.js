@@ -12,14 +12,14 @@
 
   // [url, elemento destino, posición insertAdjacentHTML]
   const partials = [
-    ['partials/topbar.html',      document.body, 'afterbegin'],  // antes de #app
-    ['partials/sidebar.html',     app,           'afterbegin'],  // antes de #main
-    ['partials/editor.html',      main,          'afterbegin'],  // primer hijo de #main
-    ['partials/graph.html',       main,          'beforeend' ],
-    ['partials/gantt.html',       main,          'beforeend' ],
-    ['partials/help.html',        main,          'beforeend' ],
-    ['partials/modals.html',      document.body, 'beforeend' ],
-    ['partials/gantt-sheet.html', document.body, 'beforeend' ],
+    ['components/topbar/topbar.html',         document.body, 'afterbegin'],  // antes de #app
+    ['components/sidebar/sidebar.html',       app,           'afterbegin'],  // antes de #main
+    ['components/editor/editor.html',         main,          'afterbegin'],  // primer hijo de #main
+    ['components/graph/graph.html',           main,          'beforeend' ],
+    ['components/gantt/gantt.html',           main,          'beforeend' ],
+    ['components/help/help.html',             main,          'beforeend' ],
+    ['components/modals/modals.html',         document.body, 'beforeend' ],
+    ['components/gantt/gantt-sheet.html',     document.body, 'beforeend' ],
   ];
 
   try {

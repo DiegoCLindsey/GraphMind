@@ -1,0 +1,87 @@
+﻿/* ── RESPONSIVE MOBILE ── */
+#hamburger{display:none}
+.logo-text{}
+.tab-icon{display:none}
+.tb-only{}
+
+/* Metrics collapsible — always available, collapsed by default on mobile */
+#metrics-collapse-btn{
+  display:none;width:100%;background:none;
+  border:none;border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);
+  color:var(--t3);font-size:10px;font-family:var(--mono);
+  padding:6px 0 6px 2px;cursor:pointer;
+  text-align:left;align-items:center;gap:6px;
+  margin:4px 0 0;
+}
+#metrics-collapse-btn:hover{color:var(--t2)}
+#metrics-grid{transition:max-height .22s ease,opacity .22s ease;overflow:hidden;max-height:500px;opacity:1}
+#metrics-grid.collapsed{max-height:0!important;overflow:hidden!important;opacity:0;margin:0!important;padding:0!important}
+#agg-bar{transition:max-height .22s ease,opacity .22s ease;max-height:300px;opacity:1;overflow:hidden}
+#agg-bar.collapsed{max-height:0!important;overflow:hidden!important;opacity:0;margin:0!important;padding:0!important}
+
+@media (max-width: 768px) {
+  /* Topbar: icon-only for action buttons, hide some labels */
+  #hamburger{display:flex!important;align-items:center}
+  #note-count{display:none}
+  .tab-label{display:none}
+  .tab-icon{display:inline}
+  .tab{padding:5px 9px;font-size:13px}
+  .tbtn-label{display:none}
+  .tbtn{padding:5px 9px;font-size:13px}
+  .tb-only{display:none!important}
+  .logo-text{display:none}
+  #topbar{gap:2px;padding:0 4px}
+  #logo{font-size:16px;margin-right:2px}
+  .spacer{min-width:4px}
+
+  /* Sidebar: slide overlay */
+  #sidebar{
+    position:fixed;left:0;top:42px;bottom:0;z-index:200;
+    transform:translateX(-100%);transition:transform .22s ease;
+    box-shadow:6px 0 24px rgba(0,0,0,.6);
+    width:280px;min-width:280px;
+  }
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-backdrop{
+    display:none;position:fixed;inset:0;top:42px;
+    background:rgba(0,0,0,.5);z-index:199;
+  }
+  #sidebar-backdrop.open{display:block}
+
+  /* Filter: horizontal scroll, no wrap */
+  #sb-filter{padding:6px 10px;gap:5px}
+  .sf{padding:4px 11px;font-size:11px;white-space:nowrap;flex-shrink:0}
+
+  /* Editor: show collapse button, start collapsed */
+  #metrics-collapse-btn{display:flex!important}
+  #eh{padding:10px 12px 6px}
+  #eh-row1{flex-wrap:wrap;gap:6px}
+  #node-title{font-size:16px;width:100%}
+  #metrics-grid{grid-template-columns:1fr 1fr!important}
+  #conn-row{padding:6px 12px}
+
+  /* Gantt left panel */
+  #gantt-left{width:150px;min-width:150px}
+  :root{--gl-w:150px}
+  .gr-title-lbl{font-size:10px}
+
+  #graph-view{min-height:350px}
+}
+
+@media (max-width: 480px) {
+  .tab{padding:4px 7px;font-size:12px}
+  .tbtn{padding:4px 7px;font-size:12px}
+  #metrics-grid{grid-template-columns:1fr!important}
+  #gantt-left{width:110px;min-width:110px}
+  :root{--gl-w:110px}
+}
+
+/* Gantt toolbar: hide desktop controls on mobile, show config button */
+.gt-desktop{}
+@media (max-width: 768px) {
+  .gt-desktop{display:none!important}
+  #gantt-cfg-btn{display:flex!important}
+  #gantt-toolbar{padding:0 10px;gap:6px}
+  #gantt-stats{gap:8px}
+}
+

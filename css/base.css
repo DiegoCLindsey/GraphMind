@@ -1,0 +1,38 @@
+﻿:root {
+  --bg: #080808;
+  --s1: #111111;
+  --s2: #181818;
+  --s3: #202020;
+  --s4: #2a2a2a;
+  --b1: rgba(255,255,255,0.06);
+  --b2: rgba(255,255,255,0.11);
+  --b3: rgba(255,255,255,0.18);
+  --t1: #f0f0f0;
+  --t2: #909090;
+  --t3: #555;
+  --t4: #333;
+  --accent: #6ee7b7;        /* emerald — completion/health */
+  --accent2: #a78bfa;       /* violet — structure/parents */
+  --warn: #fbbf24;          /* amber — deadlines */
+  --danger: #f87171;        /* red — overdue */
+  --info: #60a5fa;          /* blue — info */
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  /* status colors */
+  --c-todo: #555;
+  --c-doing: #60a5fa;
+  --c-review: #fbbf24;
+  --c-done: #6ee7b7;
+  --c-blocked: #f87171;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px;display:flex;flex-direction:column}
+/* ── LAYOUT ── */
+#app{display:flex;flex:1;overflow:hidden}
+/* ── MAIN ── */
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}

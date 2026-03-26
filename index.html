@@ -6,40 +6,51 @@
 <title>GraphMind v0.0.8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<!-- Base: design tokens, reset, layout -->
+<link rel="stylesheet" href="css/base.css">
+<!-- Components -->
+<link rel="stylesheet" href="components/topbar/topbar.css">
+<link rel="stylesheet" href="components/sidebar/sidebar.css">
+<link rel="stylesheet" href="components/editor/editor.css">
+<link rel="stylesheet" href="components/graph/graph.css">
+<link rel="stylesheet" href="components/gantt/gantt.css">
+<link rel="stylesheet" href="components/help/help.css">
+<link rel="stylesheet" href="components/modals/modals.css">
+<!-- Responsive cross-component (load last) -->
+<link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
-<!-- Anclas estructurales  loader.js inyecta aquí los partials -->
+<!-- Anclas estructurales — loader.js inyecta los components/ HTML aquí -->
 <div id="app">
   <div id="main"></div>
 </div>
 
-<!-- Core: estado, lógica, helpers -->
+<!-- Core: estado global, datos, cálculos (sin componente) -->
 <script src="js/state.js"></script>
 <script src="js/crud.js"></script>
 <script src="js/aggregation.js"></script>
 
-<!-- Features del editor -->
-<script src="js/tags.js"></script>
-<script src="js/connections.js"></script>
-<script src="js/comments.js"></script>
+<!-- Editor component -->
+<script src="components/editor/render.js"></script>
+<script src="components/editor/tags.js"></script>
+<script src="components/editor/connections.js"></script>
+<script src="components/editor/comments.js"></script>
 
-<!-- Rendering de vistas -->
-<script src="js/render.js"></script>
-<script src="js/graph.js"></script>
+<!-- Graph component -->
+<script src="components/graph/graph.js"></script>
 
 <!-- Persistencia e IO -->
 <script src="js/storage.js"></script>
 
-<!-- UI e inicialización -->
+<!-- UI e inicialización (cross-componente) -->
 <script src="js/ui.js"></script>
 <script src="js/init.js"></script>
 
-<!-- Motor Gantt -->
-<script src="js/gantt.js"></script>
+<!-- Gantt component -->
+<script src="components/gantt/gantt.js"></script>
 
-<!-- Loader: carga los partials HTML y arranca la app -->
+<!-- Loader: fetch components/ HTML y arranca la app -->
 <script src="js/loader.js"></script>
 
 </body>
