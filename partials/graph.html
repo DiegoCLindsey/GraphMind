@@ -1,0 +1,22 @@
+﻿<div id="graph-view">
+  <svg id="graph-svg"></svg>
+  <div id="graph-tip"></div>
+  <div id="g-legend">
+    <div class="gl-title">Estado</div>
+    <div class="gl-item"><div class="gl-dot" style="background:var(--c-todo)"></div>Pendiente</div>
+    <div class="gl-item"><div class="gl-dot" style="background:var(--c-doing)"></div>En curso</div>
+    <div class="gl-item"><div class="gl-dot" style="background:var(--c-review)"></div>Revisión</div>
+    <div class="gl-item"><div class="gl-dot" style="background:var(--c-done)"></div>Hecho</div>
+    <div class="gl-item"><div class="gl-dot" style="background:var(--c-blocked)"></div>Bloqueado</div>
+    <div class="gl-sep"></div>
+    <div class="gl-title" style="margin-bottom:5px">Tipo</div>
+    <div class="gl-item"><div class="gl-sq" style="border-color:var(--accent2)"></div>Proyecto</div>
+    <div class="gl-item"><div class="gl-sq" style="border-color:var(--warn)"></div>Hito</div>
+    <div class="gl-item"><div class="gl-sq" style="border-color:var(--b3)"></div>Tarea/Idea</div>
+  </div>
+  <div id="g-controls">
+    <button class="gcb" onclick="gReset()" title="Reset">⊙</button>
+    <button class="gcb" onclick="gZoom(1.4)">+</button>
+    <button class="gcb" onclick="gZoom(0.7)">−</button>
+  </div>
+</div>

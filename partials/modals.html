@@ -1,0 +1,26 @@
+﻿<div class="overlay" id="conn-modal">
+  <div class="modal">
+    <h3>Enlazar nodo</h3>
+    <div style="font-size:10px;color:var(--t3);margin-bottom:8px;font-family:var(--mono)">Tipo de relación:</div>
+    <div class="conn-type-row">
+      <button class="ct-btn on" data-ct="related" onclick="setConnType(this)">Relacionado</button>
+      <button class="ct-btn" data-ct="parent" onclick="setConnType(this)">Este es padre</button>
+      <button class="ct-btn" data-ct="child" onclick="setConnType(this)">Este es hijo</button>
+      <button class="ct-btn" data-ct="blocks" onclick="setConnType(this)">Bloquea</button>
+    </div>
+    <div id="conn-pick-list"></div>
+    <div class="modal-actions"><button class="btn-s" onclick="closeModal('conn-modal')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- IO MODAL -->
+<div class="overlay" id="io-modal">
+  <div class="modal" style="width:500px">
+    <h3 id="io-title">Exportar JSON</h3>
+    <textarea id="io-ta" class="io-ta"></textarea>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="closeModal('io-modal')">Cerrar</button>
+      <button class="btn-p" id="io-btn">Copiar</button>
+    </div>
+  </div>
+</div>

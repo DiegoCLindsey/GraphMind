@@ -1,0 +1,41 @@
+﻿<div id="gantt-sheet-backdrop" onclick="closeGanttSheet()"></div>
+<div id="gantt-cfg-sheet">
+  <div id="gantt-cfg-sheet-handle"></div>
+  <h4>Configuración Gantt</h4>
+  <div class="cfg-row">
+    <span class="cfg-label">Zoom</span>
+    <div class="cfg-zoom">
+      <button onclick="ganttZoom(-1)">−</button>
+      <span id="gantt-zoom-label" style="font-size:11px;font-family:var(--mono);color:var(--t2);min-width:32px;text-align:center">26px</span>
+      <button onclick="ganttZoom(1)">+</button>
+    </div>
+  </div>
+  <div class="cfg-row">
+    <span class="cfg-label">Agrupar</span>
+    <select id="gantt-group-select-m" onchange="document.getElementById('gantt-group-select').value=this.value;renderGantt()">
+      <option value="flat">Plano</option>
+      <option value="hierarchy" selected>Jerarquía</option>
+      <option value="assignee">Asignado</option>
+      <option value="tag">Tag</option>
+    </select>
+  </div>
+  <div class="cfg-row">
+    <span class="cfg-label">Filtrar</span>
+    <select id="gantt-filter-select-m" onchange="document.getElementById('gantt-filter-select').value=this.value;renderGantt()">
+      <option value="all">Todo</option>
+      <option value="todo">Pendiente</option>
+      <option value="doing">En curso</option>
+      <option value="done">Hecho</option>
+      <option value="blocked">Bloqueado</option>
+    </select>
+  </div>
+  <div class="cfg-row">
+    <span class="cfg-label">Hoy</span>
+    <button onclick="ganttScrollToday();closeGanttSheet()" style="padding:6px 16px;background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.3);border-radius:5px;color:var(--accent);font-size:12px;cursor:pointer">Ir a hoy</button>
+  </div>
+</div>
+<div id="rotate-msg">
+  <div class="rot-icon">📱</div>
+  <div style="font-weight:600;color:var(--t1)">Gira el dispositivo</div>
+  <div style="font-size:11px;color:var(--t3)">El Gantt y el Grafo necesitan modo horizontal</div>
+</div>
