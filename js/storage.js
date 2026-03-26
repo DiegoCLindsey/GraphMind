@@ -7,8 +7,7 @@ function saveToLS() {
   try {
     const data = JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci });
     localStorage.setItem(LS_KEY, data);
-    const ind = document.getElementById('sb-save-indicator');
-    if (ind) { ind.textContent = '💾 Guardado'; ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 2000); }
+    showIndicator('💾 Guardado');
   } catch(e) { alert('Error al guardar: ' + e.message); }
 }
 
@@ -18,13 +17,9 @@ function loadFromLS() {
     if (!raw) { alert('No hay sesión guardada en este navegador.'); return; }
     const data = JSON.parse(raw);
     if (!data.nodes) throw new Error('Datos inválidos');
-    S.nodes = data.nodes;
-    tagColorMap = data.tagColorMap || {};
-    tci = data.tci || Object.keys(tagColorMap).length;
-    S.currentId = S.nodes.length ? S.nodes[0].id : null;
+    applySnapshot(data);
     renderList(); renderEditor(); updateCount();
-    const ind = document.getElementById('sb-save-indicator');
-    if (ind) { ind.textContent = '📂 Recuperado'; ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 2000); }
+    showIndicator('📂 Recuperado');
   } catch(e) { alert('Error al recuperar: ' + e.message); }
 }
 
@@ -57,10 +52,7 @@ function openIO(mode) {
       try {
         const data = JSON.parse(ta.value);
         if (!data.nodes) throw new Error('Formato inválido — falta "nodes"');
-        S.nodes = data.nodes;
-        tagColorMap = data.tagColorMap || {};
-        tci = Object.keys(tagColorMap).length;
-        S.currentId = S.nodes.length ? S.nodes[0].id : null;
+        applySnapshot(data);
         renderList(); renderEditor(); updateCount();
         closeModal('io-modal');
       } catch(err) { alert('Error al importar: ' + err.message); }

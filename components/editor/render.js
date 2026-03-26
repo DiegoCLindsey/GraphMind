@@ -81,7 +81,7 @@ function nodeItemHTML(n) {
       <span style="margin-left:auto;display:flex;gap:4px;align-items:center">${prioHTML}<span class="ni-type" style="color:${typeColor};border:1px solid ${typeColor}33">${typeLabel}</span></span>
     </div>
     <div class="ni-meta">${tagHTML}${dlHTML}${n.assignee?`<span style="font-size:9px;color:var(--t3)">${esc(n.assignee)}</span>`:''}${agg?`<span style="font-size:9px;color:var(--accent2)">⬡${agg.count}</span>`:''}</div>
-    <div class="ni-progress"><div class="ni-progress-fill" style="width:${dispPct}%;background:${dispPct>=80?'var(--accent)':dispPct>=40?'var(--warn)':'var(--info)'}"></div></div>
+    <div class="ni-progress"><div class="ni-progress-fill" style="width:${dispPct}%;background:${progressColor(dispPct)}"></div></div>
   </div>`;
 }
 

@@ -166,8 +166,7 @@ function recalcAll() {
   renderEditor();
   autoSaveLS();
   // Flash indicator
-  const ind = document.getElementById('sb-save-indicator');
-  if (ind) { ind.textContent = '✓ Recalculado'; ind.style.opacity='1'; setTimeout(()=>ind.style.opacity='0', 2000); }
+  showIndicator('✓ Recalculado');
 }
 
 function renderAgg() {
@@ -197,6 +196,6 @@ function renderAgg() {
   }
   document.getElementById('agg-progress-fill').style.width = metrics.avgCompletion + '%';
   const fillEl = document.getElementById('agg-progress-fill');
-  fillEl.style.background = metrics.avgCompletion >= 80 ? 'var(--accent)' : metrics.avgCompletion >= 40 ? 'var(--warn)' : 'var(--info)';
+  fillEl.style.background = progressColor(metrics.avgCompletion);
 }
 

@@ -24,3 +24,20 @@ function fmtDate(d) { if (!d) return '—'; return new Date(d + 'T12:00:00').toL
 function fmtCur(n) { return n != null && n !== '' ? '€' + parseFloat(n).toLocaleString('es',{minimumFractionDigits:0,maximumFractionDigits:2}) : '—'; }
 function fmtH(n) { return n != null && n !== '' ? parseFloat(n).toFixed(1) + 'd' : '—'; }
 
+// ── Shared UI helpers ────────────────────────────────────────────────────────
+function showIndicator(text) {
+  const ind = document.getElementById('sb-save-indicator');
+  if (ind) { ind.textContent = text; ind.style.opacity = '1'; setTimeout(() => ind.style.opacity = '0', 2000); }
+}
+
+function applySnapshot(data) {
+  S.nodes = data.nodes;
+  tagColorMap = data.tagColorMap || {};
+  tci = data.tci || Object.keys(tagColorMap).length;
+  S.currentId = S.nodes.length ? S.nodes[0].id : null;
+}
+
+function progressColor(pct) {
+  return pct >= 80 ? 'var(--accent)' : pct >= 40 ? 'var(--warn)' : 'var(--info)';
+}
+
