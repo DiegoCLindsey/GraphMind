@@ -1,4 +1,19 @@
-﻿<div class="overlay" id="conn-modal">
+﻿<!-- BREAKDOWN MODAL -->
+<div class="overlay" id="breakdown-modal">
+  <div class="modal" style="width:460px">
+    <h3 data-i18n="editor.breakdown_title">⊕ Desglosar tarea</h3>
+    <div class="bd-chain-hint" data-i18n="editor.breakdown_hint">Las nuevas tareas se crearán como hijas de toda la cadena:</div>
+    <div id="bd-breadcrumb" class="bd-breadcrumb"></div>
+    <div id="bd-list" class="bd-list"></div>
+    <button class="bd-add-btn" onclick="addBreakdownRow();document.getElementById(_bdRows[_bdRows.length-1])?.focus()" data-i18n="editor.breakdown_add">+ Añadir otra</button>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="closeModal('breakdown-modal')" data-i18n="common.cancel">Cancelar</button>
+      <button class="btn-p" id="bd-create-btn" onclick="createBreakdownTasks()" disabled>Crear 0 subtareas</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="conn-modal">
   <div class="modal">
     <h3 data-i18n="modals.conn_title">Enlazar nodo</h3>
     <div style="font-size:10px;color:var(--t3);margin-bottom:8px;font-family:var(--mono)" data-i18n="modals.conn_rel_label">Tipo de relación:</div>

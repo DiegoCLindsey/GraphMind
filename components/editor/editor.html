@@ -21,7 +21,7 @@
       </div>
 
       <!-- METRICS -->
-      <button id="metrics-collapse-btn" onclick="toggleMetrics()" style="display:none;width:100%;background:none;border:none;border-top:1px solid var(--b1);color:var(--t3);font-size:10px;font-family:var(--mono);padding:5px 0;cursor:pointer;text-align:left;padding-left:2px;gap:6px;align-items:center">
+      <button id="metrics-collapse-btn" onclick="toggleMetrics()">
         <span id="metrics-toggle-icon">▼</span> <span id="metrics-toggle-label">DETALLES</span>
       </button>
       <div id="metrics-grid">
@@ -31,11 +31,11 @@
         </div>
         <div class="mfield">
           <label data-i18n="editor.field_start">Fecha inicio</label>
-          <input id="f-start" type="date" oninput="saveNode()">
+          <input id="f-start" type="date" oninput="onStartDateChange()">
         </div>
         <div class="mfield">
           <label data-i18n="editor.field_end">Fecha fin</label>
-          <input id="f-end" type="date" oninput="saveNode()">
+          <input id="f-end" type="date" oninput="onEndDateChange()">
         </div>
         <div class="mfield">
           <label data-i18n="editor.field_deadline">Fecha límite</label>
@@ -81,6 +81,7 @@
     <div id="conn-row">
       <span class="conn-lbl" data-i18n="editor.connections_label">Conexiones</span>
       <div id="conn-display"></div>
+      <button class="cp" onclick="openBreakdown()" style="font-size:10px" data-i18n="editor.breakdown_btn">⊕ Desglosar</button>
       <button class="cp" onclick="openConnModal()" style="border-style:dashed;font-size:10px" data-i18n="editor.connect_btn">+ enlazar</button>
     </div>
 

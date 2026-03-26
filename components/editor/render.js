@@ -167,7 +167,7 @@ function switchView(v) {
   const tabCfg = document.getElementById('tab-cfg');
   if (tabCfg) tabCfg.classList.toggle('on', v==='config');
   if (v==='graph')  renderGraph();
-  if (v==='gantt')  setTimeout(renderGantt, 30);
+  if (v==='gantt')  { if (typeof _ganttScrollOnLoad !== 'undefined') _ganttScrollOnLoad = true; setTimeout(renderGantt, 30); }
   if (v==='config') renderCfgPanel();
   if (v==='help')   renderHelp();
   if (typeof checkOrientation === 'function') checkOrientation();

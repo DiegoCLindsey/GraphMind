@@ -7,6 +7,8 @@
 #gantt-group-select,#gantt-filter-select{background:var(--s2);border:1px solid var(--b2);border-radius:5px;padding:3px 8px;color:var(--t2);font-size:11px;font-family:var(--sans);outline:none;cursor:pointer}
 #gantt-today-btn{padding:3px 10px;background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.25);border-radius:5px;color:var(--accent);font-size:11px;font-family:var(--sans);cursor:pointer}
 #gantt-today-btn:hover{background:rgba(110,231,183,0.2)}
+#gantt-edit-btn{padding:3px 10px;background:transparent;border:1px solid var(--b2);border-radius:5px;color:var(--t3);font-size:11px;font-family:var(--sans);cursor:pointer;transition:.12s all}
+#gantt-edit-btn:hover{color:var(--t2);border-color:var(--b3)}
 #gantt-stats{margin-left:auto;display:flex;gap:14px;align-items:center}
 .g-stat{font-size:10px;font-family:var(--mono);color:var(--t3)}
 .g-stat span{color:var(--t1)}
@@ -31,7 +33,8 @@
 #gantt-scroll::-webkit-scrollbar-thumb{background:var(--s4);border-radius:4px}
 #gantt-scroll::-webkit-scrollbar-corner{background:var(--s2)}
 #gantt-canvas-wrap{position:relative;display:inline-block;min-height:100%}
-#gantt-bars-canvas{position:absolute;top:0;left:0}
+#gantt-grid-canvas{pointer-events:none;display:block}
+#gantt-bars-canvas{position:absolute;top:0;left:0;user-select:none;-webkit-user-select:none;touch-action:pan-y}
 /* legacy */
 #gantt-table{display:none}
 .gr-left{height:36px;display:flex;align-items:center;padding:0 8px;gap:6px;cursor:pointer;border-bottom:1px solid var(--b1);transition:.1s background;overflow:hidden}

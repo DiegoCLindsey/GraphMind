@@ -2,8 +2,8 @@
 
 > Gestor de proyectos visual basado en teoría de grafos — HTML autocontenido, sin servidor, sin suscripción.
 
-[![version](https://img.shields.io/badge/version-1.2.0-6ee7b7?style=flat-square&labelColor=111)](https://github.com/DiegoCLindsey/GraphMind/releases/tag/v1.2.0)
-[![license](https://img.shields.io/badge/license-MIT-a78bfa?style=flat-square&labelColor=111)]()
+[![version](https://img.shields.io/badge/version-1.3.0-6ee7b7?style=flat-square&labelColor=111)](https://github.com/DiegoCLindsey/GraphMind/releases/tag/v1.3.0)
+[![license](https://img.shields.io/badge/license-CC%20BY%204.0-a78bfa?style=flat-square&labelColor=111)](https://creativecommons.org/licenses/by/4.0/)
 [![deploy](https://img.shields.io/badge/GitHub%20Pages-live-60a5fa?style=flat-square&labelColor=111)](https://diegoclindsey.github.io/GraphMind/)
 
 ---
@@ -71,6 +71,22 @@ Los archivos fuente de la ayuda son [`components/help/es.md`](components/help/es
 
 ## Changelog
 
+### v1.3.0 — 2026-03-26
+
+- **Desglosar tarea (GMND-050)** — panel modal para crear subtareas en lote: breadcrumb de ancestros, entradas numeradas, Enter para avanzar, crea N hijos enlazados a toda la cadena padre-abuelo en un clic
+- **Gantt interactivo (GMND-051)** — amplia mejora de la vista Gantt:
+  - Botón **🔒 Edición** que habilita/deshabilita las interacciones de escritura (evita cambios accidentales)
+  - **Click en fila vacía** para asignar fecha de inicio (cursor `cell` como pista visual)
+  - **Arrastre del borde derecho** de una barra para redimensionar la fecha de fin (cursor `ew-resize`, indicador visual en el borde, soporte táctil)
+  - **Arrastrar para desplazar** (pan) en área vacía del canvas — escritorio y móvil
+  - **Centrado automático en Hoy** al abrir la pestaña Gantt
+  - Rango por defecto `hoy − 7d → hoy + 30d` para que los nodos sin fecha siempre sean visibles y editables
+  - Deduplicación de filas en vista jerarquía (nodos con varios padres ya no aparecen varias veces)
+  - Botón ▼ DETALLES visible también en escritorio
+- **Caminos críticos múltiples** — `computeCriticalPath()` calcula un camino crítico independiente por componente conexa (un camino por proyecto), en lugar de uno único global
+- **Propagación de fechas en cascada** — al editar la fecha de inicio/fin de una tarea hija, los nodos padre actualizan su `start`/`end` inmediatamente (sin necesidad de pulsar ↻ Recalcular)
+- **Validación de fechas** — fecha fin se bloquea por debajo de fecha inicio (flash rojo); duración y fecha fin se sincronizan bidireccionalmente: cambiar días recalcula fin y cambiar fin recalcula días
+
 ### v1.2.0 — 2026-03-26
 
 - **i18n ES/EN** — motor `t()`, 16 archivos de locale por componente, botón 🇬🇧/🇪🇸 en topbar, todos los strings del DOM y el JS traducidos (GMND-041)
@@ -94,6 +110,20 @@ Los archivos fuente de la ayuda son [`components/help/es.md`](components/help/es
 - Diagrama Gantt con camino crítico
 - Guardado automático en localStorage + exportación JSON
 - Filtros, búsqueda y barra lateral colapsable
+
+---
+
+## Incoming updates
+
+Funcionalidades planificadas para las próximas versiones, en orden de prioridad:
+
+| # | Feature | Descripción |
+|---|---|---|
+| 1 | **Eliminar con cascada** | Al borrar una tarea padre aparece un diálogo de confirmación con checkbox "Borrar también las subtareas" (desactivado por defecto). Sin cascada: se elimina solo el padre y los hijos pierden esa conexión. Con cascada: se elimina todo el subárbol recursivamente. |
+| 2 | **Pizarras** | Múltiples pizarras independientes (nodos y tagColorMap propios) con configuración global compartida. Selector en la topbar. Export normal (v1.3+) incluye wrapper `boards[]`; export legado (v1.2.x) genera el formato plano antiguo para retrocompatibilidad. Import detecta automáticamente el formato y migra al nuevo si es necesario. |
+| 3 | **Equipos y capacidad** | Gestión de equipos con miembros y capacidad individual (horas/día). Nuevo tab "Equipos" en Config. El campo Asignado pasa a ser autocomplete contra los miembros. Vista de carga: tabla miembro × semana con horas planificadas vs. capacidad. |
+| 4 | **Cloud save (GitHub Gist)** | Guardado en la nube via GitHub Gist API. Token PAT (scope `gist`) introducido en Config → "Nube". Todas las pizarras se guardan en un único Gist como un JSON. Toggle de auto-sync opcional. |
+| 5 | **Drag Gantt (mover barra)** | Arrastrar el cuerpo completo de una barra para desplazar `start` + `end` manteniendo la duración. Diferenciado del stretch por zona de agarre (centro vs. borde derecho). |
 
 ---
 
@@ -132,4 +162,6 @@ GraphMind/
 
 ## Licencia
 
-MIT — libre para usar, modificar y distribuir.
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
+
+Eres libre de usar, copiar, modificar y distribuir este proyecto, incluso con fines comerciales, siempre que se incluya atribución al autor original.
