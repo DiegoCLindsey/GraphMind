@@ -67,8 +67,21 @@
 .comment-author{font-size:11px;font-weight:600;color:var(--t1)}
 .comment-date{font-size:10px;color:var(--t3);font-family:var(--mono)}
 .comment-text{font-size:12px;color:var(--t2);line-height:1.6}
-.comment-del{font-size:10px;color:var(--t4);cursor:pointer;margin-left:auto;padding:1px 5px;border-radius:3px}
+.comment-del{font-size:10px;color:var(--t4);cursor:pointer;padding:1px 5px;border-radius:3px}
 .comment-del:hover{color:var(--danger)}
+.comment-actions{display:flex;align-items:center;gap:2px;margin-left:auto;opacity:0;transition:opacity .15s}
+.comment:hover .comment-actions,.comment.editing .comment-actions{opacity:1}
+.comment-edit-btn{font-size:11px;color:var(--t4);cursor:pointer;padding:1px 5px;border-radius:3px}
+.comment-edit-btn:hover{color:var(--accent)}
+.comment-edited{font-size:9px;color:var(--t4);font-family:var(--mono);font-style:italic}
+.comment-edit-wrap{display:flex;flex-direction:column;gap:5px;margin-top:3px}
+.comment-edit-ta{width:100%;background:var(--s2);border:1px solid var(--accent);border-radius:5px;padding:6px 9px;color:var(--t1);font-size:12px;font-family:var(--sans);outline:none;resize:vertical;min-height:52px;box-sizing:border-box}
+.comment-edit-ta:focus{border-color:rgba(110,231,183,0.5)}
+.comment-edit-actions{display:flex;gap:6px}
+.cact-save{padding:3px 10px;background:var(--accent);border:none;border-radius:4px;color:var(--bg);font-size:11px;font-family:var(--sans);font-weight:600;cursor:pointer;transition:.1s}
+.cact-save:hover{opacity:.85}
+.cact-cancel{padding:3px 10px;background:none;border:1px solid var(--b2);border-radius:4px;color:var(--t3);font-size:11px;font-family:var(--sans);cursor:pointer;transition:.1s}
+.cact-cancel:hover{color:var(--t1);border-color:var(--b3)}
 #new-comment{display:flex;gap:9px;margin-top:8px}
 #comment-inp{flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:6px;padding:7px 10px;color:var(--t1);font-size:12px;font-family:var(--sans);outline:none;resize:none}
 #comment-inp:focus{border-color:rgba(110,231,183,0.3)}

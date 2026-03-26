@@ -43,4 +43,8 @@ window.GM_I18N.en.editor = {
   md_placeholder:    'Description, notes, context... (Markdown supported)',
   body_empty:        '<em style="color:var(--t3)">No description</em>',
   no_comments:       'No comments yet',
+  comment_edit:      'Edit',
+  comment_save:      'Save',
+  comment_cancel:    'Cancel',
+  comment_edit_ph:   'Edit comment...',
 };
