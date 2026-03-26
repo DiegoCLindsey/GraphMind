@@ -6,7 +6,10 @@ let _cfgDraft = null;
 
 // Called by switchView('config') after DOM is ready
 function renderCfgPanel() {
-  _cfgDraft = JSON.parse(JSON.stringify(CFG)); // deep clone
+  _cfgDraft = JSON.parse(JSON.stringify(CFG));
+  // Always reset to first tab so panels are in a known state
+  const firstTab = document.querySelector('.cfg-tab[data-tab="states"]');
+  if (firstTab) switchCfgTab(firstTab, 'states');
   renderCfgStatuses();
   renderCfgTypes();
   renderCfgAppearance();

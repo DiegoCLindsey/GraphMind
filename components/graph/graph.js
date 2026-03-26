@@ -418,6 +418,8 @@ function renderGraph() {
       nodeG.attr('transform',d=>`translate(${d.x},${d.y})`);
       updateHulls();
     });
+
+  renderGraphLegend();
 }
 
 function showTip(e, d) {
@@ -443,6 +445,44 @@ function showTip(e, d) {
 
 function gReset() { if(zoomB) d3.select('#graph-svg').transition().duration(400).call(zoomB.transform, d3.zoomIdentity); }
 function gZoom(f) { if(zoomB) d3.select('#graph-svg').transition().duration(250).call(zoomB.scaleBy,f); }
+
+// ── Legend ────────────────────────────────────────────────────────────────────
+function renderGraphLegend() {
+  const body = document.getElementById('g-legend-body');
+  if (!body) return;
+
+  const SHAPE_ICON = {
+    circle:  '<div class="gl-dot" style="background:{c};border-radius:50%"></div>',
+    rect:    '<div class="gl-sq" style="border-color:{c};background:{c}33;border-radius:2px"></div>',
+    diamond: '<div class="gl-sq" style="border-color:{c};background:{c}33;transform:rotate(45deg)"></div>',
+  };
+
+  const statusRows = CFG.statuses.map(s =>
+    `<div class="gl-item"><div class="gl-dot" style="background:${s.color}"></div>${esc(s.name)}</div>`
+  ).join('');
+
+  const typeRows = CFG.types.map(t => {
+    const icon = (SHAPE_ICON[t.shape] || SHAPE_ICON.circle).replace(/\{c\}/g, t.borderColor || t.color);
+    return `<div class="gl-item">${icon}${esc(t.name)}</div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="gl-title">Estado</div>
+    ${statusRows}
+    <div class="gl-sep"></div>
+    <div class="gl-title" style="margin-bottom:5px">Tipo</div>
+    ${typeRows}
+  `;
+}
+
+let _legendCollapsed = false;
+function toggleGraphLegend() {
+  _legendCollapsed = !_legendCollapsed;
+  const legend = document.getElementById('g-legend');
+  const btn    = document.getElementById('g-legend-toggle');
+  legend.classList.toggle('collapsed', _legendCollapsed);
+  if (btn) btn.innerHTML = _legendCollapsed ? '&#43;' : '&#8722;';
+}
 
 // ── Follow selected node: center view + highlight (called from select()) ────────
 function focusGraphNode(id) {
