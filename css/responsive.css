@@ -6,7 +6,7 @@
 
 /* Metrics collapsible — always available, collapsed by default on mobile */
 #metrics-collapse-btn{
-  display:none;width:100%;background:none;
+  display:flex;width:100%;background:none;
   border:none;border-top:1px solid var(--b1);border-bottom:1px solid var(--b1);
   color:var(--t3);font-size:10px;font-family:var(--mono);
   padding:6px 0 6px 2px;cursor:pointer;
