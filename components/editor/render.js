@@ -169,6 +169,7 @@ function switchView(v) {
   if (v==='graph')  renderGraph();
   if (v==='gantt')  setTimeout(renderGantt, 30);
   if (v==='config') renderCfgPanel();
+  if (v==='help')   renderHelp();
   if (typeof checkOrientation === 'function') checkOrientation();
 }
 

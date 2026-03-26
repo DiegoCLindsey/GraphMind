@@ -37,6 +37,10 @@ function setLocale(lang) {
   if (typeof renderGraphLegend   === 'function' && typeof currentView !== 'undefined' && currentView === 'graph') renderGraphLegend();
   // Update language toggle button appearance
   _updateLangBtn();
+  // Re-render help page if currently visible (cache handles locale switching automatically)
+  if (typeof renderHelp === 'function' && typeof currentView !== 'undefined' && currentView === 'help') {
+    renderHelp();
+  }
 }
 
 // ── DOM walker ────────────────────────────────────────────────────────────────
