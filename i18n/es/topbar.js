@@ -6,7 +6,7 @@ window.GM_I18N.es.topbar = {
   tab_gantt:    'Gantt',
   tab_config:   'Config',
   tab_help:     'Ayuda',
-  recalc:       '↻ Recalcular',
+  recalc:       'Recalcular',
   export:       'Exportar',
   import:       'Importar',
   node_nodes:   'nodos',
