@@ -70,7 +70,12 @@ function computeNodeDates(n) {
       if (!b?.end) return best;
       return (!best || b.end > best) ? b.end : best;
     }, '');
-    if (maxEnd) n.start = maxEnd;
+    if (maxEnd) {
+      // B starts the day AFTER A's last day (end date is inclusive)
+      const d = new Date(maxEnd + 'T00:00:00');
+      d.setDate(d.getDate() + 1);
+      n.start = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
   }
   if (!n.days) n.days = '1';
   calcEndFromDuration(n);
