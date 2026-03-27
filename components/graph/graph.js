@@ -299,7 +299,27 @@ function renderGraph() {
     .call(d3.drag()
       .on('start',(e,d)=>{ if(CFG.graphAnimations){if(!e.active) sim.alphaTarget(.3).restart();} d.fx=d.x;d.fy=d.y; })
       .on('drag',(e,d)=>{ d.fx=e.x;d.fy=e.y; if(!CFG.graphAnimations){d.x=e.x;d.y=e.y;doTick();} })
-      .on('end',(e,d)=>{ if(CFG.graphAnimations){if(!e.active) sim.alphaTarget(0);d.fx=null;d.fy=null;}else{_graphPositions[d.id]={x:d.x,y:d.y};autoSaveLS();} })
+      .on('end',(e,d)=>{
+        if (CFG.graphAnimations) {
+          if (!e.active) sim.alphaTarget(0);
+          d.fx = null; d.fy = null;
+        } else {
+          _graphPositions[d.id] = { x: d.x, y: d.y };
+          // Update ghost anchor of any project group that contains this node
+          projectGroups.forEach((childIds, pid) => {
+            if (!childIds.includes(d.id)) return;
+            const members = childIds.map(cid => nodeById.get(cid)).filter(n => n && n.x != null);
+            if (!members.length) return;
+            const cx = members.reduce((s, n) => s + n.x, 0) / members.length;
+            const cy = members.reduce((s, n) => s + n.y, 0) / members.length;
+            const proj = nodeById.get(pid);
+            if (proj) { proj.x = cx; proj.y = cy; proj.fx = cx; proj.fy = cy; }
+            _graphPositions[pid] = { x: cx, y: cy };
+          });
+          doTick(); // re-render hulls with updated anchor
+          autoSaveLS();
+        }
+      })
     )
     .on('click',(e,d)=>{ select(d.id); switchView('editor'); })
     .on('mouseover',(e,d)=>showTip(e,d))
