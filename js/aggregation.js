@@ -150,13 +150,27 @@ function computeCriticalPath() {
     );
 
     if (sinksInGraph.length > 0) {
-      // Find the sink with the latest cpEnd
-      const sink = sinksInGraph.reduce((best, n) =>
-        (cpEnd[n.id] || '') > (cpEnd[best.id] || '') ? n : best
-      );
-      // Trace back from sink
-      let cur = sink.id;
-      while (cur) { cpLeaves.add(cur); cur = prev[cur]; }
+      // Group sinks by connected component (Union-Find over undirected blocks graph)
+      const uf = {}; S.nodes.forEach(n => { uf[n.id] = n.id; });
+      const find = id => { if (uf[id] !== id) uf[id] = find(uf[id]); return uf[id]; };
+      const union = (a, b) => { uf[find(a)] = find(b); };
+      blockEdges.forEach(e => union(e.from, e.to));
+
+      // Group sinks by component root
+      const sinksByComp = {};
+      sinksInGraph.forEach(n => {
+        const root = find(n.id);
+        (sinksByComp[root] = sinksByComp[root] || []).push(n);
+      });
+
+      // Per component: find sink with latest cpEnd and trace back
+      Object.values(sinksByComp).forEach(compSinks => {
+        const sink = compSinks.reduce((best, n) =>
+          (cpEnd[n.id] || '') > (cpEnd[best.id] || '') ? n : best
+        );
+        let cur = sink.id;
+        while (cur) { cpLeaves.add(cur); cur = prev[cur]; }
+      });
     }
   }
 
