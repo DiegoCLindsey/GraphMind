@@ -5,7 +5,7 @@ const LS_KEY = 'graphmind_session';
 
 function saveToLS() {
   try {
-    const data = JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci, cfg: CFG });
+    const data = JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci, cfg: CFG, graphPositions: _graphPositions });
     localStorage.setItem(LS_KEY, data);
     showIndicator(t('common.saved'));
   } catch(e) { alert(t('common.error_save') + e.message); }
@@ -27,7 +27,7 @@ let _autoSaveTimer = null;
 function autoSaveLS() {
   clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(() => {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci, cfg: CFG })); } catch(e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ version: APP_VERSION, nodes: S.nodes, tagColorMap, tci, cfg: CFG, graphPositions: _graphPositions })); } catch(e) {}
   }, 800);
 }
 

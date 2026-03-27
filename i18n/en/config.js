@@ -28,6 +28,9 @@ window.GM_I18N.en.config = {
   save_btn:         '✓ Save changes',
   confirm_del_status: 'The state "{id}" is in use by one or more tasks. Delete anyway?',
   confirm_del_type:   'The type "{id}" is in use by one or more tasks. Delete anyway?',
+  section_graph:      'Graph',
+  graph_animations:   'Physics animations',
+  graph_animations_hint: 'Disabling locks node positions between sessions',
   confirm_reset:    'Restore all settings to their default values?',
   saved:            '⚙ Settings saved',
 };

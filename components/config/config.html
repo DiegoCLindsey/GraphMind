@@ -67,6 +67,18 @@
         </label>
       </div>
 
+      <div class="cfg-section-label" style="margin-top:22px" data-i18n="config.section_graph">Grafo</div>
+      <div class="cfg-units-row">
+        <label class="cfg-unit-label" style="flex-direction:row;align-items:flex-start;gap:10px">
+          <input type="checkbox" id="cfg-graph-animations" style="margin-top:3px;flex-shrink:0"
+                 onchange="updateCfgBool('graphAnimations',this.checked)">
+          <div>
+            <span data-i18n="config.graph_animations">Animaciones físicas</span>
+            <div class="cfg-unit-preview" style="margin-top:2px" data-i18n="config.graph_animations_hint">Desactivar fija las posiciones entre sesiones</div>
+          </div>
+        </label>
+      </div>
+
     </div>
 
   </div><!-- /cfg-tab-body -->

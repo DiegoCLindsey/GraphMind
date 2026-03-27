@@ -48,6 +48,7 @@ function applySnapshot(data) {
       types:    data.cfg.types?.length    ? data.cfg.types    : CFG_DEFAULTS.types,
     };
   }
+  if (data.graphPositions) _graphPositions = data.graphPositions;
 }
 
 function progressColor(pct) {

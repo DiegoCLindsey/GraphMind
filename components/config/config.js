@@ -139,6 +139,9 @@ function renderCfgAppearance() {
   const dur = document.getElementById('cfg-duration');
   if (cur) { cur.value = _cfgDraft.currency || '€'; updateCfgUnitPreview(); }
   if (dur) { dur.value = _cfgDraft.durationUnit || 'd'; updateCfgUnitPreview(); }
+  // Graph animations toggle
+  const anChk = document.getElementById('cfg-graph-animations');
+  if (anChk) anChk.checked = _cfgDraft.graphAnimations !== false;
 }
 
 function setCfgThemeDraft(theme) {
@@ -154,6 +157,10 @@ function updateCfgToken(key, value) {
 function updateCfgUnit(key, value) {
   _cfgDraft[key] = value;
   updateCfgUnitPreview();
+}
+
+function updateCfgBool(key, value) {
+  _cfgDraft[key] = value;
 }
 
 function updateCfgUnitPreview() {
@@ -196,6 +203,7 @@ function saveCfg() {
   renderStatusFilterButtons();
   renderList();
   renderEditor();
+  renderGraph();
   showIndicator(t('config.saved'));
 }
 

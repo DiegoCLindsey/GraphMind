@@ -25,4 +25,5 @@ const CFG_DEFAULTS = {
   themeTokens: { bg: '#080808', surface: '#111111', accent: '#6ee7b7', text: '#e0e0e0' },
   currency: '€',
   durationUnit: 'd',
+  graphAnimations: true,
 };

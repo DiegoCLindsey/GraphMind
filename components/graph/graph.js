@@ -4,6 +4,7 @@
 let sim, zoomB;
 let _graphNodes = []; // live positions (mutated by D3 sim)
 let _nodeG;           // D3 selection for node groups
+let _graphPositions = {}; // { [nodeId]: {x, y} } — persisted when animations are off
 
 function renderGraph() {
   invalidateCPCache();
@@ -296,9 +297,9 @@ function renderGraph() {
   const nodeG = g.append('g').selectAll('g').data(visibleNodes).enter().append('g')
     .style('cursor','pointer')
     .call(d3.drag()
-      .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(.3).restart(); d.fx=d.x;d.fy=d.y; })
-      .on('drag',(e,d)=>{ d.fx=e.x;d.fy=e.y; })
-      .on('end',(e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null;d.fy=null; })
+      .on('start',(e,d)=>{ if(CFG.graphAnimations){if(!e.active) sim.alphaTarget(.3).restart();} d.fx=d.x;d.fy=d.y; })
+      .on('drag',(e,d)=>{ d.fx=e.x;d.fy=e.y; if(!CFG.graphAnimations){d.x=e.x;d.y=e.y;doTick();} })
+      .on('end',(e,d)=>{ if(CFG.graphAnimations){if(!e.active) sim.alphaTarget(0);d.fx=null;d.fy=null;}else{_graphPositions[d.id]={x:d.x,y:d.y};autoSaveLS();} })
     )
     .on('click',(e,d)=>{ select(d.id); switchView('editor'); })
     .on('mouseover',(e,d)=>showTip(e,d))
@@ -406,18 +407,40 @@ function renderGraph() {
     });
   }
 
+  // ── TICK HELPER (also used by drag when physics is off) ─────────────────
+  function doTick() {
+    link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+        .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    nodeG.attr('transform',d=>`translate(${d.x},${d.y})`);
+    updateHulls();
+  }
+
+  // Seed node positions from saved layout (if any)
+  nodes.forEach(n => {
+    if (_graphPositions[n.id]) { n.x = _graphPositions[n.id].x; n.y = _graphPositions[n.id].y; }
+  });
+
   sim = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>d.type==='parent'||d.type==='child'?70:130).strength(.5))
     .force('charge', d3.forceManyBody().strength(d=>d.type==='project'?0:-180))
     .force('center', d3.forceCenter(W/2,H/2))
     .force('collision', d3.forceCollide(d=>d.type==='project'?0:nRadius(d)+12))
     .force('cluster', clusterForce)
-    .on('tick', ()=>{
-      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
-          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-      nodeG.attr('transform',d=>`translate(${d.x},${d.y})`);
-      updateHulls();
-    });
+    .on('tick', doTick);
+
+  if (!CFG.graphAnimations) {
+    // Physics off: if no saved positions, compute layout synchronously first
+    const hasSavedLayout = nodes.some(n => _graphPositions[n.id]);
+    if (!hasSavedLayout) {
+      sim.tick(150); // synchronous layout computation
+      nodes.forEach(n => { if (n.x != null) _graphPositions[n.id] = { x: n.x, y: n.y }; });
+      autoSaveLS();
+    }
+    // Pin all nodes so physics cannot move them
+    nodes.forEach(n => { n.fx = n.x; n.fy = n.y; });
+    doTick(); // render once
+    sim.stop();
+  }
 
   renderGraphLegend();
 }

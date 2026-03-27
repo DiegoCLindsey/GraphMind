@@ -28,6 +28,9 @@ window.GM_I18N.es.config = {
   save_btn:         '✓ Guardar cambios',
   confirm_del_status: 'El estado "{id}" está en uso en una o más tareas. ¿Eliminar igualmente?',
   confirm_del_type:   'El tipo "{id}" está en uso en una o más tareas. ¿Eliminar igualmente?',
+  section_graph:      'Grafo',
+  graph_animations:   'Animaciones físicas',
+  graph_animations_hint: 'Desactivar fija las posiciones entre sesiones',
   confirm_reset:    '¿Restaurar todos los ajustes a los valores por defecto?',
   saved:            '⚙ Configuración guardada',
 };
