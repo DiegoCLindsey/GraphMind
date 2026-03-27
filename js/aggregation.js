@@ -128,6 +128,46 @@ function computeCriticalPath() {
   return path;
 }
 
+// Global blocked-dates pass: topological order over blocks graph → compute start/end for each blocked node
+function recalcAllBlockedDates() {
+  // Build blocks edges: A blocks B → {from:A, to:B}
+  const blockEdges = [];
+  S.nodes.forEach(n => {
+    n.connections.forEach(cid => {
+      if (n.connTypes[cid] === 'blocks') blockEdges.push({ from: n.id, to: cid });
+    });
+  });
+  if (!blockEdges.length) return;
+
+  // Topological sort (Kahn)
+  const inDeg = {};
+  S.nodes.forEach(n => { inDeg[n.id] = 0; });
+  blockEdges.forEach(e => { inDeg[e.to] = (inDeg[e.to] || 0) + 1; });
+  const queue = S.nodes.filter(n => !inDeg[n.id]).map(n => n.id);
+  const order = [];
+  while (queue.length) {
+    const id = queue.shift();
+    order.push(id);
+    blockEdges.filter(e => e.from === id).forEach(e => { if (!--inDeg[e.to]) queue.push(e.to); });
+  }
+  // Append any not reached (isolated from blocks graph)
+  S.nodes.forEach(n => { if (!order.includes(n.id)) order.push(n.id); });
+
+  // Process in topological order: recompute dates for nodes that have blockers
+  order.forEach(id => {
+    const n = S.nodes.find(x => x.id === id);
+    if (!n || getDirectChildren(n.id).length > 0) return; // skip parents (handled by recalcMetrics)
+    const hasBlockers = n.connections.some(cid => n.connTypes[cid] === 'blocked-by');
+    if (hasBlockers && typeof computeNodeDates === 'function') {
+      computeNodeDates(n);
+      n.updated = new Date().toISOString();
+    } else if (n.start && n.days) {
+      // No blockers: ensure end = start + days  
+      if (typeof calcEndFromDuration === 'function') calcEndFromDuration(n);
+    }
+  });
+}
+
 // Pure data mutation: recalculates all parent nodes' derived fields bottom-up (no DOM)
 function recalcMetrics() {
   const visited = new Set();
@@ -152,7 +192,8 @@ function recalcMetrics() {
 
 // Recalculate all parent nodes' derived fields, then re-render
 function recalcAll() {
-  recalcMetrics();
+  recalcAllBlockedDates(); // propagate blocks chain first (leaf dates)
+  recalcMetrics();         // then aggregate up the hierarchy
   renderList();
   renderEditor();
   autoSaveLS();

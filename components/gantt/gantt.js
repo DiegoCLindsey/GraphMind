@@ -499,6 +499,11 @@ function renderGantt() {
           const minEnd = parseDay(_ganttDrag.origStart) || newEnd;
           if (newEnd >= minEnd) {
             n.end = toGMDDate(newEnd);
+            // Keep days in sync with the new end so recalcAllBlockedDates won't override
+            if (n.start) {
+              const diffDays = Math.ceil((newEnd - (parseDay(n.start) || newEnd)) / 86400000) + 1;
+              if (diffDays > 0) n.days = String(diffDays);
+            }
             cancelAnimationFrame(_ganttDragRAF);
             _ganttDragRAF = requestAnimationFrame(renderGantt);
           }
