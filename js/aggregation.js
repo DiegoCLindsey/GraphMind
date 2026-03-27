@@ -79,49 +79,134 @@ function invalidateCPCache() { _cpCache = null; }
 function computeCriticalPath() {
   if (_cpCache) return _cpCache;
 
-  // End timestamp of a node (uses end field; falls back to start + days if end absent)
-  const endTs = (n) => {
-    if (n.end) return new Date(n.end + 'T00:00:00').getTime();
+  const fmtD = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  // End date of a node as a comparable string (YYYY-MM-DD), computed from stored fields
+  const nodeEnd = (n) => {
+    if (n.end) return n.end;
     if (n.start) {
       const days = parseFloat(n.days || n.hours) || 1;
       const d = new Date(n.start + 'T00:00:00');
       d.setDate(d.getDate() + Math.round(days) - 1);
-      return d.getTime();
+      return fmtD(d);
     }
-    return 0;
+    return '';
   };
 
-  // subtreeEnd: the latest end timestamp in the entire subtree rooted at id
-  const seCache = {};
-  function subtreeEnd(id) {
-    if (seCache[id] !== undefined) return seCache[id];
-    seCache[id] = -1; // cycle guard
-    const n = S.nodes.find(x => x.id === id);
-    if (!n) return 0;
-    let best = endTs(n);
-    getDirectChildren(id).forEach(c => { best = Math.max(best, subtreeEnd(c.id)); });
-    seCache[id] = best;
-    return best;
-  }
-  S.nodes.forEach(n => subtreeEnd(n.id));
+  // ── Phase 1: CPM over blocks graph (leaf/peer nodes) ──────────────────
+  // blocks edges: A blocks B → edge A→B
+  const blockEdges = [];
+  S.nodes.forEach(n => {
+    n.connections.forEach(cid => {
+      if (n.connTypes[cid] === 'blocks') blockEdges.push({ from: n.id, to: cid });
+    });
+  });
 
-  // Top-level roots = nodes that are not a child of anyone
-  const childSet = new Set();
-  S.nodes.forEach(n => getDirectChildren(n.id).forEach(c => childSet.add(c.id)));
-  const roots = S.nodes.filter(n => !childSet.has(n.id));
+  // Only run CPM if there are blocks relationships
+  const cpLeaves = new Set(); // leaf nodes on the critical path
 
-  // Trace CP downward: at each level follow the child with max subtreeEnd
-  const path = new Set();
-  function trace(id) {
-    path.add(id);
-    const kids = getDirectChildren(id);
-    if (!kids.length) return;
-    const best = kids.reduce((b, c) => subtreeEnd(c.id) > subtreeEnd(b.id) ? c : b);
-    trace(best.id);
+  if (blockEdges.length > 0) {
+    // Topological sort (Kahn) over blocks graph
+    const inDeg = {}; S.nodes.forEach(n => { inDeg[n.id] = 0; });
+    blockEdges.forEach(e => { inDeg[e.to] = (inDeg[e.to] || 0) + 1; });
+    const queue = S.nodes.filter(n => !inDeg[n.id]).map(n => n.id);
+    const order = [];
+    while (queue.length) {
+      const id = queue.shift(); order.push(id);
+      blockEdges.filter(e => e.from === id).forEach(e => { if (!--inDeg[e.to]) queue.push(e.to); });
+    }
+    S.nodes.forEach(n => { if (!order.includes(n.id)) order.push(n.id); });
+
+    // Forward pass: cpEnd[id] = latest end date reachable through the blocks chain ending at id
+    // prev[id] = which predecessor was the bottleneck
+    const cpEnd = {}, prev = {};
+    S.nodes.forEach(n => { cpEnd[n.id] = nodeEnd(n); prev[n.id] = null; });
+
+    order.forEach(id => {
+      blockEdges.filter(e => e.from === id).forEach(e => {
+        // If following the chain from id makes e.to end later, update
+        // (e.to's end is already computed based on its start which comes from max blocker end)
+        // We track which blocker is the one actually driving the start of e.to
+        const toNode = S.nodes.find(x => x.id === e.to);
+        if (!toNode) return;
+        const toEnd = nodeEnd(toNode);
+        // The bottleneck for e.to is the blocker whose cpEnd is the max
+        // (its end +1day = toNode.start, so the one with the latest cpEnd drives the chain)
+        if (!prev[e.to] || cpEnd[id] > cpEnd[prev[e.to]]) {
+          prev[e.to] = id;
+        }
+        // propagate: cpEnd of e.to is driven by the chain
+        if (cpEnd[id] > cpEnd[e.to] || !cpEnd[e.to]) cpEnd[e.to] = toEnd;
+      });
+    });
+
+    // Sinks = nodes in the blocks graph that don't block anything else
+    const blocksAnything = new Set(blockEdges.map(e => e.from));
+    const sinksInGraph   = S.nodes.filter(n =>
+      // participates in blocks graph (either blocks or is blocked)
+      (n.connections.some(cid => n.connTypes[cid] === 'blocks') ||
+       n.connections.some(cid => n.connTypes[cid] === 'blocked-by')) &&
+      !blocksAnything.has(n.id)
+    );
+
+    if (sinksInGraph.length > 0) {
+      // Find the sink with the latest cpEnd
+      const sink = sinksInGraph.reduce((best, n) =>
+        (cpEnd[n.id] || '') > (cpEnd[best.id] || '') ? n : best
+      );
+      // Trace back from sink
+      let cur = sink.id;
+      while (cur) { cpLeaves.add(cur); cur = prev[cur]; }
+    }
   }
-  roots.forEach(root => {
-    if (getDirectChildren(root.id).length === 0) return; // isolated leaf — no meaningful CP
-    trace(root.id);
+
+  // ── Phase 2: If no blocks graph, fall back to subtreeEnd hierarchy ─────
+  if (cpLeaves.size === 0) {
+    const endTs = (n) => {
+      const e = nodeEnd(n);
+      return e ? new Date(e + 'T00:00:00').getTime() : 0;
+    };
+    const seCache = {};
+    function subtreeEnd(id) {
+      if (seCache[id] !== undefined) return seCache[id];
+      seCache[id] = -1;
+      const n = S.nodes.find(x => x.id === id);
+      if (!n) return 0;
+      let best = endTs(n);
+      getDirectChildren(id).forEach(c => { best = Math.max(best, subtreeEnd(c.id)); });
+      seCache[id] = best;
+      return best;
+    }
+    S.nodes.forEach(n => subtreeEnd(n.id));
+    const childSet = new Set();
+    S.nodes.forEach(n => getDirectChildren(n.id).forEach(c => childSet.add(c.id)));
+    const roots = S.nodes.filter(n => !childSet.has(n.id));
+    function trace(id) {
+      cpLeaves.add(id);
+      const kids = getDirectChildren(id);
+      if (!kids.length) return;
+      const best = kids.reduce((b, c) => subtreeEnd(c.id) > subtreeEnd(b.id) ? c : b);
+      trace(best.id);
+    }
+    roots.forEach(root => {
+      if (getDirectChildren(root.id).length === 0) return;
+      trace(root.id);
+    });
+  }
+
+  // ── Phase 3: Propagate CP upward through hierarchy ────────────────────
+  const path = new Set(cpLeaves);
+  cpLeaves.forEach(leafId => {
+    // Walk up: mark all ancestors
+    function markAncestors(id) {
+      S.nodes.forEach(n => {
+        if (n.connections.includes(id) && n.connTypes[id] === 'child') {
+          // n is parent of id
+          if (!path.has(n.id)) { path.add(n.id); markAncestors(n.id); }
+        }
+      });
+    }
+    markAncestors(leafId);
   });
 
   _cpCache = path;
