@@ -44,6 +44,7 @@ function aggregateMetrics(nodeId) {
     ? directKids.reduce((s, c) => s + (aggregateCompletion(c.id, new Set([nodeId]))), 0) / directKids.length
     : 0;
   // Date range across all descendants with dates
+  const fmtLocal = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   let minStart = null, maxEnd = null;
   descendants.forEach(d => {
     if (d.start) { const dt = new Date(d.start+'T00:00:00'); if (!minStart || dt < minStart) minStart = dt; }
@@ -54,8 +55,8 @@ function aggregateMetrics(nodeId) {
   return {
     count: countAll, totalHours, totalCost,
     avgCompletion: Math.round(avgCompletion), done, overdue,
-    minStart: minStart ? minStart.toISOString().slice(0,10) : null,
-    maxEnd:   maxEnd   ? maxEnd.toISOString().slice(0,10)   : null
+    minStart: minStart ? fmtLocal(minStart) : null,
+    maxEnd:   maxEnd   ? fmtLocal(maxEnd)   : null
   };
 }
 
@@ -131,11 +132,15 @@ function computeCriticalPath() {
     });
   });
 
-  // Per component: trace back from the node with the highest dist (the bottleneck leaf)
+  // Per component: trace back from the node with the highest dist+dur (true end time)
   const path = new Set();
   Object.values(components).forEach(ids => {
     if (ids.length < 2) return; // single isolated node — not a meaningful critical path
-    const sinkId = ids.reduce((best, id) => dist[id] > dist[best] ? id : best, ids[0]);
+    const sinkId = ids.reduce((best, id) => {
+      const nBest = S.nodes.find(x => x.id === best);
+      const nCur  = S.nodes.find(x => x.id === id);
+      return (dist[id] + dur(nCur)) > (dist[best] + dur(nBest)) ? id : best;
+    }, ids[0]);
     let cur = sinkId;
     while (cur) { path.add(cur); cur = prev[cur]; }
   });
