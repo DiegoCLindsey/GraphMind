@@ -40,15 +40,16 @@ function saveNode() {
   n.assignee = document.getElementById('f-assignee').value;
   n.deadline = document.getElementById('f-deadline').value;
   n.priority = document.getElementById('f-priority').value;
-  const isParent = getDirectChildren(n.id).length > 0;
+  const isParent   = getDirectChildren(n.id).length > 0;
+  const hasBlockers = n.connections.some(cid => n.connTypes[cid] === 'blocked-by');
   if (!isParent) {
-    n.start = document.getElementById('f-start').value;
-    n.end = document.getElementById('f-end').value;
+    if (!hasBlockers) n.start = document.getElementById('f-start').value;
     n.days = document.getElementById('f-hours').value;
     n.cost = document.getElementById('f-cost').value;
     n.completion = parseInt(document.getElementById('f-completion').value) || 0;
-    // Only auto-compute end from start+duration when end is absent (legacy/import fallback)
-    if (!n.end) calcEndFromDuration(n);
+    // end is always calculated from start + days
+    calcEndFromDuration(n);
+    document.getElementById('f-end').value = n.end || '';
   }
   n.updated = new Date().toISOString();
   renderNodeItem(n.id);
@@ -59,63 +60,56 @@ function saveNode() {
   autoSaveLS();
 }
 
+// Compute start (from blockers) and end (start + days) for a leaf node
+function computeNodeDates(n) {
+  if (!n || getDirectChildren(n.id).length > 0) return;
+  const blockerIds = n.connections.filter(cid => n.connTypes[cid] === 'blocked-by');
+  if (blockerIds.length > 0) {
+    const maxEnd = blockerIds.reduce((best, cid) => {
+      const b = S.nodes.find(x => x.id === cid);
+      if (!b?.end) return best;
+      return (!best || b.end > best) ? b.end : best;
+    }, '');
+    if (maxEnd) n.start = maxEnd;
+  }
+  if (!n.days) n.days = '1';
+  calcEndFromDuration(n);
+}
+
+// Cascade date changes down the blocks chain (pure data, no rendering)
+function propagateBlockedDatesData(id) {
+  S.nodes.forEach(n => {
+    if (!n.connections.includes(id)) return;
+    if (n.connTypes[id] !== 'blocked-by') return;
+    computeNodeDates(n);
+    n.updated = new Date().toISOString();
+    propagateBlockedDatesData(n.id);
+  });
+}
+
 function onDurationChange() {
-  // Duration changed → recompute end date from start + days
   const n = getCurrent();
   if (!n || getDirectChildren(n.id).length > 0) return;
   n.days = document.getElementById('f-hours').value;
-  n.start = document.getElementById('f-start').value;
-  if (calcEndFromDuration(n)) {
-    document.getElementById('f-end').value = n.end;
-  }
+  calcEndFromDuration(n);
+  document.getElementById('f-end').value = n.end || '';
+  propagateBlockedDatesData(n.id);
   saveNode();
 }
 
 function onStartDateChange() {
-  // Start changed → validate end ≥ start, then recompute days
   const n = getCurrent();
   if (!n || getDirectChildren(n.id).length > 0) return;
-  const startVal = document.getElementById('f-start').value;
-  let endVal   = document.getElementById('f-end').value;
-  const daysVal = document.getElementById('f-hours').value;
-  if (!startVal) { saveNode(); return; }
-  // Clamp end to start if it became earlier
-  if (endVal && endVal < startVal) {
-    endVal = startVal;
-    document.getElementById('f-end').value = endVal;
-  }
-  if (endVal) {
-    // end known → derive days
-    const days = Math.ceil((new Date(endVal+'T00:00:00') - new Date(startVal+'T00:00:00')) / 86400000) + 1;
-    document.getElementById('f-hours').value = days;
-  } else if (parseFloat(daysVal) > 0) {
-    // no end but days known → compute end
-    const s = new Date(startVal+'T00:00:00');
-    s.setDate(s.getDate() + Math.round(parseFloat(daysVal)) - 1);
-    document.getElementById('f-end').value = s.toISOString().slice(0,10);
-  }
+  const hasBlockers = n.connections.some(cid => n.connTypes[cid] === 'blocked-by');
+  if (hasBlockers) return; // field is readonly, shouldn't fire
+  n.start = document.getElementById('f-start').value;
+  calcEndFromDuration(n);
+  document.getElementById('f-end').value = n.end || '';
+  propagateBlockedDatesData(n.id);
   saveNode();
 }
 
-function onEndDateChange() {
-  // End changed → must be ≥ start; update days
-  const n = getCurrent();
-  if (!n || getDirectChildren(n.id).length > 0) return;
-  const startVal = document.getElementById('f-start').value;
-  let endVal   = document.getElementById('f-end').value;
-  if (startVal && endVal && endVal < startVal) {
-    endVal = startVal;
-    document.getElementById('f-end').value = endVal;
-    // Visual flash to indicate clamping
-    const el = document.getElementById('f-end');
-    el.style.borderColor = 'var(--danger)'; setTimeout(() => el.style.borderColor = '', 900);
-  }
-  if (startVal && endVal) {
-    const days = Math.ceil((new Date(endVal+'T00:00:00') - new Date(startVal+'T00:00:00')) / 86400000) + 1;
-    document.getElementById('f-hours').value = days;
-  }
-  saveNode();
-}
+function onEndDateChange() { /* end is always calculated — no-op */ }
 
 function calcEndFromDuration(n) {
   // If start + days → compute end

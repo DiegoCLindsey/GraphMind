@@ -50,17 +50,13 @@ function toggleConn(otherId) {
     // Set reverse type
     const reverseMap = { related:'related', parent:'child', child:'parent', blocks:'blocked-by' };
     other.connTypes[n.id] = reverseMap[pendingConnType] || 'related';
-    // blocks: auto-push B's start to A's end so B begins when A finishes
-    if (pendingConnType === 'blocks' && n.end) {
-      other.start = n.end;
-      if (typeof calcEndFromDuration === 'function') calcEndFromDuration(other);
+    // blocks: compute B's dates from its blockers and cascade
+    if (pendingConnType === 'blocks') {
+      if (typeof computeNodeDates === 'function') computeNodeDates(other);
       other.updated = new Date().toISOString();
+      if (typeof propagateBlockedDatesData === 'function') propagateBlockedDatesData(other.id);
       if (typeof recalcMetrics === 'function') recalcMetrics();
-      if (S.currentId === other.id) {
-        document.getElementById('f-start').value = other.start || '';
-        document.getElementById('f-end').value   = other.end   || '';
-        document.getElementById('f-hours').value = other.days  || '';
-      }
+      if (S.currentId === other.id) renderEditor();
     }
   }
   n.updated = new Date().toISOString();

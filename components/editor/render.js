@@ -31,19 +31,18 @@ function renderEditor() {
   document.getElementById('f-completion').value = n.completion || 0;
   document.getElementById('f-priority').value = n.priority || '';
 
-  // Lock derived fields for parent nodes
-  const isParent = getDirectChildren(n.id).length > 0;
-  const lockIds = ['f-start','f-end','f-hours','f-cost','f-completion'];
-  lockIds.forEach(id => {
+  // Lock derived/calculated fields
+  const isParent   = getDirectChildren(n.id).length > 0;
+  const hasBlockers = !isParent && n.connections.some(cid => n.connTypes[cid] === 'blocked-by');
+  // f-end: always calculated; f-start: calculated when has blockers or is parent; rest locked for parents
+  const lockRules = { 'f-end': true, 'f-start': isParent || hasBlockers, 'f-hours': isParent, 'f-cost': isParent, 'f-completion': isParent };
+  Object.entries(lockRules).forEach(([id, lock]) => {
     const el = document.getElementById(id);
-    const lbl = el.closest('.mfield')?.querySelector('label');
-    if (isParent) {
-      el.classList.add('locked');
-      if (lbl) lbl.classList.add('locked-lbl');
-    } else {
-      el.classList.remove('locked');
-      if (lbl) lbl.classList.remove('locked-lbl');
-    }
+    const lbl = el?.closest('.mfield')?.querySelector('label');
+    if (!el) return;
+    el.classList.toggle('locked', lock);
+    el.readOnly = lock;
+    if (lbl) lbl.classList.toggle('locked-lbl', lock);
   });
 
   // Status select color
