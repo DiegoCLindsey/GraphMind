@@ -6,4 +6,5 @@ window.GM_I18N.es.sidebar = {
   new_task:           '+ Nueva tarea',
   no_results:         'Sin resultados',
   selected_count:     'seleccionadas',
+  duplicate_selected: 'Duplicar',
 };

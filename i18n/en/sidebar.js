@@ -6,4 +6,5 @@ window.GM_I18N.en.sidebar = {
   new_task:           '+ New task',
   no_results:         'No results',
   selected_count:     'selected',
+  duplicate_selected: 'Duplicate',
 };

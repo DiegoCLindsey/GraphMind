@@ -23,4 +23,5 @@ window.GM_I18N.es.common = {
   delete_only:           'Borrar solo esta',
   delete_cascade:        'Borrar con hijos',
   untitled:              '(sin título)',
+  duplicated:            '⧉ Duplicado',
 };

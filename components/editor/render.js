@@ -123,6 +123,13 @@ function updateSelBar() {
   if (el) el.textContent = `${_sbSelected.size} ${t('sidebar.selected_count')}`;
 }
 
+function duplicateSelected() {
+  if (!_sbSelected.size) return;
+  const ids = [..._sbSelected];
+  toggleSbSelectMode();
+  duplicateNodes(ids);
+}
+
 function deleteSelected() {
   if (!_sbSelected.size) return;
   const ids = [..._sbSelected];

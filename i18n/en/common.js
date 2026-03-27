@@ -23,4 +23,5 @@ window.GM_I18N.en.common = {
   delete_only:            'Delete only this',
   delete_cascade:         'Delete with children',
   untitled:               '(untitled)',
+  duplicated:             '⧉ Duplicated',
 };

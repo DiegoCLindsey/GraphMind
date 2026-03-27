@@ -128,6 +128,46 @@ function calcEndFromDuration(n) {
   return false;
 }
 
+// ── Duplicate ─────────────────────────────────────────────────────────────────
+function duplicateNodes(ids) {
+  const idSet = new Set(ids);
+  const idMap  = {};
+  ids.forEach(id => { idMap[id] = gid(); });
+
+  const newNodes = [];
+  ids.forEach(oldId => {
+    const orig = S.nodes.find(n => n.id === oldId);
+    if (!orig) return;
+    const copy = JSON.parse(JSON.stringify(orig));
+    copy.id    = idMap[oldId];
+    copy.title = (copy.title || '') + ' (cp)';
+    // Keep ONLY internal connections (within the duplicated set), remapped to new IDs
+    copy.connections = orig.connections.filter(cid => idMap[cid]).map(cid => idMap[cid]);
+    copy.connTypes   = {};
+    orig.connections.forEach(cid => {
+      if (idMap[cid]) copy.connTypes[idMap[cid]] = orig.connTypes[cid];
+    });
+    copy.created = new Date().toISOString();
+    copy.updated = new Date().toISOString();
+    newNodes.push(copy);
+    // Offset graph position slightly so duplicates don't overlap originals
+    if (typeof _graphPositions !== 'undefined' && _graphPositions[oldId]) {
+      _graphPositions[copy.id] = { x: _graphPositions[oldId].x + 50, y: _graphPositions[oldId].y + 50 };
+    }
+  });
+
+  newNodes.forEach(n => S.nodes.push(n));
+  if (newNodes.length) select(newNodes[0].id);
+  if (typeof recalcAll === 'function') recalcAll();
+  renderList(); updateCount(); autoSaveLS();
+  showIndicator(t('common.duplicated'));
+}
+
+function duplicateCurrentNode() {
+  if (!S.currentId) return;
+  duplicateNodes([S.currentId]);
+}
+
 let _deleteTargetId = null;
 
 function deleteNode() {
