@@ -88,10 +88,9 @@ function computeCriticalPath() {
     return parseFloat(n.days || n.hours) || 1;
   };
 
-  // Directed edges (parent→child hierarchy + blocks→blocked-by)
+  // Directed edges: only explicit dependency (blocks) — hierarchy is organisational, not sequential
   const edges = [];
   S.nodes.forEach(n => {
-    getDirectChildren(n.id).forEach(c => edges.push({ from: n.id, to: c.id }));
     n.connections.forEach(cid => { if (n.connTypes[cid] === 'blocks') edges.push({ from: n.id, to: cid }); });
   });
 
