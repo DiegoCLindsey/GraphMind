@@ -8,7 +8,14 @@
     <button class="sf" data-f="done" onclick="setFilter(this)">Hecho</button>
     <button class="sf" data-f="blocked" onclick="setFilter(this)">Bloqueado</button>
   </div>
+  <div id="sb-selbar">
+    <span id="sb-sel-count">0 seleccionadas</span>
+    <button class="sb-sel-action" onclick="deleteSelected()">&#10005; Borrar</button>
+  </div>
   <div id="node-list"></div>
-  <div id="sb-footer"><button id="new-btn" onclick="newNode()" data-i18n="sidebar.new_task">+ Nueva tarea</button></div>
+  <div id="sb-footer">
+    <button id="new-btn" onclick="newNode()" data-i18n="sidebar.new_task">+ Nueva tarea</button>
+    <button id="sb-select-btn" onclick="toggleSbSelectMode()" title="Seleccionar tareas">&#9635;</button>
+  </div>
 </div>
 <div id="sidebar-backdrop" onclick="toggleSidebar()"></div>

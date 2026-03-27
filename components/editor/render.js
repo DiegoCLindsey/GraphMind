@@ -91,6 +91,56 @@ function _refreshBodyPreview() {
 }
 
 let _sbTreeCollapsed = new Set();
+let _sbSelectMode = false;
+let _sbSelected   = new Set();
+
+function toggleSbSelectMode() {
+  _sbSelectMode = !_sbSelectMode;
+  _sbSelected.clear();
+  const selbar = document.getElementById('sb-selbar');
+  const btn    = document.getElementById('sb-select-btn');
+  if (selbar) selbar.classList.toggle('visible', _sbSelectMode);
+  if (btn)    btn.classList.toggle('on', _sbSelectMode);
+  updateSelBar();
+  renderList();
+}
+
+function toggleSbSelect(id, e) {
+  if (e) e.stopPropagation();
+  if (_sbSelected.has(id)) _sbSelected.delete(id);
+  else _sbSelected.add(id);
+  updateSelBar();
+  // Update just the checkbox state without full re-render
+  const el = document.getElementById('ni-' + id);
+  if (el) {
+    el.classList.toggle('sel', _sbSelected.has(id));
+    const chk = el.querySelector('.ni-sel-chk');
+    if (chk) chk.checked = _sbSelected.has(id);
+  }
+}
+
+function updateSelBar() {
+  const el = document.getElementById('sb-sel-count');
+  if (el) el.textContent = `${_sbSelected.size} ${t('sidebar.selected_count')}`;
+}
+
+function deleteSelected() {
+  if (!_sbSelected.size) return;
+  const ids = [..._sbSelected];
+  ids.forEach(id => {
+    S.nodes = S.nodes.filter(n => n.id !== id);
+    S.nodes.forEach(n => { n.connections = n.connections.filter(c => c !== id); delete n.connTypes[id]; });
+    if (typeof _graphPositions !== 'undefined') delete _graphPositions[id];
+  });
+  if (ids.includes(S.currentId)) S.currentId = S.nodes.length ? S.nodes[0].id : null;
+  _sbSelected.clear();
+  updateSelBar();
+  if (typeof recalcAll === 'function') recalcAll();
+  autoSaveLS();
+  renderList(); renderEditor(); updateCount();
+  toggleSbSelectMode();
+}
+
 function toggleSbNode(id) {
   if (_sbTreeCollapsed.has(id)) _sbTreeCollapsed.delete(id);
   else _sbTreeCollapsed.add(id);
@@ -143,12 +193,19 @@ function nodeItemHTML(n, depth = 0, childCount = 0) {
   const dlColor = n.deadline && new Date(n.deadline) < new Date() && n.status !== 'done' ? 'var(--danger)' : 'var(--t3)';
   const dlHTML = n.deadline ? `<span style="font-size:9px;font-family:var(--mono);color:${dlColor}">📅${new Date(n.deadline+'T12:00').toLocaleDateString('es',{day:'numeric',month:'short'})}</span>` : '';
   const collapsed = _sbTreeCollapsed.has(n.id);
+  const isSel = _sbSelected.has(n.id);
   const chevron = childCount > 0
     ? `<button class="ni-chevron" onclick="event.stopPropagation();toggleSbNode('${n.id}')">${collapsed ? '&#9658;' : '&#9660;'}</button>`
     : '<span class="ni-chevron-gap"></span>';
-  return `<div class="ni ${on?'on':''}" id="ni-${n.id}" onclick="select('${n.id}')" style="padding-left:${depth*14+9}px">
+  const selChk = _sbSelectMode
+    ? `<input type="checkbox" class="ni-sel-chk" ${isSel ? 'checked' : ''} onclick="toggleSbSelect('${n.id}',event)">`
+    : '';
+  const clickAction = _sbSelectMode
+    ? `toggleSbSelect('${n.id}',event)`
+    : `select('${n.id}')`;
+  return `<div class="ni ${on?'on':''} ${isSel?'sel':''}" id="ni-${n.id}" onclick="${clickAction}" style="padding-left:${depth*14+9}px">
     <div class="ni-title">
-      ${chevron}<div class="status-dot" style="background:${sc}"></div>
+      ${selChk}${chevron}<div class="status-dot" style="background:${sc}"></div>
       ${title}
       <span style="margin-left:auto;display:flex;gap:4px;align-items:center">${prioHTML}<span class="ni-type" style="color:${typeColor};border:1px solid ${typeColor}33">${typeLabel}</span></span>
     </div>

@@ -128,15 +128,52 @@ function calcEndFromDuration(n) {
   return false;
 }
 
+let _deleteTargetId = null;
+
 function deleteNode() {
   if (!S.currentId) return;
-  const n = getCurrent();
+  _deleteTargetId = S.currentId;
+  openDeleteConfirm(_deleteTargetId);
+}
+
+function openDeleteConfirm(id) {
+  const n = S.nodes.find(x => x.id === id);
   const title = n?.title || t('common.untitled');
-  if (!confirm(t('common.confirm_delete').replace('{title}', title))) return;
-  const delId = S.currentId;
-  S.nodes = S.nodes.filter(n => n.id !== delId);
-  S.nodes.forEach(n => { n.connections = n.connections.filter(c => c !== delId); delete n.connTypes[delId]; });
-  S.currentId = S.nodes.length ? S.nodes[0].id : null;
+  const children = getDirectChildren(id);
+  const titleEl = document.getElementById('confirm-modal-title');
+  const msgEl   = document.getElementById('confirm-modal-msg');
+  const cascBtn = document.getElementById('confirm-modal-btn-cascade');
+  if (titleEl) titleEl.textContent = t('common.confirm_delete_title');
+  if (msgEl)   msgEl.textContent   = t('common.confirm_delete').replace('{title}', title);
+  if (cascBtn) cascBtn.style.display = children.length ? '' : 'none';
+  openModal('confirm-modal');
+}
+
+function confirmDeleteNode(cascade) {
+  const id = _deleteTargetId;
+  if (!id) return;
+  closeModal('confirm-modal');
+  if (cascade) {
+    const toDelete = new Set();
+    function collectDescendants(nid) {
+      if (toDelete.has(nid)) return;
+      toDelete.add(nid);
+      getDirectChildren(nid).forEach(c => collectDescendants(c.id));
+    }
+    collectDescendants(id);
+    toDelete.forEach(did => {
+      S.nodes = S.nodes.filter(n => n.id !== did);
+      S.nodes.forEach(n => { n.connections = n.connections.filter(c => c !== did); delete n.connTypes[did]; });
+      if (typeof _graphPositions !== 'undefined') delete _graphPositions[did];
+    });
+  } else {
+    S.nodes = S.nodes.filter(n => n.id !== id);
+    S.nodes.forEach(n => { n.connections = n.connections.filter(c => c !== id); delete n.connTypes[id]; });
+    if (typeof _graphPositions !== 'undefined') delete _graphPositions[id];
+  }
+  _deleteTargetId = null;
+  if (!S.nodes.find(n => n.id === S.currentId)) S.currentId = S.nodes.length ? S.nodes[0].id : null;
+  if (typeof recalcAll === 'function') recalcAll();
   renderList(); renderEditor(); updateCount(); autoSaveLS();
 }
 

@@ -18,6 +18,9 @@ window.GM_I18N.es.common = {
   no_session:      'No hay sesión guardada en este navegador.',
   invalid_data:    'Datos inválidos',
   invalid_format:  'Formato inválido — falta "nodes"',
-  confirm_delete:  '¿Eliminar "{title}"? Esta acción no se puede deshacer.',
-  untitled:         '(sin título)',
+  confirm_delete:        '¿Eliminar "{title}"? Esta acción no se puede deshacer.',
+  confirm_delete_title:  'Eliminar tarea',
+  delete_only:           'Borrar solo esta',
+  delete_cascade:        'Borrar con hijos',
+  untitled:              '(sin título)',,
 };

@@ -18,6 +18,9 @@ window.GM_I18N.en.common = {
   no_session:     'No saved session found.',
   invalid_data:   'Invalid data.',
   invalid_format: 'Unrecognised format.',
-  confirm_delete: 'Are you sure you want to delete this item?',
-  untitled:       '(untitled)',
+  confirm_delete:         'Are you sure you want to delete this item?',
+  confirm_delete_title:   'Delete task',
+  delete_only:            'Delete only this',
+  delete_cascade:         'Delete with children',
+  untitled:               '(untitled)',
 };

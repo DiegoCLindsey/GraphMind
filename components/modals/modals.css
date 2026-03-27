@@ -13,6 +13,8 @@
 .btn-p:hover{opacity:.85}
 .btn-s{padding:6px 15px;background:transparent;color:var(--t2);border:1px solid var(--b2);border-radius:5px;cursor:pointer;font-size:11px;font-family:var(--sans)}
 .btn-s:hover{color:var(--t1)}
+.btn-danger{padding:6px 15px;background:transparent;color:var(--danger);border:1px solid rgba(248,113,113,.35);border-radius:5px;cursor:pointer;font-size:11px;font-family:var(--sans);transition:.12s}
+.btn-danger:hover{background:rgba(248,113,113,.1)}
 #conn-pick-list{max-height:220px;overflow-y:auto;border:1px solid var(--b1);border-radius:6px;margin-bottom:10px}
 .cpi{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--b1);font-size:12px;display:flex;align-items:center;gap:8px;transition:.1s background}
 .cpi:last-child{border-bottom:none}

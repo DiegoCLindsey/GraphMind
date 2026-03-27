@@ -39,3 +39,16 @@
     </div>
   </div>
 </div>
+
+<!-- CONFIRM / CASCADE DELETE MODAL -->
+<div class="overlay" id="confirm-modal">
+  <div class="modal" style="width:400px">
+    <h3 id="confirm-modal-title"></h3>
+    <p id="confirm-modal-msg" style="font-size:12px;color:var(--t2);margin-bottom:16px"></p>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="closeModal('confirm-modal')" data-i18n="common.cancel">Cancelar</button>
+      <button id="confirm-modal-btn-cascade" class="btn-danger" onclick="confirmDeleteNode(true)" data-i18n="common.delete_cascade">Borrar con hijos</button>
+      <button id="confirm-modal-btn-only" class="btn-danger" onclick="confirmDeleteNode(false)" data-i18n="common.delete_only">Borrar solo esta</button>
+    </div>
+  </div>
+</div>

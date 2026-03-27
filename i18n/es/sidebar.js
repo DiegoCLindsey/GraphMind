@@ -5,4 +5,5 @@ window.GM_I18N.es.sidebar = {
   filter_all:         'Todo',
   new_task:           '+ Nueva tarea',
   no_results:         'Sin resultados',
+  selected_count:     'seleccionadas',
 };

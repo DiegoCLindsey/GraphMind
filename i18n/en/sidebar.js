@@ -5,4 +5,5 @@ window.GM_I18N.en.sidebar = {
   filter_all:         'All',
   new_task:           '+ New task',
   no_results:         'No results',
+  selected_count:     'selected',
 };
