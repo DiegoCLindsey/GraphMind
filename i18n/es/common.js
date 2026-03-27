@@ -22,5 +22,5 @@ window.GM_I18N.es.common = {
   confirm_delete_title:  'Eliminar tarea',
   delete_only:           'Borrar solo esta',
   delete_cascade:        'Borrar con hijos',
-  untitled:              '(sin título)',,
+  untitled:              '(sin título)',
 };
