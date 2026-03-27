@@ -90,35 +90,65 @@ function _refreshBodyPreview() {
   }
 }
 
-function renderList() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const filtered = S.nodes.filter(n => {
-    if (activeFilter !== 'all' && n.status !== activeFilter) return false;
-    if (q && !n.title.toLowerCase().includes(q) && !n.body.toLowerCase().includes(q) && !n.tags.some(t=>t.includes(q))) return false;
-    return true;
-  });
-  const list = document.getElementById('node-list');
-  list.innerHTML = filtered.length ? filtered.map(n => nodeItemHTML(n)).join('') :
-    `<div style="padding:14px;color:var(--t3);font-size:11px;text-align:center">${t('sidebar.no_results')}</div>`;
+let _sbTreeCollapsed = new Set();
+function toggleSbNode(id) {
+  if (_sbTreeCollapsed.has(id)) _sbTreeCollapsed.delete(id);
+  else _sbTreeCollapsed.add(id);
+  renderList();
 }
 
-function nodeItemHTML(n) {
+function renderList() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const list = document.getElementById('node-list');
+  const filtered = S.nodes.filter(n => {
+    if (activeFilter !== 'all' && n.status !== activeFilter) return false;
+    if (q && !n.title.toLowerCase().includes(q) && !n.body.toLowerCase().includes(q) && !n.tags.some(tg => tg.includes(q))) return false;
+    return true;
+  });
+  if (!filtered.length) {
+    list.innerHTML = `<div style="padding:14px;color:var(--t3);font-size:11px;text-align:center">${t('sidebar.no_results')}</div>`;
+    return;
+  }
+  // Build hierarchical tree (same pattern as Gantt)
+  const ids = new Set(filtered.map(n => n.id));
+  const hasParentInSet = new Set();
+  filtered.forEach(n => getDirectChildren(n.id).forEach(c => { if (ids.has(c.id)) hasParentInSet.add(c.id); }));
+  const roots = filtered.filter(n => !hasParentInSet.has(n.id));
+  const rows = [];
+  const visited = new Set();
+  function walk(node, depth) {
+    if (visited.has(node.id)) return;
+    visited.add(node.id);
+    const children = getDirectChildren(node.id).filter(c => ids.has(c.id));
+    rows.push({ n: node, depth, childCount: children.length });
+    if (!_sbTreeCollapsed.has(node.id)) children.forEach(c => walk(c, depth + 1));
+  }
+  roots.forEach(r => walk(r, 0));
+  filtered.forEach(n => { if (!visited.has(n.id)) rows.push({ n, depth: 0, childCount: 0 }); });
+  list.innerHTML = rows.map(r => nodeItemHTML(r.n, r.depth, r.childCount)).join('');
+}
+
+function nodeItemHTML(n, depth = 0, childCount = 0) {
   const on = n.id === S.currentId;
   const sc = statusColor(n.status);
   const title = esc(n.title || t('common.untitled'));
   const pct = n.completion || 0;
   const agg = aggregateMetrics(n.id);
   const dispPct = agg ? agg.avgCompletion : pct;
-  const tagHTML = n.tags.slice(0,2).map(t => `<span style="font-size:9px;padding:1px 5px;border-radius:10px;background:${gTC(t)}22;color:${gTC(t)}">#${esc(t)}</span>`).join('');
+  const tagHTML = n.tags.slice(0,2).map(tg => `<span style="font-size:9px;padding:1px 5px;border-radius:10px;background:${gTC(tg)}22;color:${gTC(tg)}">#${esc(tg)}</span>`).join('');
   const tCfg     = typeConfig(n.type);
   const typeLabel = tCfg.name;
   const typeColor = tCfg.color;
   const prioHTML = n.priority ? `<span style="color:${PRIORITY_COLOR[n.priority]||'var(--t3)'};font-size:11px;font-weight:700">${PRIORITY_ICON[n.priority]||''}</span>` : '';
   const dlColor = n.deadline && new Date(n.deadline) < new Date() && n.status !== 'done' ? 'var(--danger)' : 'var(--t3)';
   const dlHTML = n.deadline ? `<span style="font-size:9px;font-family:var(--mono);color:${dlColor}">📅${new Date(n.deadline+'T12:00').toLocaleDateString('es',{day:'numeric',month:'short'})}</span>` : '';
-  return `<div class="ni ${on?'on':''}" id="ni-${n.id}" onclick="select('${n.id}')">
+  const collapsed = _sbTreeCollapsed.has(n.id);
+  const chevron = childCount > 0
+    ? `<button class="ni-chevron" onclick="event.stopPropagation();toggleSbNode('${n.id}')">${collapsed ? '&#9658;' : '&#9660;'}</button>`
+    : '<span class="ni-chevron-gap"></span>';
+  return `<div class="ni ${on?'on':''}" id="ni-${n.id}" onclick="select('${n.id}')" style="padding-left:${depth*14+9}px">
     <div class="ni-title">
-      <div class="status-dot" style="background:${sc}"></div>
+      ${chevron}<div class="status-dot" style="background:${sc}"></div>
       ${title}
       <span style="margin-left:auto;display:flex;gap:4px;align-items:center">${prioHTML}<span class="ni-type" style="color:${typeColor};border:1px solid ${typeColor}33">${typeLabel}</span></span>
     </div>
@@ -128,9 +158,7 @@ function nodeItemHTML(n) {
 }
 
 function renderNodeItem(id) {
-  const el = document.getElementById('ni-'+id);
-  const n = S.nodes.find(x => x.id === id);
-  if (el && n) el.outerHTML = nodeItemHTML(n);
+  renderList(); // rebuild to preserve hierarchy/depth
 }
 
 function updateSB(n) {
@@ -167,7 +195,8 @@ function switchView(v) {
   const tabCfg = document.getElementById('tab-cfg');
   if (tabCfg) tabCfg.classList.toggle('on', v==='config');
   if (v==='graph')  renderGraph();
-  if (v==='gantt')  { if (typeof _ganttScrollOnLoad !== 'undefined') _ganttScrollOnLoad = true; setTimeout(renderGantt, 30); }
+  if (v==='gantt')  { setSidebarFold(true); if (typeof _ganttScrollOnLoad !== 'undefined') _ganttScrollOnLoad = true; setTimeout(renderGantt, 30); }
+  if (v==='editor') setSidebarFold(false);
   if (v==='config') renderCfgPanel();
   if (v==='help')   renderHelp();
   if (typeof checkOrientation === 'function') checkOrientation();

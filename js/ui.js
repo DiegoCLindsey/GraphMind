@@ -51,6 +51,22 @@ function toggleSidebar() {
   bd.classList.toggle('open');
 }
 
+function setSidebarFold(folded) {
+  if (window.innerWidth <= 768) return; // mobile uses overlay — don't fold
+  const sb  = document.getElementById('sidebar');
+  const btn = document.getElementById('sb-fold-btn');
+  if (!sb) return;
+  sb.classList.toggle('sb-folded', folded);
+  if (btn) btn.innerHTML = folded ? '&#9654;' : '&#9664; Tareas';
+  if (btn) btn.title = folded ? 'Expandir barra lateral' : 'Colapsar barra lateral';
+}
+
+function toggleSidebarFold() {
+  const sb = document.getElementById('sidebar');
+  if (!sb) return;
+  setSidebarFold(!sb.classList.contains('sb-folded'));
+}
+
 
 // ── Gantt config panel (mobile) ──────────────────────────────────────────────
 function toggleGanttCfg() {
