@@ -54,6 +54,7 @@ function saveNode() {
   renderNodeItem(n.id);
   updateSB(n);
   // Propagate dates (and hours/cost/completion) up to ancestors immediately
+  if (typeof invalidateCPCache === 'function') invalidateCPCache();
   if (typeof recalcMetrics === 'function') recalcMetrics();
   autoSaveLS();
 }

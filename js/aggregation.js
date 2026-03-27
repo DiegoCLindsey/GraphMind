@@ -79,69 +79,49 @@ function invalidateCPCache() { _cpCache = null; }
 function computeCriticalPath() {
   if (_cpCache) return _cpCache;
 
-  // Duration of a node in days
-  const dur = (n) => {
-    if (n.start && n.end) {
-      const d = Math.ceil((new Date(n.end+'T00:00:00') - new Date(n.start+'T00:00:00')) / 86400000) + 1;
-      return Math.max(d, 1);
+  // End timestamp of a node (uses end field; falls back to start + days if end absent)
+  const endTs = (n) => {
+    if (n.end) return new Date(n.end + 'T00:00:00').getTime();
+    if (n.start) {
+      const days = parseFloat(n.days || n.hours) || 1;
+      const d = new Date(n.start + 'T00:00:00');
+      d.setDate(d.getDate() + Math.round(days) - 1);
+      return d.getTime();
     }
-    return parseFloat(n.days || n.hours) || 1;
+    return 0;
   };
 
-  // Directed edges: only explicit dependency (blocks) — hierarchy is organisational, not sequential
-  const edges = [];
-  S.nodes.forEach(n => {
-    n.connections.forEach(cid => { if (n.connTypes[cid] === 'blocks') edges.push({ from: n.id, to: cid }); });
-  });
-
-  // Build undirected adjacency to find connected components (Union-Find)
-  const parent = {}; S.nodes.forEach(n => parent[n.id] = n.id);
-  const find = id => { if (parent[id] !== id) parent[id] = find(parent[id]); return parent[id]; };
-  const union = (a, b) => { parent[find(a)] = find(b); };
-  edges.forEach(e => union(e.from, e.to));
-
-  // Group nodes by component root
-  const components = {};
-  S.nodes.forEach(n => {
-    const root = find(n.id);
-    (components[root] = components[root] || []).push(n.id);
-  });
-
-  // Topological sort (global, works across all components)
-  const inDeg = {}; S.nodes.forEach(n => inDeg[n.id] = 0);
-  edges.forEach(e => { inDeg[e.to] = (inDeg[e.to] || 0) + 1; });
-  const queue = S.nodes.filter(n => !inDeg[n.id]).map(n => n.id);
-  const order = [];
-  while (queue.length) {
-    const id = queue.shift(); order.push(id);
-    edges.filter(e => e.from === id).forEach(e => { if (!--inDeg[e.to]) queue.push(e.to); });
-  }
-  // Append any nodes not reached (cycles, isolated) so they're always included
-  S.nodes.forEach(n => { if (!order.includes(n.id)) order.push(n.id); });
-
-  // Forward pass: longest path distances
-  const dist = {}, prev = {};
-  S.nodes.forEach(n => { dist[n.id] = 0; prev[n.id] = null; });
-  order.forEach(id => {
+  // subtreeEnd: the latest end timestamp in the entire subtree rooted at id
+  const seCache = {};
+  function subtreeEnd(id) {
+    if (seCache[id] !== undefined) return seCache[id];
+    seCache[id] = -1; // cycle guard
     const n = S.nodes.find(x => x.id === id);
-    const d = dur(n);
-    edges.filter(e => e.from === id).forEach(e => {
-      const nd = dist[id] + d;
-      if (nd > dist[e.to]) { dist[e.to] = nd; prev[e.to] = id; }
-    });
-  });
+    if (!n) return 0;
+    let best = endTs(n);
+    getDirectChildren(id).forEach(c => { best = Math.max(best, subtreeEnd(c.id)); });
+    seCache[id] = best;
+    return best;
+  }
+  S.nodes.forEach(n => subtreeEnd(n.id));
 
-  // Per component: trace back from the node with the highest dist+dur (true end time)
+  // Top-level roots = nodes that are not a child of anyone
+  const childSet = new Set();
+  S.nodes.forEach(n => getDirectChildren(n.id).forEach(c => childSet.add(c.id)));
+  const roots = S.nodes.filter(n => !childSet.has(n.id));
+
+  // Trace CP downward: at each level follow the child with max subtreeEnd
   const path = new Set();
-  Object.values(components).forEach(ids => {
-    if (ids.length < 2) return; // single isolated node — not a meaningful critical path
-    const sinkId = ids.reduce((best, id) => {
-      const nBest = S.nodes.find(x => x.id === best);
-      const nCur  = S.nodes.find(x => x.id === id);
-      return (dist[id] + dur(nCur)) > (dist[best] + dur(nBest)) ? id : best;
-    }, ids[0]);
-    let cur = sinkId;
-    while (cur) { path.add(cur); cur = prev[cur]; }
+  function trace(id) {
+    path.add(id);
+    const kids = getDirectChildren(id);
+    if (!kids.length) return;
+    const best = kids.reduce((b, c) => subtreeEnd(c.id) > subtreeEnd(b.id) ? c : b);
+    trace(best.id);
+  }
+  roots.forEach(root => {
+    if (getDirectChildren(root.id).length === 0) return; // isolated leaf — no meaningful CP
+    trace(root.id);
   });
 
   _cpCache = path;
