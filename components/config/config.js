@@ -22,6 +22,7 @@ function switchCfgTab(el, tab) {
     const p = document.getElementById('cfg-panel-' + t);
     if (p) p.style.display = t === tab ? 'block' : 'none';
   });
+  if (tab === 'appearance') renderCfgAppearance();
 }
 
 // ── STATUSES ──────────────────────────────────────────────────────────────────
@@ -107,7 +108,11 @@ function addCfgType() {
     id, name: 'Nuevo tipo', isGroup: false,
     shape: 'circle', color: '#888888', borderColor: '#888888',
   });
+  // Auto-include new type in breakdown filter if an explicit list exists
+  if (_cfgDraft.breakdownInheritTypes?.length)
+    _cfgDraft.breakdownInheritTypes.push(id);
   renderCfgTypes();
+  renderCfgBreakdownTypes();
 }
 
 function deleteCfgType(id) {
@@ -115,7 +120,11 @@ function deleteCfgType(id) {
   const inUse = S.nodes.some(n => n.type === id);
   if (inUse && !confirm(t('config.confirm_del_type').replace('{id}', id))) return;
   _cfgDraft.types = _cfgDraft.types.filter(t => t.id !== id);
+  // Also clean up from breakdown filter if it was explicitly listed
+  if (_cfgDraft.breakdownInheritTypes?.length)
+    _cfgDraft.breakdownInheritTypes = _cfgDraft.breakdownInheritTypes.filter(x => x !== id);
   renderCfgTypes();
+  renderCfgBreakdownTypes();
 }
 
 // ── APPEARANCE ────────────────────────────────────────────────────────────────
