@@ -127,7 +127,14 @@ function createBreakdownTasks() {
     allParents = [active, ...eligible];
   }
 
-  titles.forEach(title => {
+  // Seed positions near the active node so new nodes don't land off-screen
+  const parentPos = _graphPositions[active.id];
+  const baseX = parentPos ? parentPos.x : 400;
+  const baseY = parentPos ? parentPos.y : 300;
+  const RADIUS = 110; // px — spread radius around parent
+  const count  = titles.length;
+
+  titles.forEach((title, i) => {
     const node = {
       id: gid(), title, body: '', tags: [], type: 'task', status: 'todo',
       assignee: '', start: '', end: '', deadline: '', days: '', cost: '',
@@ -135,6 +142,11 @@ function createBreakdownTasks() {
       connections: [], connTypes: {}, comments: [],
       created: new Date().toISOString(), updated: new Date().toISOString(),
     };
+
+    // Distribute evenly around parent with a small random jitter
+    const angle  = (2 * Math.PI / count) * i + (Math.random() - 0.5) * 0.4;
+    const r      = RADIUS + (Math.random() - 0.5) * 40;
+    _graphPositions[node.id] = { x: baseX + r * Math.cos(angle), y: baseY + r * Math.sin(angle) };
 
     // Connect to every parent in the chain
     allParents.forEach(parent => {
