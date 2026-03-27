@@ -112,12 +112,12 @@ function onStartDateChange() {
 function onEndDateChange() { /* end is always calculated — no-op */ }
 
 function calcEndFromDuration(n) {
-  // If start + days → compute end
+  // If start + days → compute end (use local date components to avoid UTC offset bug)
   const days = parseFloat(n.days);
   if (n.start && days > 0) {
-    const start = new Date(n.start + 'T00:00:00');
-    start.setDate(start.getDate() + Math.round(days) - 1);
-    n.end = start.toISOString().slice(0, 10);
+    const d = new Date(n.start + 'T00:00:00');
+    d.setDate(d.getDate() + Math.round(days) - 1);
+    n.end = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     return true;
   }
   return false;
