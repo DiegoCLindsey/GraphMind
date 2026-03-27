@@ -79,6 +79,22 @@
         </label>
       </div>
 
+      <div class="cfg-section-label" style="margin-top:22px" data-i18n="config.section_breakdown">Desglosar</div>
+      <div class="cfg-units-row" style="flex-direction:column;gap:10px">
+        <label class="cfg-unit-label" style="flex-direction:row;align-items:flex-start;gap:10px">
+          <input type="checkbox" id="cfg-bd-inheritance" style="margin-top:3px;flex-shrink:0"
+                 onchange="updateCfgBreakdownInheritance(this.checked)">
+          <div>
+            <span data-i18n="config.bd_inheritance">Herencia de parentesco al desglosar</span>
+            <div class="cfg-unit-preview" style="margin-top:2px" data-i18n="config.bd_inheritance_hint">Conectar también con los ancestros del nodo</div>
+          </div>
+        </label>
+        <div id="cfg-bd-types-wrap" style="padding-left:24px">
+          <div class="cfg-unit-preview" style="margin-bottom:6px" data-i18n="config.bd_only_types">Heredar sólo los tipos:</div>
+          <div id="cfg-bd-types-list" style="display:flex;flex-wrap:wrap;gap:6px 14px"></div>
+        </div>
+      </div>
+
     </div>
 
   </div><!-- /cfg-tab-body -->

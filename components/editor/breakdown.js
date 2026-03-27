@@ -116,9 +116,16 @@ function createBreakdownTasks() {
     return;
   }
 
-  // Collect parents: active task + all ancestors
+  // Collect parents: active task + filtered ancestors (driven by CFG)
   const ancestors = getAncestors(active.id);
-  const allParents = [active, ...ancestors]; // active is closest parent
+  let allParents = [active];
+  if (CFG.breakdownInheritance !== false) {
+    const onlyTypes = CFG.breakdownInheritTypes || [];
+    const eligible = ancestors.filter(a =>
+      onlyTypes.length === 0 || onlyTypes.includes(a.type)
+    );
+    allParents = [active, ...eligible];
+  }
 
   titles.forEach(title => {
     const node = {

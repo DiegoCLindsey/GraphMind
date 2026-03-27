@@ -31,6 +31,10 @@ window.GM_I18N.es.config = {
   section_graph:      'Grafo',
   graph_animations:   'Animaciones físicas',
   graph_animations_hint: 'Desactivar fija las posiciones entre sesiones',
+  section_breakdown:  'Desglosar',
+  bd_inheritance:     'Herencia de parentesco al desglosar',
+  bd_inheritance_hint:'Conectar también con los ancestros del nodo',
+  bd_only_types:      'Heredar sólo los tipos:',
   confirm_reset:    '¿Restaurar todos los ajustes a los valores por defecto?',
   saved:            '⚙ Configuración guardada',
 };

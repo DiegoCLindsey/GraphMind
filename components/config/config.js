@@ -142,6 +142,11 @@ function renderCfgAppearance() {
   // Graph animations toggle
   const anChk = document.getElementById('cfg-graph-animations');
   if (anChk) anChk.checked = _cfgDraft.graphAnimations !== false;
+
+  // Breakdown inheritance
+  const bdChk = document.getElementById('cfg-bd-inheritance');
+  if (bdChk) bdChk.checked = _cfgDraft.breakdownInheritance !== false;
+  renderCfgBreakdownTypes();
 }
 
 function setCfgThemeDraft(theme) {
@@ -161,6 +166,42 @@ function updateCfgUnit(key, value) {
 
 function updateCfgBool(key, value) {
   _cfgDraft[key] = value;
+}
+
+function updateCfgBreakdownInheritance(checked) {
+  _cfgDraft.breakdownInheritance = checked;
+  const wrap = document.getElementById('cfg-bd-types-wrap');
+  if (wrap) wrap.style.opacity = checked ? '1' : '0.35';
+  if (wrap) wrap.style.pointerEvents = checked ? '' : 'none';
+}
+
+function renderCfgBreakdownTypes() {
+  const list = document.getElementById('cfg-bd-types-list');
+  const wrap = document.getElementById('cfg-bd-types-wrap');
+  if (!list) return;
+  const selected = _cfgDraft.breakdownInheritTypes || [];
+  const inherited = _cfgDraft.breakdownInheritance !== false;
+  if (wrap) { wrap.style.opacity = inherited ? '1' : '0.35'; wrap.style.pointerEvents = inherited ? '' : 'none'; }
+  list.innerHTML = _cfgDraft.types.map(tp => {
+    const id = 'cfg-bd-tp-' + tp.id;
+    const checked = selected.length === 0 || selected.includes(tp.id) ? 'checked' : '';
+    return `<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);cursor:pointer">
+      <input type="checkbox" id="${id}" value="${esc(tp.id)}" ${checked}
+             onchange="toggleCfgBreakdownType('${tp.id}',this.checked)">
+      <span style="color:${esc(tp.borderColor||tp.color)}">${esc(tp.name)}</span>
+    </label>`;
+  }).join('');
+}
+
+function toggleCfgBreakdownType(typeId, checked) {
+  // When all were implicitly selected (empty = all), first uncheck means "lock to remaining"
+  const all = _cfgDraft.types.map(t => t.id);
+  let sel = _cfgDraft.breakdownInheritTypes || [];
+  if (sel.length === 0) sel = [...all]; // materialise the implicit all
+  if (checked) { if (!sel.includes(typeId)) sel.push(typeId); }
+  else { sel = sel.filter(id => id !== typeId); }
+  // If all are checked again, collapse back to empty (= all)
+  _cfgDraft.breakdownInheritTypes = sel.length === all.length ? [] : sel;
 }
 
 function updateCfgUnitPreview() {

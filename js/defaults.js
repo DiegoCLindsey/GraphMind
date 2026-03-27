@@ -26,4 +26,6 @@ const CFG_DEFAULTS = {
   currency: '€',
   durationUnit: 'd',
   graphAnimations: true,
+  breakdownInheritance: true,
+  breakdownInheritTypes: [],   // [] = all ancestor types; non-empty = only listed types
 };

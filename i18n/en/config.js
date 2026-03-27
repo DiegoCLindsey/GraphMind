@@ -31,6 +31,10 @@ window.GM_I18N.en.config = {
   section_graph:      'Graph',
   graph_animations:   'Physics animations',
   graph_animations_hint: 'Disabling locks node positions between sessions',
+  section_breakdown:  'Breakdown',
+  bd_inheritance:     'Inherit parentage on breakdown',
+  bd_inheritance_hint:'Also connect new tasks to the node\'s ancestors',
+  bd_only_types:      'Inherit only from types:',
   confirm_reset:    'Restore all settings to their default values?',
   saved:            '⚙ Settings saved',
 };
