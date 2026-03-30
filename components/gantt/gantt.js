@@ -154,6 +154,29 @@ function rRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// ── Gantt calendar view filter ──────────────────────────────────────────────
+let _ganttCalFilter = 'global';
+
+function ganttGetViewCal() {
+  if (!plannerEnabled()) return null;
+  if (_ganttCalFilter === 'global') return getWorkCalendar(null);
+  return getWorkCalendar(_ganttCalFilter);
+}
+
+function ganttBuildCalOptions() {
+  const sel = document.getElementById('gantt-cal-select');
+  const wrap = document.getElementById('gantt-cal-wrap');
+  if (!plannerEnabled()) { if (wrap) wrap.style.display = 'none'; return; }
+  if (wrap) wrap.style.display = '';
+  if (!sel) return;
+  const overrides = CFG.planner?.assigneeOverrides || {};
+  const names = Object.keys(overrides);
+  sel.innerHTML = '<option value="global">Global</option>' +
+    names.map(n => `<option value="${n}">${n}</option>`).join('');
+  if (_ganttCalFilter !== 'global' && !overrides[_ganttCalFilter]) _ganttCalFilter = 'global';
+  sel.value = _ganttCalFilter;
+}
+
 function renderGantt() {
   invalidateCPCache();
   const view = document.getElementById('gantt-view');
@@ -172,6 +195,7 @@ function renderGantt() {
     return;
   }
   emptyEl.style.display = 'none';
+  ganttBuildCalOptions();
   G.minDate = range.min; G.maxDate = range.max;
   const totalDays = daysBetween(range.min, range.max) + 1;
   const totalW = totalDays * G.dayW;
@@ -261,13 +285,14 @@ function renderGantt() {
     gc.fillStyle='rgba(255,255,255,0.035)'; gc.fillRect(0,y+G.rowH-1,totalW,1);
   });
 
+  const _viewCal = ganttGetViewCal();
   for (let d=0; d<=totalDays; d++) {
     const x = d*G.dayW;
     const dt = new Date(range.min); dt.setDate(dt.getDate()+d);
     const isWE = dt.getDay()===0||dt.getDay()===6;
     const isMon = dt.getDay()===1;
     const isFOM = dt.getDate()===1;
-    const isNonWorkDay = plannerEnabled() && !isWorkDay(dt, (CFG.planner?.workDays||[1,2,3,4,5]), (CFG.planner?.holidays||[]));
+    const isNonWorkDay = _viewCal && !isWorkDay(dt, _viewCal.workDays, _viewCal.holidays);
     if (isNonWorkDay) {
       // Stronger shade + diagonal stripes for non-working days
       gc.fillStyle='rgba(255,255,255,0.045)'; gc.fillRect(x,0,G.dayW,totalH);
@@ -282,8 +307,8 @@ function renderGantt() {
       gc.fillStyle='rgba(255,255,255,0.018)'; gc.fillRect(x,0,G.dayW,totalH);
     }
     // Work-hour sub-lines (planner, high zoom)
-    if (plannerEnabled() && !isNonWorkDay && G.dayW>=48) {
-      const wh = CFG.planner?.dailyWorkHours || 8;
+    if (_viewCal && !isNonWorkDay && G.dayW>=48) {
+      const wh = _viewCal.dailyWorkHours || 8;
       const hourW = G.dayW / wh;
       gc.strokeStyle='rgba(255,255,255,0.06)'; gc.lineWidth=1;
       for (let h=1; h<wh; h++) {
@@ -696,6 +721,7 @@ function drawHeader(totalW, totalDays, scrollX) {
   ctx.fillStyle='#111'; ctx.fillRect(0,0,W,H);
   ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(0,H-1,W,1);
   const today=new Date(); today.setHours(0,0,0,0);
+  const _hdrCal = plannerEnabled() ? ganttGetViewCal() : null;
   let prevM=-1;
   for(let d=0;d<=totalDays;d++){
     const x=d*G.dayW-scrollX;
@@ -721,9 +747,9 @@ function drawHeader(totalW, totalDays, scrollX) {
     }
     if(dow===1&&G.dayW<16&&G.dayW>=5){ ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(x,28,1,H-28); }
     // Planner: work-hour marks within each working day at high zoom
-    if(plannerEnabled() && G.dayW>=48 && isWorkDay(dt, CFG.planner?.workDays||[1,2,3,4,5], CFG.planner?.holidays||[])) {
-      const wh = CFG.planner?.dailyWorkHours||8;
-      const ws = CFG.planner?.workStart||9;
+    if(_hdrCal && G.dayW>=48 && isWorkDay(dt, _hdrCal.workDays, _hdrCal.holidays)) {
+      const wh = _hdrCal.dailyWorkHours||8;
+      const ws = _hdrCal.workStart||9;
       const hourW = G.dayW / wh;
       ctx.textBaseline='middle';
       for(let h=0; h<wh; h+=2) {

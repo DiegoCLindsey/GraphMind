@@ -23,6 +23,11 @@
     </select>
     <span class="vdiv gt-desktop"></span>
     <button id="gantt-today-btn" onclick="ganttScrollToday()" data-i18n="gantt.today_btn">Hoy</button>
+    <span id="gantt-cal-wrap" class="gt-desktop" style="display:none">
+      <span class="vdiv"></span>
+      <span class="gt-label" data-i18n="gantt.cal_label">Vista</span>
+      <select id="gantt-cal-select" onchange="_ganttCalFilter=this.value;renderGantt()"></select>
+    </span>
     <button id="gantt-edit-btn" onclick="ganttToggleEdit()" data-i18n="gantt.edit_off">🔒 Edición off</button>
     <!-- Mobile: config button -->
     <button id="gantt-cfg-btn" onclick="openGanttSheet()" data-i18n="gantt.cfg_btn">⚙ Config</button>

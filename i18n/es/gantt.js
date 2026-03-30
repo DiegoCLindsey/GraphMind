@@ -2,6 +2,7 @@ window.GM_I18N = window.GM_I18N || {};
 window.GM_I18N.es = window.GM_I18N.es || {};
 window.GM_I18N.es.gantt = {
   zoom_label:       'Zoom',
+  cal_label:        'Vista cal.',
   group_label:      'Agrupar',
   filter_label:     'Filtrar',
   today_btn:        'Hoy',

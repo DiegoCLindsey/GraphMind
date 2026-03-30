@@ -4,7 +4,7 @@
 .gt-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.4px}
 .gt-zoom-btn{width:26px;height:26px;background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--t2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.1s}
 .gt-zoom-btn:hover{color:var(--t1);border-color:var(--b3)}
-#gantt-group-select,#gantt-filter-select{background:var(--s2);border:1px solid var(--b2);border-radius:5px;padding:3px 8px;color:var(--t2);font-size:11px;font-family:var(--sans);outline:none;cursor:pointer}
+#gantt-group-select,#gantt-filter-select,#gantt-cal-select{background:var(--s2);border:1px solid var(--b2);border-radius:5px;padding:3px 8px;color:var(--t2);font-size:11px;font-family:var(--sans);outline:none;cursor:pointer}
 #gantt-today-btn{padding:3px 10px;background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.25);border-radius:5px;color:var(--accent);font-size:11px;font-family:var(--sans);cursor:pointer}
 #gantt-today-btn:hover{background:rgba(110,231,183,0.2)}
 #gantt-edit-btn{padding:3px 10px;background:transparent;border:1px solid var(--b2);border-radius:5px;color:var(--t3);font-size:11px;font-family:var(--sans);cursor:pointer;transition:.12s all}

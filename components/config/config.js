@@ -405,6 +405,15 @@ function toggleCfgWorkDay(dayIdx, checked) {
   _cfgDraft.planner.workDays = wd.sort((a,b) => a-b);
 }
 
+function toggleCfgAssigneeWorkDay(name, dayIdx, checked) {
+  const ov = _cfgDraft.planner?.assigneeOverrides;
+  if (!ov?.[name]) return;
+  let wd = Array.isArray(ov[name].workDays) ? [...ov[name].workDays] : [1,2,3,4,5];
+  if (checked) { if (!wd.includes(dayIdx)) wd.push(dayIdx); }
+  else { wd = wd.filter(d => d !== dayIdx); }
+  ov[name].workDays = wd.sort((a,b) => a-b);
+}
+
 function renderCfgDailyPreview() {
   const p = _cfgDraft.planner || {};
   const dh = p.dailyWorkHours || ((p.workEnd||17) - (p.workStart||9));
@@ -438,6 +447,16 @@ function renderCfgAssigneeOverrides() {
              oninput="updateCfgAssignee('${esc(name)}','dailyWorkHours',parseFloat(this.value)||8)">
       <span style="font-size:9px;color:var(--t3)">h/d</span>
       <button class="cfg-del" onclick="deleteCfgAssignee('${esc(name)}')">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;padding-left:4px">
+      ${_DAY_LABELS.map((lbl, i) => {
+        const checked = (Array.isArray(cal.workDays) ? cal.workDays : [1,2,3,4,5]).includes(i) ? 'checked' : '';
+        return `<label style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:10px;color:var(--t2)">
+          <input type="checkbox" ${checked} style="accent-color:var(--accent)"
+                 onchange="toggleCfgAssigneeWorkDay('${esc(name)}',${i},this.checked)">
+          <span>${lbl}</span>
+        </label>`;
+      }).join('')}
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding-left:4px">
       <span style="font-size:10px;color:var(--t3)" data-i18n="config.planner_assignee_holidays">Festivos personales:</span>
