@@ -36,5 +36,15 @@ window.GM_I18N.en.config = {
   bd_inheritance_hint:'Also connect new tasks to the node\'s ancestors',
   bd_only_types:      'Inherit only from types:',
   confirm_reset:    'Restore all settings to their default values?',
-  saved:            '⚙ Settings saved',
-};
+  saved:            '⚙ Settings saved',  tab_planner:             'Planner',
+  planner_hint_main:       'Enables the work calendar: duration is entered in <strong>work hours</strong> and the system calculates dates skipping non-working days.',
+  planner_enabled:         'Advanced time planner',
+  planner_enabled_hint:    'Enable work calendar and hours-based duration',
+  planner_work_days:       'Working days',
+  planner_work_hours:      'Work schedule',
+  planner_start_hour:      'Start',
+  planner_end_hour:        'End',
+  planner_daily_hours:     'Hours/day',
+  planner_assignees:       'Per-assignee calendar',
+  planner_add_assignee:    '+ Add assignee',
+  planner_no_overrides:    'No per-assignee overrides.',};

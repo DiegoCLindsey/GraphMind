@@ -11,6 +11,7 @@ window.GM_I18N.es.editor = {
   field_end:            'Fecha fin',
   field_deadline:       'Fecha límite',
   field_duration:       'Duración (días)',
+  field_work_hours:     'Duración (h trab.)',
   field_cost:           'Coste est.',
   field_completion:     'Completitud (%)',
   field_priority:       'Prioridad',

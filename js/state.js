@@ -47,6 +47,7 @@ function applySnapshot(data) {
       ...data.cfg,
       statuses: data.cfg.statuses?.length ? data.cfg.statuses : CFG_DEFAULTS.statuses,
       types:    data.cfg.types?.length    ? data.cfg.types    : CFG_DEFAULTS.types,
+      planner:  data.cfg.planner ? { ...CFG_DEFAULTS.planner, ...data.cfg.planner } : CFG_DEFAULTS.planner,
     };
   }
   if (data.graphPositions) _graphPositions = data.graphPositions;

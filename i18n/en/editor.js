@@ -12,7 +12,7 @@ window.GM_I18N.en.editor = {
   field_tags:        'Tags',
   field_start:       'Start',
   field_end:         'End',
-  field_duration:    'Duration',
+  field_duration:    'Duration',\n  field_work_hours:  'Duration (work h)',
   field_cost:        'Cost',
   field_progress:    'Progress (%)',
   priority_critical: 'Critical',

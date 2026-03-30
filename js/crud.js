@@ -4,7 +4,7 @@
 function newNode() {
   const node = {
     id: gid(), title:'', body:'', tags:[], type:'task', status:'todo',
-    assignee:'', start:'', end:'', deadline:'', days:'', cost:'', completion:0, priority:'',
+    assignee:'', start:'', end:'', deadline:'', days:'', workHours:'', cost:'', completion:0, priority:'',
     connections:[], connTypes:{}, comments:[], archived: false,
     created: new Date().toISOString(), updated: new Date().toISOString()
   };
@@ -44,10 +44,15 @@ function saveNode() {
   const hasBlockers = n.connections.some(cid => n.connTypes[cid] === 'blocked-by');
   if (!isParent) {
     if (!hasBlockers) n.start = document.getElementById('f-start').value;
-    n.days = document.getElementById('f-hours').value;
+    // When planner is active, f-hours holds work hours; otherwise calendar days
+    if (plannerEnabled()) {
+      n.workHours = document.getElementById('f-hours').value;
+    } else {
+      n.days = document.getElementById('f-hours').value;
+    }
     n.cost = document.getElementById('f-cost').value;
     n.completion = parseInt(document.getElementById('f-completion').value) || 0;
-    // end is always calculated from start + days
+    // end is always calculated from start + duration
     calcEndFromDuration(n);
     document.getElementById('f-end').value = n.end || '';
   }
@@ -64,6 +69,31 @@ function saveNode() {
 function computeNodeDates(n) {
   if (!n || getDirectChildren(n.id).length > 0) return;
   const blockerIds = n.connections.filter(cid => n.connTypes[cid] === 'blocked-by');
+
+  if (plannerEnabled()) {
+    // ── Planner mode: use work calendar and track endHour ──
+    const cal = getWorkCalendar(n.assignee);
+    if (blockerIds.length > 0) {
+      const best = blockerIds.reduce((acc, cid) => {
+        const b = S.nodes.find(x => x.id === cid);
+        if (!b?.end) return acc;
+        const later = !acc || b.end > acc.end || (b.end === acc.end && (b.endHour||0) > (acc.endHour||0));
+        return later ? { end: b.end, endHour: b.endHour } : acc;
+      }, null);
+      if (best) {
+        const { start, startHour } = blockerToNextStart(best.end, best.endHour, cal);
+        n.start     = start;
+        n.startHour = startHour;
+      }
+    } else {
+      if (n.startHour == null) n.startHour = cal.workStart;
+    }
+    if (!n.workHours) n.workHours = String(cal.dailyWorkHours);
+    calcEndFromDuration(n);
+    return;
+  }
+
+  // ── Normal mode ──
   if (blockerIds.length > 0) {
     const best = blockerIds.reduce((acc, cid) => {
       const b = S.nodes.find(x => x.id === cid);
@@ -72,7 +102,6 @@ function computeNodeDates(n) {
     }, null);
     if (best) {
       const d = new Date(best.end + 'T00:00:00');
-      // Sub-day tasks (<1d) don't consume the whole day — blocked task starts same day
       if (best.days >= 1) d.setDate(d.getDate() + 1);
       n.start = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
@@ -95,7 +124,11 @@ function propagateBlockedDatesData(id) {
 function onDurationChange() {
   const n = getCurrent();
   if (!n || getDirectChildren(n.id).length > 0) return;
-  n.days = document.getElementById('f-hours').value;
+  if (plannerEnabled()) {
+    n.workHours = document.getElementById('f-hours').value;
+  } else {
+    n.days = document.getElementById('f-hours').value;
+  }
   calcEndFromDuration(n);
   document.getElementById('f-end').value = n.end || '';
   propagateBlockedDatesData(n.id);
@@ -117,15 +150,26 @@ function onStartDateChange() {
 function onEndDateChange() { /* end is always calculated — no-op */ }
 
 function calcEndFromDuration(n) {
-  // If start + days → compute end (use local date components to avoid UTC offset bug)
+  // ── Planner mode: work hours → skip non-working days ──
+  if (plannerEnabled() && n.workHours) {
+    const wh = parseFloat(n.workHours);
+    if (n.start && wh > 0) {
+      const cal = getWorkCalendar(n.assignee);
+      const { end, endHour } = workHoursToEnd(n.start, wh, cal);
+      n.end     = end;
+      n.endHour = endHour;
+      // Keep n.days as fractional calendar-day equivalent (used for bar width fallback)
+      n.days = String(Math.round(wh / cal.dailyWorkHours * 100) / 100);
+    }
+    return;
+  }
+  // ── Normal mode: fractional calendar days ──
   const days = parseFloat(n.days);
   if (n.start && days > 0) {
     const d = new Date(n.start + 'T00:00:00');
     d.setDate(d.getDate() + Math.round(days) - 1);
     n.end = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    return true;
   }
-  return false;
 }
 
 // ── Archive ───────────────────────────────────────────────────────────────────

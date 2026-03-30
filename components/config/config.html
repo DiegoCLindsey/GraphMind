@@ -9,6 +9,7 @@
     <button class="cfg-tab on" data-tab="states" onclick="switchCfgTab(this,'states')" data-i18n="config.tab_states">Estados</button>
     <button class="cfg-tab" data-tab="types"  onclick="switchCfgTab(this,'types')" data-i18n="config.tab_types">Tipos</button>
     <button class="cfg-tab" data-tab="appearance" onclick="switchCfgTab(this,'appearance')" data-i18n="config.tab_appearance">Apariencia</button>
+    <button class="cfg-tab" data-tab="planner" onclick="switchCfgTab(this,'planner')" data-i18n="config.tab_planner">Planificador</button>
   </div>
 
   <div class="cfg-tab-body">
@@ -98,6 +99,52 @@
     </div>
 
   </div><!-- /cfg-tab-body -->
+
+  <!-- ── PLANIFICADOR PANEL ── -->
+  <div class="cfg-panel" id="cfg-panel-planner" style="display:none">
+    <p class="cfg-hint" data-i18n="config.planner_hint_main">Activa el calendario laboral: la duración se introduce en <strong>horas de trabajo</strong> y el sistema calcula las fechas saltando días no laborables.</p>
+
+    <label class="cfg-unit-label" style="flex-direction:row;align-items:flex-start;gap:10px;margin-bottom:18px">
+      <input type="checkbox" id="cfg-planner-enabled" style="margin-top:3px;flex-shrink:0"
+             onchange="updateCfgPlanner('enabled',this.checked)">
+      <div>
+        <span data-i18n="config.planner_enabled">Planificador avanzado de tiempo</span>
+        <div class="cfg-unit-preview" style="margin-top:2px" data-i18n="config.planner_enabled_hint">Activar calendario laboral y duración en horas</div>
+      </div>
+    </label>
+
+    <div id="cfg-planner-body">
+      <div class="cfg-section-label" data-i18n="config.planner_work_days">Días laborables</div>
+      <div id="cfg-workdays-row" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px"></div>
+
+      <div class="cfg-section-label" data-i18n="config.planner_work_hours">Jornada laboral</div>
+      <div class="cfg-units-row" style="gap:14px;margin-bottom:16px">
+        <label class="cfg-unit-label">
+          <span data-i18n="config.planner_start_hour">Entrada</span>
+          <input id="cfg-work-start" type="number" min="0" max="23" step="1" placeholder="9"
+                 oninput="updateCfgPlanner('workStart',parseInt(this.value)||0);renderCfgDailyPreview()">
+        </label>
+        <label class="cfg-unit-label">
+          <span data-i18n="config.planner_end_hour">Salida</span>
+          <input id="cfg-work-end" type="number" min="1" max="24" step="1" placeholder="17"
+                 oninput="updateCfgPlanner('workEnd',parseInt(this.value)||17);renderCfgDailyPreview()">
+        </label>
+        <label class="cfg-unit-label">
+          <span data-i18n="config.planner_daily_hours">Horas/día</span>
+          <input id="cfg-daily-hours" type="number" min="0.5" max="24" step="0.5" placeholder="8"
+                 oninput="updateCfgPlanner('dailyWorkHours',parseFloat(this.value)||8)">
+          <span class="cfg-unit-preview" id="cfg-daily-preview"></span>
+        </label>
+      </div>
+
+      <div class="cfg-section-label" data-i18n="config.planner_assignees">
+        Calendario por asignado
+        <span style="font-size:9px;font-family:var(--mono);padding:1px 5px;margin-left:6px;border-radius:3px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#a78bfa">Modo +</span>
+      </div>
+      <div id="cfg-assignee-overrides" style="margin-bottom:8px"></div>
+      <button class="cfg-add-btn" onclick="addCfgAssigneeOverride()" data-i18n="config.planner_add_assignee">+ Añadir asignado</button>
+    </div><!-- /cfg-planner-body -->
+  </div><!-- /cfg-panel-planner -->
 
   <div class="cfg-actions">
     <button class="btn-s" onclick="resetCfgToDefaults()" data-i18n="config.reset_btn">↺ Restaurar defaults</button>

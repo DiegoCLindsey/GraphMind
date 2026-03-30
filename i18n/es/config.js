@@ -36,5 +36,15 @@ window.GM_I18N.es.config = {
   bd_inheritance_hint:'Conectar también con los ancestros del nodo',
   bd_only_types:      'Heredar sólo los tipos:',
   confirm_reset:    '¿Restaurar todos los ajustes a los valores por defecto?',
-  saved:            '⚙ Configuración guardada',
-};
+  saved:            '⚙ Configuración guardada',  tab_planner:             'Planificador',
+  planner_hint_main:       'Activa el calendario laboral: la duración se introduce en <strong>horas de trabajo</strong> y el sistema calcula las fechas saltando días no laborables.',
+  planner_enabled:         'Planificador avanzado de tiempo',
+  planner_enabled_hint:    'Activar calendario laboral y duración en horas',
+  planner_work_days:       'Días laborables',
+  planner_work_hours:      'Jornada laboral',
+  planner_start_hour:      'Entrada',
+  planner_end_hour:        'Salida',
+  planner_daily_hours:     'Horas/día',
+  planner_assignees:       'Calendario por asignado',
+  planner_add_assignee:    '+ Añadir asignado',
+  planner_no_overrides:    'Sin sobrescrituras por asignado.',};

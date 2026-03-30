@@ -267,7 +267,30 @@ function renderGantt() {
     const isWE = dt.getDay()===0||dt.getDay()===6;
     const isMon = dt.getDay()===1;
     const isFOM = dt.getDate()===1;
-    if (isWE && G.dayW>=8) { gc.fillStyle='rgba(255,255,255,0.018)'; gc.fillRect(x,0,G.dayW,totalH); }
+    const isNonWorkDay = plannerEnabled() && !isWorkDay(dt, (CFG.planner?.workDays||[1,2,3,4,5]));
+    if (isNonWorkDay) {
+      // Stronger shade + diagonal stripes for non-working days
+      gc.fillStyle='rgba(255,255,255,0.045)'; gc.fillRect(x,0,G.dayW,totalH);
+      gc.strokeStyle='rgba(255,255,255,0.04)'; gc.lineWidth=1;
+      gc.save();
+      gc.beginPath(); gc.rect(x,0,G.dayW,totalH); gc.clip();
+      for (let s=-totalH; s<G.dayW+totalH; s+=7) {
+        gc.beginPath(); gc.moveTo(x+s,0); gc.lineTo(x+s+totalH,totalH); gc.stroke();
+      }
+      gc.restore();
+    } else if (isWE && G.dayW>=8) {
+      gc.fillStyle='rgba(255,255,255,0.018)'; gc.fillRect(x,0,G.dayW,totalH);
+    }
+    // Work-hour sub-lines (planner, high zoom)
+    if (plannerEnabled() && !isNonWorkDay && G.dayW>=48) {
+      const wh = CFG.planner?.dailyWorkHours || 8;
+      const hourW = G.dayW / wh;
+      gc.strokeStyle='rgba(255,255,255,0.06)'; gc.lineWidth=1;
+      for (let h=1; h<wh; h++) {
+        const hx = x + h*hourW;
+        gc.beginPath(); gc.moveTo(hx,0); gc.lineTo(hx,totalH); gc.stroke();
+      }
+    }
     if (isFOM) { gc.strokeStyle='rgba(255,255,255,0.1)'; gc.lineWidth=1; gc.beginPath(); gc.moveTo(x,0); gc.lineTo(x,totalH); gc.stroke(); }
     else if (isMon && G.dayW>=5) { gc.strokeStyle='rgba(255,255,255,0.04)'; gc.lineWidth=1; gc.beginPath(); gc.moveTo(x,0); gc.lineTo(x,totalH); gc.stroke(); }
   }
@@ -280,7 +303,8 @@ function renderGantt() {
   const bc = bCanvas.getContext('2d');
   bc.clearRect(0,0,totalW,totalH);
   G.hitRects = [];
-  const _ganttCPSet = computeCriticalPath(); // compute once for all bars
+  const _ganttCPSet = computeCriticalPath();
+  const _wkCal = plannerEnabled() ? getWorkCalendar(null) : null; // global calendar for bar positioning
 
   rows.forEach((r,i) => {
     if (r.grp) return;
@@ -324,13 +348,20 @@ function renderGantt() {
     }
 
     if (!rng) return;
-    const x1 = daysBetween(range.min, rng.s)*G.dayW;
+    // Hour-aware bar positioning when planner is on
+    const _nodeHourOff = (_wkCal && !isP && !isMil && typeof n.startHour === 'number')
+      ? plannerDayOffset(n.startHour, _wkCal, G.dayW)
+      : 0;
+    const x1 = daysBetween(range.min, rng.s)*G.dayW + _nodeHourOff;
     const x2 = daysBetween(range.min, rng.e)*G.dayW + G.dayW;
-    // For leaf nodes use fractional n.days for accurate sub-day bar widths
+    // Bar width: planner work-hours preferred, else n.days float, else span to end
+    const _wh  = (_wkCal && !isP && !isMil && n.workHours) ? parseFloat(n.workHours) : null;
     const _daysVal = (!isP && !isMil && n.days) ? parseFloat(n.days) : null;
-    const bw = _daysVal !== null && _daysVal > 0
-      ? Math.max(_daysVal * G.dayW, 4)
-      : Math.max(x2 - x1, G.dayW);
+    const bw = (_wh !== null && _wh > 0)
+      ? Math.max(_wh / _wkCal.dailyWorkHours * G.dayW, 4)
+      : (_daysVal !== null && _daysVal > 0)
+        ? Math.max(_daysVal * G.dayW, 4)
+        : Math.max(x2-x1, G.dayW);
     const bh = isP ? 14 : 18;
     const by = cy - bh/2;
     // Clamp border-radius proportionally so narrow bars (0.5d) don't become circles
@@ -639,6 +670,24 @@ function drawHeader(totalW, totalDays, scrollX) {
       ctx.fillText(dom, x+1, 37);
     }
     if(dow===1&&G.dayW<16&&G.dayW>=5){ ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(x,28,1,H-28); }
+    // Planner: work-hour marks within each working day at high zoom
+    if(plannerEnabled() && G.dayW>=48 && isWorkDay(dt, CFG.planner?.workDays||[1,2,3,4,5])) {
+      const wh = CFG.planner?.dailyWorkHours||8;
+      const ws = CFG.planner?.workStart||9;
+      const hourW = G.dayW / wh;
+      ctx.textBaseline='middle';
+      for(let h=0; h<wh; h+=2) {
+        const hx = x + h*hourW;
+        if(hx < -hourW || hx > W+hourW) continue;
+        ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1;
+        if(h>0){ ctx.beginPath(); ctx.moveTo(hx,30); ctx.lineTo(hx,H); ctx.stroke(); }
+        if(G.dayW>=64) {
+          ctx.font='9px "IBM Plex Mono",monospace';
+          ctx.fillStyle='rgba(255,255,255,0.28)';
+          ctx.fillText((ws+h)+'h', hx+2, H-7);
+        }
+      }
+    }
   }
   const todayX=daysBetween(G.minDate,today)*G.dayW-scrollX;
   if(todayX>=0&&todayX<=W){ ctx.fillStyle='#6ee7b7'; ctx.beginPath(); ctx.arc(todayX+G.dayW/2,H-5,3,0,Math.PI*2); ctx.fill(); }

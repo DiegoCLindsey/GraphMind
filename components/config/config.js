@@ -13,16 +13,18 @@ function renderCfgPanel() {
   renderCfgStatuses();
   renderCfgTypes();
   renderCfgAppearance();
+  renderCfgPlanner();
 }
 
 function switchCfgTab(el, tab) {
   document.querySelectorAll('.cfg-tab').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
-  ['states', 'types', 'appearance'].forEach(t => {
+  ['states', 'types', 'appearance', 'planner'].forEach(t => {
     const p = document.getElementById('cfg-panel-' + t);
     if (p) p.style.display = t === tab ? 'block' : 'none';
   });
   if (tab === 'appearance') renderCfgAppearance();
+  if (tab === 'planner')    renderCfgPlanner();
 }
 
 // ── STATUSES ──────────────────────────────────────────────────────────────────
@@ -311,4 +313,126 @@ function renderStatusFilterButtons() {
                style="${current === s.id ? `color:${s.color};border-color:${s.color}44` : ''}"
        >${esc(s.name)}</button>`
     ).join('');
+}
+
+// ── PLANNER ───────────────────────────────────────────────────────────────────
+const _DAY_LABELS = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+
+function renderCfgPlanner() {
+  const p = _cfgDraft.planner || {};
+  const en = !!p.enabled;
+
+  const enChk = document.getElementById('cfg-planner-enabled');
+  if (enChk) enChk.checked = en;
+
+  const body = document.getElementById('cfg-planner-body');
+  if (body) { body.style.opacity = en ? '1' : '0.4'; body.style.pointerEvents = en ? '' : 'none'; }
+
+  // Work-day checkboxes
+  const wd = document.getElementById('cfg-workdays-row');
+  if (wd) {
+    const workDays = p.workDays || [1,2,3,4,5];
+    wd.innerHTML = _DAY_LABELS.map((name, i) => {
+      const checked = workDays.includes(i) ? 'checked' : '';
+      return `<label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:11px;color:var(--t2)">
+        <input type="checkbox" ${checked} style="accent-color:var(--accent)"
+               onchange="toggleCfgWorkDay(${i},this.checked)">
+        <span>${name}</span>
+      </label>`;
+    }).join('');
+  }
+
+  const ws = document.getElementById('cfg-work-start');
+  const we = document.getElementById('cfg-work-end');
+  const dh = document.getElementById('cfg-daily-hours');
+  if (ws) ws.value = p.workStart ?? 9;
+  if (we) we.value = p.workEnd ?? 17;
+  if (dh) dh.value = p.dailyWorkHours ?? 8;
+  renderCfgDailyPreview();
+  renderCfgAssigneeOverrides();
+}
+
+function updateCfgPlanner(key, value) {
+  if (!_cfgDraft.planner) _cfgDraft.planner = {};
+  _cfgDraft.planner[key] = value;
+  if (key === 'enabled') {
+    const body = document.getElementById('cfg-planner-body');
+    if (body) { body.style.opacity = value ? '1' : '0.4'; body.style.pointerEvents = value ? '' : 'none'; }
+  }
+}
+
+function toggleCfgWorkDay(dayIdx, checked) {
+  if (!_cfgDraft.planner) _cfgDraft.planner = {};
+  let wd = _cfgDraft.planner.workDays ? [..._cfgDraft.planner.workDays] : [1,2,3,4,5];
+  if (checked) { if (!wd.includes(dayIdx)) wd.push(dayIdx); }
+  else { wd = wd.filter(d => d !== dayIdx); }
+  _cfgDraft.planner.workDays = wd.sort((a,b) => a-b);
+}
+
+function renderCfgDailyPreview() {
+  const p = _cfgDraft.planner || {};
+  const dh = p.dailyWorkHours || ((p.workEnd||17) - (p.workStart||9));
+  const prev = document.getElementById('cfg-daily-preview');
+  if (prev) prev.textContent = `→ ${dh}h/jornada`;
+}
+
+function renderCfgAssigneeOverrides() {
+  const list = document.getElementById('cfg-assignee-overrides');
+  if (!list) return;
+  const ov = _cfgDraft.planner?.assigneeOverrides || {};
+  const entries = Object.entries(ov);
+  if (!entries.length) {
+    list.innerHTML = `<div style="font-size:10px;color:var(--t3);padding:4px 0" data-i18n="config.planner_no_overrides">Sin sobrescrituras por asignado.</div>`;
+    return;
+  }
+  list.innerHTML = entries.map(([name, cal]) => `
+    <div class="cfg-row" style="flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px">
+      <input type="text" class="cfg-name" value="${esc(name)}" placeholder="Asignado..."
+             style="min-width:80px;max-width:110px;flex:1"
+             onblur="renameCfgAssignee('${esc(name)}',this.value)">
+      <input type="number" min="0" max="23" step="1" value="${cal.workStart??9}"
+             style="width:44px" title="Entrada"
+             oninput="updateCfgAssignee('${esc(name)}','workStart',parseInt(this.value)||0)">
+      <span style="font-size:10px;color:var(--t3)">→</span>
+      <input type="number" min="1" max="24" step="1" value="${cal.workEnd??17}"
+             style="width:44px" title="Salida"
+             oninput="updateCfgAssignee('${esc(name)}','workEnd',parseInt(this.value)||17)">
+      <input type="number" min="0.5" max="24" step="0.5" value="${cal.dailyWorkHours??8}"
+             style="width:44px" title="Horas/día"
+             oninput="updateCfgAssignee('${esc(name)}','dailyWorkHours',parseFloat(this.value)||8)">
+      <span style="font-size:9px;color:var(--t3)">h/d</span>
+      <button class="cfg-del" onclick="deleteCfgAssignee('${esc(name)}')">✕</button>
+    </div>`).join('');
+}
+
+function addCfgAssigneeOverride() {
+  if (!_cfgDraft.planner) _cfgDraft.planner = {};
+  if (!_cfgDraft.planner.assigneeOverrides) _cfgDraft.planner.assigneeOverrides = {};
+  const p = _cfgDraft.planner;
+  const name = `Asignado ${Object.keys(p.assigneeOverrides).length + 1}`;
+  p.assigneeOverrides[name] = {
+    workDays: [...(p.workDays || [1,2,3,4,5])],
+    workStart: p.workStart ?? 9,
+    workEnd: p.workEnd ?? 17,
+    dailyWorkHours: p.dailyWorkHours ?? 8,
+  };
+  renderCfgAssigneeOverrides();
+}
+
+function renameCfgAssignee(oldName, newName) {
+  const ov = _cfgDraft.planner?.assigneeOverrides;
+  if (!ov || !ov[oldName] || !newName || newName === oldName) return;
+  ov[newName] = ov[oldName];
+  delete ov[oldName];
+  renderCfgAssigneeOverrides();
+}
+
+function updateCfgAssignee(name, key, value) {
+  const ov = _cfgDraft.planner?.assigneeOverrides;
+  if (ov?.[name]) ov[name][key] = value;
+}
+
+function deleteCfgAssignee(name) {
+  const ov = _cfgDraft.planner?.assigneeOverrides;
+  if (ov) { delete ov[name]; renderCfgAssigneeOverrides(); }
 }

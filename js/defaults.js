@@ -28,4 +28,12 @@ const CFG_DEFAULTS = {
   graphAnimations: true,
   breakdownInheritance: true,
   breakdownInheritTypes: [],   // [] = all ancestor types; non-empty = only listed types
+  planner: {
+    enabled:          false,
+    dailyWorkHours:   8,
+    workStart:        9,
+    workEnd:          17,
+    workDays:         [1,2,3,4,5], // 0=Sun 1=Mon ... 6=Sat
+    assigneeOverrides: {},         // { 'Name': { workDays, workStart, workEnd, dailyWorkHours } }
+  },
 };

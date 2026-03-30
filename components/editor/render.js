@@ -26,10 +26,23 @@ function renderEditor() {
   document.getElementById('f-start').value = n.start || '';
   document.getElementById('f-end').value = n.end || '';
   document.getElementById('f-deadline').value = n.deadline || '';
-  document.getElementById('f-hours').value = n.days || n.hours || '';
   document.getElementById('f-cost').value = n.cost || '';
   document.getElementById('f-completion').value = n.completion || 0;
   document.getElementById('f-priority').value = n.priority || '';
+
+  // Duration field: work hours (planner on) or calendar days (planner off)
+  const hoursLbl = document.getElementById('f-hours-label');
+  const hoursInp = document.getElementById('f-hours');
+  if (plannerEnabled()) {
+    const cal = getWorkCalendar(n.assignee);
+    const step = cal.dailyWorkHours >= 4 ? 0.5 : 0.25;
+    if (hoursLbl) hoursLbl.textContent = `${t('editor.field_work_hours')} (${cal.dailyWorkHours}h/d)`;
+    if (hoursInp) { hoursInp.value = n.workHours || ''; hoursInp.step = step; hoursInp.placeholder = cal.dailyWorkHours; }
+  } else {
+    if (hoursLbl) hoursLbl.setAttribute('data-i18n', 'editor.field_duration');
+    if (hoursLbl) hoursLbl.textContent = t('editor.field_duration');
+    if (hoursInp) { hoursInp.value = n.days || n.hours || ''; hoursInp.step = '0.5'; hoursInp.placeholder = '0.0'; }
+  }
 
   // Lock derived/calculated fields
   const isParent   = getDirectChildren(n.id).length > 0;
