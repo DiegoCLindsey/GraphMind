@@ -238,9 +238,9 @@ function nodeItemHTML(n, depth = 0, childCount = 0) {
     : `select('${n.id}')`;
   return `<div class="ni ${on?'on':''} ${isSel?'sel':''}" id="ni-${n.id}" onclick="${clickAction}" style="padding-left:${depth*14+9}px">
     <div class="ni-title">
-      ${selChk}${chevron}<div class="status-dot" style="background:${sc}"></div>
-      ${title}${archivedBadge}
-      <span style="margin-left:auto;display:flex;gap:4px;align-items:center">${prioHTML}<span class="ni-type" style="color:${typeColor};border:1px solid ${typeColor}33">${typeLabel}</span></span>
+      ${selChk}${chevron}<div class="status-dot" style="background:${sc};margin-top:3px"></div>
+      <span style="flex:1;min-width:0;word-break:break-word">${title}${archivedBadge}</span>
+      <span style="display:flex;gap:4px;align-items:center;flex-shrink:0">${prioHTML}<span class="ni-type" style="color:${typeColor};border:1px solid ${typeColor}33">${typeLabel}</span></span>
     </div>
     <div class="ni-meta">${tagHTML}${dlHTML}${n.assignee?`<span style="font-size:9px;color:var(--t3)">${esc(n.assignee)}</span>`:''}${agg?`<span style="font-size:9px;color:var(--accent2)">⬡${agg.count}</span>`:''}</div>
     <div class="ni-progress"><div class="ni-progress-fill" style="width:${dispPct}%;background:${progressColor(dispPct)}"></div></div>
