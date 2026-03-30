@@ -35,6 +35,8 @@ window.GM_I18N.es.editor = {
   comment_ph:           'Añadir comentario...',
   comment_send:         'Enviar',
   duplicate_task:       '⧉ Duplicar tarea',
+  archive_task:         '⧁ Archivar',
+  unarchive_task:       '⧁ Desarchivar',
   delete_task:          '✕ Borrar tarea',
   created_prefix:       'Creado ',
   updated_prefix:       '· Act. ',

@@ -51,6 +51,13 @@ function renderEditor() {
   const sc = statusColor(n.status);
   ss.style.background = sc + '22'; ss.style.borderColor = sc + '55'; ss.style.color = sc;
 
+  // Archive button label
+  const arcBtn = document.getElementById('arc-node-btn');
+  if (arcBtn) {
+    arcBtn.textContent = n.archived ? t('editor.unarchive_task') : t('editor.archive_task');
+    arcBtn.style.color = n.archived ? 'var(--warn)' : 'var(--t3)';
+  }
+
   renderTagBadges();
   renderConnDisplay();
   renderComments();
@@ -157,6 +164,7 @@ function renderList() {
   const q = document.getElementById('search').value.toLowerCase();
   const list = document.getElementById('node-list');
   const filtered = S.nodes.filter(n => {
+    if (!_showArchived && n.archived) return false;
     if (activeFilter !== 'all' && n.status !== activeFilter) return false;
     if (q && !n.title.toLowerCase().includes(q) && !n.body.toLowerCase().includes(q) && !n.tags.some(tg => tg.includes(q))) return false;
     return true;
@@ -200,6 +208,7 @@ function nodeItemHTML(n, depth = 0, childCount = 0) {
   const dlHTML = n.deadline ? `<span style="font-size:9px;font-family:var(--mono);color:${dlColor}">📅${new Date(n.deadline+'T12:00').toLocaleDateString('es',{day:'numeric',month:'short'})}</span>` : '';
   const collapsed = _sbTreeCollapsed.has(n.id);
   const isSel = _sbSelected.has(n.id);
+  const archivedBadge = n.archived ? `<span style="font-size:9px;font-family:var(--mono);padding:1px 5px;border-radius:3px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;margin-left:2px">${t('common.archived_badge')}</span>` : '';
   const chevron = childCount > 0
     ? `<button class="ni-chevron" onclick="event.stopPropagation();toggleSbNode('${n.id}')">${collapsed ? '&#9658;' : '&#9660;'}</button>`
     : '<span class="ni-chevron-gap"></span>';
@@ -212,7 +221,7 @@ function nodeItemHTML(n, depth = 0, childCount = 0) {
   return `<div class="ni ${on?'on':''} ${isSel?'sel':''}" id="ni-${n.id}" onclick="${clickAction}" style="padding-left:${depth*14+9}px">
     <div class="ni-title">
       ${selChk}${chevron}<div class="status-dot" style="background:${sc}"></div>
-      ${title}
+      ${title}${archivedBadge}
       <span style="margin-left:auto;display:flex;gap:4px;align-items:center">${prioHTML}<span class="ni-type" style="color:${typeColor};border:1px solid ${typeColor}33">${typeLabel}</span></span>
     </div>
     <div class="ni-meta">${tagHTML}${dlHTML}${n.assignee?`<span style="font-size:9px;color:var(--t3)">${esc(n.assignee)}</span>`:''}${agg?`<span style="font-size:9px;color:var(--accent2)">⬡${agg.count}</span>`:''}</div>

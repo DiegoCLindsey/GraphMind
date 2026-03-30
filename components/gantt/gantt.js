@@ -40,7 +40,8 @@ function ganttScrollToday() {
 }
 
 function daysBetween(a, b) {
-  return Math.floor((b - a) / 86400000);
+  // Math.round avoids DST ±1h shift causing off-by-one
+  return Math.round((b - a) / 86400000);
 }
 
 function parseDay(s) {
@@ -65,7 +66,7 @@ function getNodeRange(n) {
 function buildRows() {
   const grp = document.getElementById('gantt-group-select')?.value || 'hierarchy';
   const flt = document.getElementById('gantt-filter-select')?.value || 'all';
-  let nodes = S.nodes.filter(n => flt === 'all' || n.status === flt);
+  let nodes = S.nodes.filter(n => !n.archived || _showArchived).filter(n => flt === 'all' || n.status === flt);
 
   if (grp === 'flat') {
     return nodes.map(n => ({ n, depth: 0, grp: false }));
@@ -325,7 +326,11 @@ function renderGantt() {
     if (!rng) return;
     const x1 = daysBetween(range.min, rng.s)*G.dayW;
     const x2 = daysBetween(range.min, rng.e)*G.dayW + G.dayW;
-    const bw = Math.max(x2-x1, G.dayW);
+    // For leaf nodes use fractional n.days for accurate sub-day bar widths
+    const _daysVal = (!isP && !isMil && n.days) ? parseFloat(n.days) : null;
+    const bw = _daysVal !== null && _daysVal > 0
+      ? Math.max(_daysVal * G.dayW, 4)
+      : Math.max(x2 - x1, G.dayW);
     const bh = isP ? 14 : 18;
     const by = cy - bh/2;
 

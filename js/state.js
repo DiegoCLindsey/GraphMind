@@ -6,6 +6,7 @@
 let S = { nodes: [], currentId: null };
 let activeFilter = 'all';
 let connType = 'related';
+let _showArchived = false;
 
 const TAG_COLORS = ['#a78bfa','#6ee7b7','#f87171','#fbbf24','#60a5fa','#f472b6','#fb923c','#a3e635','#2dd4bf','#e879f9'];
 // ── Live config (initialised from CFG_DEFAULTS defined in js/defaults.js) ────────

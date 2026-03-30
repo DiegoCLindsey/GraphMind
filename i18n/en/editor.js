@@ -35,6 +35,8 @@ window.GM_I18N.en.editor = {
   comment_ph:        'Write a comment…',
   comment_send:      'Send',
   duplicate_task:    'Duplicate task',
+  archive_task:      '⧁ Archive',
+  unarchive_task:    '⧁ Unarchive',
   delete_task:       'Delete task',
   created_prefix:    'Created: ',
   updated_prefix:    'Updated: ',

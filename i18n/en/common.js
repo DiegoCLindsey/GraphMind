@@ -24,4 +24,7 @@ window.GM_I18N.en.common = {
   delete_cascade:         'Delete with children',
   untitled:               '(untitled)',
   duplicated:             '⧉ Duplicated',
+  archived:               '⧁ Archived',
+  unarchived:             '⧁ Unarchived',
+  archived_badge:         'archived',
 };

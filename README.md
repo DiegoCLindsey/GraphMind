@@ -2,7 +2,7 @@
 
 > Gestor de proyectos visual basado en teoría de grafos — HTML autocontenido, sin servidor, sin suscripción.
 
-[![version](https://img.shields.io/badge/version-1.3.0-6ee7b7?style=flat-square&labelColor=111)](https://github.com/DiegoCLindsey/GraphMind/releases/tag/v1.3.0)
+[![version](https://img.shields.io/badge/version-1.5.0-6ee7b7?style=flat-square&labelColor=111)](https://github.com/DiegoCLindsey/GraphMind/releases/tag/v1.5.0)
 [![license](https://img.shields.io/badge/license-CC%20BY%204.0-a78bfa?style=flat-square&labelColor=111)](https://creativecommons.org/licenses/by/4.0/)
 [![deploy](https://img.shields.io/badge/GitHub%20Pages-live-60a5fa?style=flat-square&labelColor=111)](https://diegoclindsey.github.io/GraphMind/)
 
@@ -70,6 +70,14 @@ Los archivos fuente de la ayuda son [`components/help/es.md`](components/help/es
 ---
 
 ## Changelog
+
+### v1.5.0 — 2026-03-30
+
+- **Archivar vértices (GMND-061)** — botón ⧁ Archivar en la barra de estado del editor; toggle ⧁ en el sidebar para mostrar/ocultar archivados; las tareas archivadas se muestran con una etiqueta `archivado` y se ocultan del grafo y del Gantt por defecto
+- **Duplicar tareas (GMND-060)** — botón ⧉ Duplicar en el editor y modo batch en el selector de sidebar; copia el subgrafo de sus relaciones internas manteniendo las conexiones entre nodos seleccionados; nombre original + `(cp)`
+- **Fracciones de duración en Gantt** — las barras ahora respetan valores fraccionarios de días (ej. `0.5d` = media barra); ya no se redondea al entero más cercano en el canvas
+- **Corrección de fecha en Gantt** — `daysBetween` usa `Math.round` en lugar de `Math.floor` para evitar el desplazamiento de ±1 día causado por el cambio de hora de verano (DST)
+- **Versión consistente** — `APP_VERSION`, `<title>`, README, ficheros de ayuda y todos los badges actualizados a `1.4.0`
 
 ### v1.3.0 — 2026-03-26
 

@@ -24,4 +24,7 @@ window.GM_I18N.es.common = {
   delete_cascade:        'Borrar con hijos',
   untitled:              '(sin título)',
   duplicated:            '⧉ Duplicado',
+  archived:              '⧁ Archivado',
+  unarchived:            '⧁ Desarchivado',
+  archived_badge:        'archivado',
 };

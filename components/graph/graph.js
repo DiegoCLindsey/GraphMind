@@ -40,13 +40,13 @@ function renderGraph() {
   const g = svg.append('g');
 
   // ── DATA ──────────────────────────────────────────────────────────────────
-  const nodes = S.nodes.map(n => ({...n}));
+  const nodes = S.nodes.filter(n => _showArchived || !n.archived).map(n => ({...n}));
   _graphNodes = nodes; // expose live positions to focusGraphNode
   const nodeById = new Map(nodes.map(n => [n.id, n]));
 
   // Build parent→children map for hull grouping
   const projectGroups = new Map(); // projectId → [childIds]
-  S.nodes.forEach(n => {
+  S.nodes.filter(n => _showArchived || !n.archived).forEach(n => {
     if (n.type === 'project') {
       const kids = getDirectChildren(n.id).map(c => c.id);
       if (kids.length > 0) projectGroups.set(n.id, kids);
@@ -78,7 +78,7 @@ function renderGraph() {
 
   const links = [];
   const seen = new Set();
-  S.nodes.forEach(n => {
+  S.nodes.filter(n => _showArchived || !n.archived).forEach(n => {
     n.connections.forEach(cid => {
       const key = [n.id, cid].sort().join('|');
       if (seen.has(key)) return;

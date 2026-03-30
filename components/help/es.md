@@ -1,6 +1,6 @@
 # GraphMind — Guía de uso
 
-`v1.2.0` · gestor de proyectos visual basado en teoría de grafos
+`v1.5.0` · gestor de proyectos visual basado en teoría de grafos
 
 ---
 
@@ -183,4 +183,4 @@ Pulsa el botón 🇬🇧 / 🇪🇸 en la barra superior para cambiar entre **Es
 
 ---
 
-*GraphMind v1.2.0 · HTML autocontenido · sin servidor · sin suscripción*
+*GraphMind v1.5.0 · HTML autocontenido · sin servidor · sin suscripción*

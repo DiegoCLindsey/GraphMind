@@ -5,7 +5,7 @@ function newNode() {
   const node = {
     id: gid(), title:'', body:'', tags:[], type:'task', status:'todo',
     assignee:'', start:'', end:'', deadline:'', days:'', cost:'', completion:0, priority:'',
-    connections:[], connTypes:{}, comments:[],
+    connections:[], connTypes:{}, comments:[], archived: false,
     created: new Date().toISOString(), updated: new Date().toISOString()
   };
   S.nodes.unshift(node);
@@ -126,6 +126,27 @@ function calcEndFromDuration(n) {
     return true;
   }
   return false;
+}
+
+// ── Archive ───────────────────────────────────────────────────────────────────
+function archiveCurrentNode() {
+  const n = getCurrent();
+  if (!n) return;
+  n.archived = !n.archived;
+  n.updated = new Date().toISOString();
+  autoSaveLS();
+  renderEditor();
+  renderList();
+  showIndicator(n.archived ? t('common.archived') : t('common.unarchived'));
+}
+
+function toggleShowArchived() {
+  _showArchived = !_showArchived;
+  const btn = document.getElementById('sb-archived-btn');
+  if (btn) btn.classList.toggle('on', _showArchived);
+  renderList();
+  if (typeof renderGantt === 'function') renderGantt();
+  if (typeof renderGraph === 'function') renderGraph();
 }
 
 // ── Duplicate ─────────────────────────────────────────────────────────────────
