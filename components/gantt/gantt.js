@@ -425,7 +425,10 @@ function renderGantt() {
             const ti = rows.findIndex(r2 => r2.n?.id === cid);
             if (ti < 0) return;
             const tr = getNodeRange(rows[ti].n); if (!tr) return;
-            const tx = daysBetween(range.min, tr.s) * G.dayW, ty2 = ti * G.rowH + G.rowH / 2;
+            const tn = rows[ti].n;
+            const tCal = (_wkCal && tn.workHours) ? getWorkCalendar(tn.assignee || null) : _wkCal;
+            const tHourOff = (tCal && typeof tn.startHour === 'number') ? plannerDayOffset(tn.startHour, tCal, G.dayW) : 0;
+            const tx = daysBetween(range.min, tr.s) * G.dayW + tHourOff, ty2 = ti * G.rowH + G.rowH / 2;
             bc.strokeStyle = 'rgba(248,113,113,0.4)'; bc.lineWidth = 1; bc.setLineDash([]);
             bc.beginPath(); bc.moveTo(seg.x + seg.w, cy);
             bc.bezierCurveTo(seg.x + seg.w + 20, cy, tx - 20, ty2, tx, ty2); bc.stroke();
@@ -493,7 +496,10 @@ function renderGantt() {
         const ti = rows.findIndex(r2=>r2.n?.id===cid);
         if (ti<0) return;
         const tr = getNodeRange(rows[ti].n); if (!tr) return;
-        const tx = daysBetween(range.min,tr.s)*G.dayW, ty2 = ti*G.rowH+G.rowH/2;
+        const tn = rows[ti].n;
+        const tCal = (_wkCal && tn.workHours) ? getWorkCalendar(tn.assignee || null) : _wkCal;
+        const tHourOff = (tCal && typeof tn.startHour === 'number') ? plannerDayOffset(tn.startHour, tCal, G.dayW) : 0;
+        const tx = daysBetween(range.min,tr.s)*G.dayW + tHourOff, ty2 = ti*G.rowH+G.rowH/2;
         bc.strokeStyle='rgba(248,113,113,0.4)'; bc.lineWidth=1; bc.setLineDash([]);
         bc.beginPath(); bc.moveTo(x1+bw,cy);
         bc.bezierCurveTo(x1+bw+20,cy,tx-20,ty2,tx,ty2); bc.stroke();
