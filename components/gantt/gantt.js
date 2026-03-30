@@ -333,6 +333,8 @@ function renderGantt() {
       : Math.max(x2 - x1, G.dayW);
     const bh = isP ? 14 : 18;
     const by = cy - bh/2;
+    // Clamp border-radius proportionally so narrow bars (0.5d) don't become circles
+    const br = Math.min(isP ? 3 : 7, bw * 0.28);
 
     // Completion color: green=done, amber=in progress, blue=not started
     const pctRaw = Math.round(pct * 100);
@@ -343,14 +345,14 @@ function renderGantt() {
 
     // BG (empty part of bar)
     bc.fillStyle = emptyColor;
-    rRect(bc,x1,by,bw,bh,isP?3:7); bc.fill();
+    rRect(bc,x1,by,bw,bh,br); bc.fill();
 
     // Progress fill (clipped to bar width)
     if (pct > 0) {
       const fillW = Math.max(bw * pct, isP ? 4 : 6);
       // Use clip to keep rounded corners on fill
       bc.save();
-      rRect(bc,x1,by,bw,bh,isP?3:7);
+      rRect(bc,x1,by,bw,bh,br);
       bc.clip();
       // Color ramp: <40% blue, 40-80% amber, >80% green
       const fillColor = pct >= 0.8 ? doneColor : pct >= 0.4 ? '#fbbf24' : activeColor;
@@ -370,7 +372,7 @@ function renderGantt() {
     } else {
       bc.strokeStyle = pct >= 0.8 ? doneColor+'99' : sc+'55'; bc.lineWidth=1;
     }
-    rRect(bc,x1,by,bw,bh,isP?3:7); bc.stroke();
+    rRect(bc,x1,by,bw,bh,br); bc.stroke();
 
     // Parent brackets (stronger visual anchor)
     if (isP) {
