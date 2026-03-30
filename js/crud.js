@@ -65,15 +65,15 @@ function computeNodeDates(n) {
   if (!n || getDirectChildren(n.id).length > 0) return;
   const blockerIds = n.connections.filter(cid => n.connTypes[cid] === 'blocked-by');
   if (blockerIds.length > 0) {
-    const maxEnd = blockerIds.reduce((best, cid) => {
+    const best = blockerIds.reduce((acc, cid) => {
       const b = S.nodes.find(x => x.id === cid);
-      if (!b?.end) return best;
-      return (!best || b.end > best) ? b.end : best;
-    }, '');
-    if (maxEnd) {
-      // B starts the day AFTER A's last day (end date is inclusive)
-      const d = new Date(maxEnd + 'T00:00:00');
-      d.setDate(d.getDate() + 1);
+      if (!b?.end) return acc;
+      return (!acc || b.end > acc.end) ? { end: b.end, days: parseFloat(b.days) || 1 } : acc;
+    }, null);
+    if (best) {
+      const d = new Date(best.end + 'T00:00:00');
+      // Sub-day tasks (<1d) don't consume the whole day — blocked task starts same day
+      if (best.days >= 1) d.setDate(d.getDate() + 1);
       n.start = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
   }
