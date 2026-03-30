@@ -267,7 +267,7 @@ function renderGantt() {
     const isWE = dt.getDay()===0||dt.getDay()===6;
     const isMon = dt.getDay()===1;
     const isFOM = dt.getDate()===1;
-    const isNonWorkDay = plannerEnabled() && !isWorkDay(dt, (CFG.planner?.workDays||[1,2,3,4,5]));
+    const isNonWorkDay = plannerEnabled() && !isWorkDay(dt, (CFG.planner?.workDays||[1,2,3,4,5]), (CFG.planner?.holidays||[]));
     if (isNonWorkDay) {
       // Stronger shade + diagonal stripes for non-working days
       gc.fillStyle='rgba(255,255,255,0.045)'; gc.fillRect(x,0,G.dayW,totalH);
@@ -348,119 +348,163 @@ function renderGantt() {
     }
 
     if (!rng) return;
-    // Hour-aware bar positioning when planner is on
-    const _nodeHourOff = (_wkCal && !isP && !isMil && typeof n.startHour === 'number')
-      ? plannerDayOffset(n.startHour, _wkCal, G.dayW)
-      : 0;
-    const x1 = daysBetween(range.min, rng.s)*G.dayW + _nodeHourOff;
-    const x2 = daysBetween(range.min, rng.e)*G.dayW + G.dayW;
-    // Bar width: planner work-hours preferred, else n.days float, else span to end
-    const _wh  = (_wkCal && !isP && !isMil && n.workHours) ? parseFloat(n.workHours) : null;
-    const _daysVal = (!isP && !isMil && n.days) ? parseFloat(n.days) : null;
-    const bw = (_wh !== null && _wh > 0)
-      ? Math.max(_wh / _wkCal.dailyWorkHours * G.dayW, 4)
-      : (_daysVal !== null && _daysVal > 0)
-        ? Math.max(_daysVal * G.dayW, 4)
-        : Math.max(x2-x1, G.dayW);
+
     const bh = isP ? 14 : 18;
     const by = cy - bh/2;
-    // Clamp border-radius proportionally so narrow bars (0.5d) don't become circles
-    const br = Math.min(isP ? 3 : 7, bw * 0.28);
-
-    // Completion color: green=done, amber=in progress, blue=not started
     const pctRaw = Math.round(pct * 100);
-    const doneColor   = '#6ee7b7'; // accent green
-    const activeColor = '#60a5fa'; // blue — in-progress fill
-    const emptyColor  = sc + '25'; // dim status color bg
+    const doneColor   = '#6ee7b7';
+    const activeColor = '#60a5fa';
+    const emptyColor  = sc + '25';
+    const fillColor   = pct >= 0.8 ? doneColor : pct >= 0.4 ? '#fbbf24' : activeColor;
     const onCP = _ganttCPSet.has(n.id);
+    const borderColor = onCP ? 'rgba(248,113,113,0.9)' : (pct >= 0.8 ? doneColor+'99' : sc+'55');
+    const borderWidth = onCP ? 2 : 1;
 
-    // BG (empty part of bar)
-    bc.fillStyle = emptyColor;
-    rRect(bc,x1,by,bw,bh,br); bc.fill();
+    // Per-node calendar (respects assignee overrides + holidays)
+    const _ncal = (_wkCal && !isP && !isMil && n.workHours) ? getWorkCalendar(n.assignee || null) : null;
+    const _segs = (_ncal && parseFloat(n.workHours) > 0)
+      ? getWorkSegments(n.start, n.startHour, parseFloat(n.workHours), _ncal, range.min, G.dayW)
+      : null;
 
-    // Progress fill (clipped to bar width)
-    if (pct > 0) {
-      const fillW = Math.max(bw * pct, isP ? 4 : 6);
-      // Use clip to keep rounded corners on fill
-      bc.save();
-      rRect(bc,x1,by,bw,bh,br);
-      bc.clip();
-      // Color ramp: <40% blue, 40-80% amber, >80% green
-      const fillColor = pct >= 0.8 ? doneColor : pct >= 0.4 ? '#fbbf24' : activeColor;
-      bc.fillStyle = fillColor + (isP ? 'bb' : 'cc');
-      bc.fillRect(x1, by, fillW, bh);
-      // Subtle shine stripe at top of fill
-      if (!isP && bh >= 14) {
-        bc.fillStyle = 'rgba(255,255,255,0.12)';
-        bc.fillRect(x1, by, fillW, Math.ceil(bh * 0.35));
-      }
-      bc.restore();
-    }
+    // ── SEGMENTED BAR (planner mode with work hours) ──────────────────────
+    if (_segs && _segs.length) {
+      let remDone = parseFloat(n.workHours) * pct;
+      _segs.forEach((seg, si) => {
+        const isFirst = si === 0, isLast = si === _segs.length - 1;
+        const segBr = Math.min(isP ? 3 : 7, seg.w * 0.28);
+        // BG
+        bc.fillStyle = emptyColor;
+        rRect(bc, seg.x, by, seg.w, bh, segBr); bc.fill();
+        // Progress fill for this segment
+        if (remDone > 0) {
+          const fillH = Math.min(remDone, seg.takenH);
+          const fillW = fillH / seg.takenH * seg.w;
+          bc.save();
+          rRect(bc, seg.x, by, seg.w, bh, segBr); bc.clip();
+          bc.fillStyle = fillColor + (isP ? 'bb' : 'cc');
+          bc.fillRect(seg.x, by, fillW, bh);
+          if (!isP && bh >= 14) {
+            bc.fillStyle = 'rgba(255,255,255,0.12)';
+            bc.fillRect(seg.x, by, fillW, Math.ceil(bh * 0.35));
+          }
+          bc.restore();
+          remDone -= fillH;
+        }
+        // Border
+        bc.strokeStyle = borderColor; bc.lineWidth = borderWidth;
+        rRect(bc, seg.x, by, seg.w, bh, segBr); bc.stroke();
+        // Title on first segment
+        if (isFirst && G.dayW >= 14 && seg.w > 36) {
+          bc.fillStyle = 'rgba(255,255,255,0.85)';
+          bc.font = `400 10px "IBM Plex Sans",sans-serif`; bc.textBaseline = 'middle';
+          let txt = n.title || '';
+          const maxTxtW = seg.w - 10;
+          while (bc.measureText(txt).width > maxTxtW && txt.length > 2) txt = txt.slice(0, -1);
+          if (txt !== n.title) txt = txt.slice(0, -1) + '…';
+          bc.fillText(txt, seg.x + 5, cy);
+        }
+        // Badge + grip + arrows on last segment
+        if (isLast) {
+          if (seg.w > 48 && pctRaw > 0) {
+            const badge = pctRaw + '%';
+            bc.font = `500 9px "IBM Plex Mono",monospace`; bc.textBaseline = 'middle';
+            const bw2 = bc.measureText(badge).width;
+            const badgeX = seg.x + seg.w - bw2 - 5, badgeY = cy;
+            if (badgeX > seg.x + 4) {
+              bc.fillStyle = 'rgba(0,0,0,0.45)'; bc.fillText(badge, badgeX, badgeY);
+              bc.fillStyle = pct >= 0.8 ? doneColor : pct >= 0.4 ? '#fbbf24' : 'rgba(255,255,255,0.7)';
+              bc.fillText(badge, badgeX - 0.5, badgeY - 0.5);
+            }
+          }
+          if (seg.w > 14) {
+            bc.fillStyle = 'rgba(255,255,255,0.28)';
+            bc.fillRect(seg.x + seg.w - 3, by + 3, 2, bh - 6);
+          }
+          n.connections.forEach(cid => {
+            if (n.connTypes[cid] !== 'blocks') return;
+            const ti = rows.findIndex(r2 => r2.n?.id === cid);
+            if (ti < 0) return;
+            const tr = getNodeRange(rows[ti].n); if (!tr) return;
+            const tx = daysBetween(range.min, tr.s) * G.dayW, ty2 = ti * G.rowH + G.rowH / 2;
+            bc.strokeStyle = 'rgba(248,113,113,0.4)'; bc.lineWidth = 1; bc.setLineDash([]);
+            bc.beginPath(); bc.moveTo(seg.x + seg.w, cy);
+            bc.bezierCurveTo(seg.x + seg.w + 20, cy, tx - 20, ty2, tx, ty2); bc.stroke();
+            bc.fillStyle = 'rgba(248,113,113,0.5)';
+            bc.beginPath(); bc.moveTo(tx, ty2); bc.lineTo(tx-6, ty2-3); bc.lineTo(tx-6, ty2+3); bc.closePath(); bc.fill();
+          });
+        }
+        G.hitRects.push({ x: seg.x, y: y+2, w: seg.w, h: G.rowH-4, n });
+      });
 
-    // Border
-    if (onCP) {
-      bc.strokeStyle='rgba(248,113,113,0.9)'; bc.lineWidth=2;
+    // ── FALLBACK: single-rect bar (non-planner or parent/milestone) ────────
     } else {
-      bc.strokeStyle = pct >= 0.8 ? doneColor+'99' : sc+'55'; bc.lineWidth=1;
-    }
-    rRect(bc,x1,by,bw,bh,br); bc.stroke();
+      const _nodeHourOff = (_wkCal && !isP && !isMil && typeof n.startHour === 'number')
+        ? plannerDayOffset(n.startHour, _wkCal, G.dayW) : 0;
+      const x1 = daysBetween(range.min, rng.s)*G.dayW + _nodeHourOff;
+      const x2 = daysBetween(range.min, rng.e)*G.dayW + G.dayW;
+      const _daysVal = (!isP && !isMil && n.days) ? parseFloat(n.days) : null;
+      const bw = (_daysVal !== null && _daysVal > 0) ? Math.max(_daysVal * G.dayW, 4) : Math.max(x2-x1, G.dayW);
+      const br = Math.min(isP ? 3 : 7, bw * 0.28);
 
-    // Parent brackets (stronger visual anchor)
-    if (isP) {
-      bc.fillStyle = sc + 'dd';
-      bc.fillRect(x1, by-3, 3, bh+6);
-      bc.fillRect(x1+bw-3, by-3, 3, bh+6);
-    }
+      bc.fillStyle = emptyColor;
+      rRect(bc,x1,by,bw,bh,br); bc.fill();
 
-    // Completion % badge (right side of bar, if space)
-    if (bw > 48 && pctRaw > 0) {
-      const badge = pctRaw + '%';
-      bc.font = `500 9px "IBM Plex Mono",monospace`;
-      bc.textBaseline = 'middle';
-      const bw2 = bc.measureText(badge).width;
-      const badgeX = x1 + bw - bw2 - 5;
-      const badgeY = cy;
-      if (badgeX > x1 + 4) {
-        bc.fillStyle = 'rgba(0,0,0,0.45)';
-        bc.fillText(badge, badgeX, badgeY);
-        bc.fillStyle = pct >= 0.8 ? doneColor : pct >= 0.4 ? '#fbbf24' : 'rgba(255,255,255,0.7)';
-        bc.fillText(badge, badgeX - 0.5, badgeY - 0.5);
+      if (pct > 0) {
+        const fillW = Math.max(bw * pct, isP ? 4 : 6);
+        bc.save(); rRect(bc,x1,by,bw,bh,br); bc.clip();
+        bc.fillStyle = fillColor + (isP ? 'bb' : 'cc');
+        bc.fillRect(x1, by, fillW, bh);
+        if (!isP && bh >= 14) { bc.fillStyle='rgba(255,255,255,0.12)'; bc.fillRect(x1,by,fillW,Math.ceil(bh*0.35)); }
+        bc.restore();
       }
+
+      bc.strokeStyle = borderColor; bc.lineWidth = borderWidth;
+      rRect(bc,x1,by,bw,bh,br); bc.stroke();
+
+      if (isP) {
+        bc.fillStyle = sc + 'dd';
+        bc.fillRect(x1, by-3, 3, bh+6);
+        bc.fillRect(x1+bw-3, by-3, 3, bh+6);
+      }
+
+      if (bw > 48 && pctRaw > 0) {
+        const badge = pctRaw + '%';
+        bc.font = `500 9px "IBM Plex Mono",monospace`; bc.textBaseline = 'middle';
+        const bw2 = bc.measureText(badge).width;
+        const badgeX = x1 + bw - bw2 - 5, badgeY = cy;
+        if (badgeX > x1 + 4) {
+          bc.fillStyle = 'rgba(0,0,0,0.45)'; bc.fillText(badge, badgeX, badgeY);
+          bc.fillStyle = pct >= 0.8 ? doneColor : pct >= 0.4 ? '#fbbf24' : 'rgba(255,255,255,0.7)';
+          bc.fillText(badge, badgeX - 0.5, badgeY - 0.5);
+        }
+      }
+
+      if (G.dayW>=14 && bw>36) {
+        bc.fillStyle='rgba(255,255,255,0.85)'; bc.font=`${isP?'500':'400'} 10px "IBM Plex Sans",sans-serif`; bc.textBaseline='middle';
+        const maxTxtW = pctRaw > 0 && bw > 60 ? bw - 36 : bw - 10;
+        let txt=n.title||'';
+        while(bc.measureText(txt).width > maxTxtW && txt.length > 2) txt = txt.slice(0,-1);
+        if(txt !== n.title) txt = txt.slice(0,-1) + '…';
+        bc.fillText(txt, x1+5, cy);
+      }
+
+      n.connections.forEach(cid => {
+        if (n.connTypes[cid]!=='blocks') return;
+        const ti = rows.findIndex(r2=>r2.n?.id===cid);
+        if (ti<0) return;
+        const tr = getNodeRange(rows[ti].n); if (!tr) return;
+        const tx = daysBetween(range.min,tr.s)*G.dayW, ty2 = ti*G.rowH+G.rowH/2;
+        bc.strokeStyle='rgba(248,113,113,0.4)'; bc.lineWidth=1; bc.setLineDash([]);
+        bc.beginPath(); bc.moveTo(x1+bw,cy);
+        bc.bezierCurveTo(x1+bw+20,cy,tx-20,ty2,tx,ty2); bc.stroke();
+        bc.fillStyle='rgba(248,113,113,0.5)';
+        bc.beginPath(); bc.moveTo(tx,ty2); bc.lineTo(tx-6,ty2-3); bc.lineTo(tx-6,ty2+3); bc.closePath(); bc.fill();
+      });
+
+      if (bw > 14) { bc.fillStyle='rgba(255,255,255,0.28)'; bc.fillRect(x1+bw-3,by+3,2,bh-6); }
+
+      G.hitRects.push({x:x1,y:y+2,w:bw,h:G.rowH-4,n});
     }
-
-    // Title text
-    if (G.dayW>=14 && bw>36) {
-      bc.fillStyle='rgba(255,255,255,0.85)'; bc.font=`${isP?'500':'400'} 10px "IBM Plex Sans",sans-serif`; bc.textBaseline='middle';
-      const maxTxtW = pctRaw > 0 && bw > 60 ? bw - 36 : bw - 10;
-      let txt=n.title||'';
-      while(bc.measureText(txt).width > maxTxtW && txt.length > 2) txt = txt.slice(0,-1);
-      if(txt !== n.title) txt = txt.slice(0,-1) + '…';
-      bc.fillText(txt, x1+5, cy);
-    }
-
-    // Dependency arrows (blocks)
-    n.connections.forEach(cid => {
-      if (n.connTypes[cid]!=='blocks') return;
-      const ti = rows.findIndex(r2=>r2.n?.id===cid);
-      if (ti<0) return;
-      const tr = getNodeRange(rows[ti].n);
-      if (!tr) return;
-      const tx = daysBetween(range.min,tr.s)*G.dayW;
-      const ty2 = ti*G.rowH+G.rowH/2;
-      bc.strokeStyle='rgba(248,113,113,0.4)'; bc.lineWidth=1; bc.setLineDash([]);
-      bc.beginPath(); bc.moveTo(x1+bw,cy);
-      bc.bezierCurveTo(x1+bw+20,cy,tx-20,ty2,tx,ty2); bc.stroke();
-      bc.fillStyle='rgba(248,113,113,0.5)';
-      bc.beginPath(); bc.moveTo(tx,ty2); bc.lineTo(tx-6,ty2-3); bc.lineTo(tx-6,ty2+3); bc.closePath(); bc.fill();
-    });
-
-    // Edge grip indicator (right 2px of bar, subtle)
-    if (bw > 14) {
-      bc.fillStyle = 'rgba(255,255,255,0.28)';
-      bc.fillRect(x1 + bw - 3, by + 3, 2, bh - 6);
-    }
-
-    G.hitRects.push({x:x1,y:y+2,w:bw,h:G.rowH-4,n});
   });
 
   drawHeader(totalW, totalDays, scrollEl.scrollLeft || 0);
@@ -671,7 +715,7 @@ function drawHeader(totalW, totalDays, scrollX) {
     }
     if(dow===1&&G.dayW<16&&G.dayW>=5){ ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fillRect(x,28,1,H-28); }
     // Planner: work-hour marks within each working day at high zoom
-    if(plannerEnabled() && G.dayW>=48 && isWorkDay(dt, CFG.planner?.workDays||[1,2,3,4,5])) {
+    if(plannerEnabled() && G.dayW>=48 && isWorkDay(dt, CFG.planner?.workDays||[1,2,3,4,5], CFG.planner?.holidays||[])) {
       const wh = CFG.planner?.dailyWorkHours||8;
       const ws = CFG.planner?.workStart||9;
       const hourW = G.dayW / wh;

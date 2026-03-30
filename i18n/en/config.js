@@ -47,4 +47,10 @@ window.GM_I18N.en.config = {
   planner_daily_hours:     'Hours/day',
   planner_assignees:       'Per-assignee calendar',
   planner_add_assignee:    '+ Add assignee',
-  planner_no_overrides:    'No per-assignee overrides.',};
+  planner_no_overrides:    'No per-assignee overrides.',
+  planner_holidays:        'Holidays & non-working days',
+  planner_holidays_hint:   'Applies to all resources. Add personal leave in the assignee calendar.',
+  planner_add_holiday:     '+ Add',
+  planner_no_holidays:     'No holidays configured.',
+  planner_assignee_holidays: 'Personal holidays:',
+};

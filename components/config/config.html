@@ -143,6 +143,15 @@
       </div>
       <div id="cfg-assignee-overrides" style="margin-bottom:8px"></div>
       <button class="cfg-add-btn" onclick="addCfgAssigneeOverride()" data-i18n="config.planner_add_assignee">+ Añadir asignado</button>
+
+      <div class="cfg-section-label" style="margin-top:18px" data-i18n="config.planner_holidays">Festivos y días no laborables</div>
+      <div class="cfg-unit-preview" style="margin-bottom:8px" data-i18n="config.planner_holidays_hint">Aplican a todos los recursos. Añade vacaciones personales en el calendario del asignado.</div>
+      <div id="cfg-holidays-list" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+        <input type="date" id="cfg-holiday-picker"
+               style="background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--t1);padding:4px 8px;font-size:12px;font-family:var(--mono)">
+        <button class="cfg-add-btn" onclick="addCfgHoliday()" data-i18n="config.planner_add_holiday">+ Añadir</button>
+      </div>
     </div><!-- /cfg-planner-body -->
   </div><!-- /cfg-panel-planner -->
 

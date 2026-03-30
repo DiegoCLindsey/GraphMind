@@ -34,6 +34,7 @@ const CFG_DEFAULTS = {
     workStart:        9,
     workEnd:          17,
     workDays:         [1,2,3,4,5], // 0=Sun 1=Mon ... 6=Sat
-    assigneeOverrides: {},         // { 'Name': { workDays, workStart, workEnd, dailyWorkHours } }
+    holidays:         [],          // ['YYYY-MM-DD', ...] global non-working dates
+    assigneeOverrides: {},         // { 'Name': { workDays, workStart, workEnd, dailyWorkHours, holidays } }
   },
 };

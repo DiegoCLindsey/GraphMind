@@ -318,6 +318,41 @@ function renderStatusFilterButtons() {
 // ── PLANNER ───────────────────────────────────────────────────────────────────
 const _DAY_LABELS = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
+function renderCfgHolidays() {
+  const list = document.getElementById('cfg-holidays-list');
+  if (!list) return;
+  const holidays = _cfgDraft.planner?.holidays || [];
+  if (!holidays.length) {
+    list.innerHTML = `<div style="font-size:10px;color:var(--t3);padding:4px 0" data-i18n="config.planner_no_holidays">Sin festivos configurados.</div>`;
+    return;
+  }
+  list.innerHTML = [...holidays].sort().map(d =>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+       <span style="font-size:11px;font-family:var(--mono);color:var(--t2)">${d}</span>
+       <button class="cfg-del" onclick="removeCfgHoliday('${d}')">✕</button>
+     </div>`
+  ).join('');
+}
+
+function addCfgHoliday() {
+  const inp = document.getElementById('cfg-holiday-picker');
+  if (!inp?.value) return;
+  if (!_cfgDraft.planner) _cfgDraft.planner = {};
+  if (!Array.isArray(_cfgDraft.planner.holidays)) _cfgDraft.planner.holidays = [];
+  if (!_cfgDraft.planner.holidays.includes(inp.value)) {
+    _cfgDraft.planner.holidays.push(inp.value);
+    _cfgDraft.planner.holidays.sort();
+  }
+  inp.value = '';
+  renderCfgHolidays();
+}
+
+function removeCfgHoliday(dateStr) {
+  if (!_cfgDraft.planner?.holidays) return;
+  _cfgDraft.planner.holidays = _cfgDraft.planner.holidays.filter(d => d !== dateStr);
+  renderCfgHolidays();
+}
+
 function renderCfgPlanner() {
   const p = _cfgDraft.planner || {};
   const en = !!p.enabled;
@@ -350,6 +385,7 @@ function renderCfgPlanner() {
   if (dh) dh.value = p.dailyWorkHours ?? 8;
   renderCfgDailyPreview();
   renderCfgAssigneeOverrides();
+  renderCfgHolidays();
 }
 
 function updateCfgPlanner(key, value) {
@@ -402,6 +438,17 @@ function renderCfgAssigneeOverrides() {
              oninput="updateCfgAssignee('${esc(name)}','dailyWorkHours',parseFloat(this.value)||8)">
       <span style="font-size:9px;color:var(--t3)">h/d</span>
       <button class="cfg-del" onclick="deleteCfgAssignee('${esc(name)}')">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding-left:4px">
+      <span style="font-size:10px;color:var(--t3)" data-i18n="config.planner_assignee_holidays">Festivos personales:</span>
+      ${(cal.holidays||[]).sort().map(d =>
+        `<span style="font-size:10px;font-family:var(--mono);background:var(--s2);border:1px solid var(--b2);border-radius:3px;padding:1px 5px;color:var(--t2)">
+          ${d} <button style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:10px;padding:0 0 0 3px" onclick="removeCfgAssigneeHoliday('${esc(name)}','${d}')">✕</button>
+         </span>`
+      ).join('')}
+      <input type="date" id="cfg-ah-${esc(name)}"
+             style="background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--t1);padding:2px 6px;font-size:11px;font-family:var(--mono)">
+      <button class="cfg-add-btn" style="padding:2px 8px;font-size:10px" onclick="addCfgAssigneeHoliday('${esc(name)}')">+</button>
     </div>`).join('');
 }
 
@@ -430,6 +477,26 @@ function renameCfgAssignee(oldName, newName) {
 function updateCfgAssignee(name, key, value) {
   const ov = _cfgDraft.planner?.assigneeOverrides;
   if (ov?.[name]) ov[name][key] = value;
+}
+
+function addCfgAssigneeHoliday(name) {
+  const inp = document.getElementById(`cfg-ah-${name}`);
+  if (!inp?.value) return;
+  const ov = _cfgDraft.planner?.assigneeOverrides;
+  if (!ov?.[name]) return;
+  if (!Array.isArray(ov[name].holidays)) ov[name].holidays = [];
+  if (!ov[name].holidays.includes(inp.value)) {
+    ov[name].holidays.push(inp.value);
+    ov[name].holidays.sort();
+  }
+  renderCfgAssigneeOverrides();
+}
+
+function removeCfgAssigneeHoliday(name, dateStr) {
+  const ov = _cfgDraft.planner?.assigneeOverrides;
+  if (!ov?.[name]?.holidays) return;
+  ov[name].holidays = ov[name].holidays.filter(d => d !== dateStr);
+  renderCfgAssigneeOverrides();
 }
 
 function deleteCfgAssignee(name) {

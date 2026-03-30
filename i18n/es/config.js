@@ -47,4 +47,10 @@ window.GM_I18N.es.config = {
   planner_daily_hours:     'Horas/día',
   planner_assignees:       'Calendario por asignado',
   planner_add_assignee:    '+ Añadir asignado',
-  planner_no_overrides:    'Sin sobrescrituras por asignado.',};
+  planner_no_overrides:    'Sin sobrescrituras por asignado.',
+  planner_holidays:        'Festivos y días no laborables',
+  planner_holidays_hint:   'Aplican a todos los recursos. Añade vacaciones personales en el calendario del asignado.',
+  planner_add_holiday:     '+ Añadir',
+  planner_no_holidays:     'Sin festivos configurados.',
+  planner_assignee_holidays: 'Festivos personales:',
+};

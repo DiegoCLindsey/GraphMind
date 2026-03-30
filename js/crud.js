@@ -155,7 +155,7 @@ function calcEndFromDuration(n) {
     const wh = parseFloat(n.workHours);
     if (n.start && wh > 0) {
       const cal = getWorkCalendar(n.assignee);
-      const { end, endHour } = workHoursToEnd(n.start, wh, cal);
+      const { end, endHour } = workHoursToEnd(n.start, wh, cal, n.startHour);
       n.end     = end;
       n.endHour = endHour;
       // Keep n.days as fractional calendar-day equivalent (used for bar width fallback)
