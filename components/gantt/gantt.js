@@ -158,7 +158,7 @@ function rRect(ctx, x, y, w, h, r) {
 let _ganttCalFilter = 'global';
 
 function ganttGetViewCal() {
-  if (!plannerEnabled()) return null;
+  if (!plannerEnabled() || _ganttCalFilter === 'none') return null;
   if (_ganttCalFilter === 'global') return getWorkCalendar(null);
   return getWorkCalendar(_ganttCalFilter);
 }
@@ -171,9 +171,9 @@ function ganttBuildCalOptions() {
   if (!sel) return;
   const overrides = CFG.planner?.assigneeOverrides || {};
   const names = Object.keys(overrides);
-  sel.innerHTML = '<option value="global">Global</option>' +
+  sel.innerHTML = '<option value="none">Sin filtro</option><option value="global">Global</option>' +
     names.map(n => `<option value="${n}">${n}</option>`).join('');
-  if (_ganttCalFilter !== 'global' && !overrides[_ganttCalFilter]) _ganttCalFilter = 'global';
+  if (_ganttCalFilter !== 'none' && _ganttCalFilter !== 'global' && !overrides[_ganttCalFilter]) _ganttCalFilter = 'global';
   sel.value = _ganttCalFilter;
 }
 
