@@ -137,6 +137,24 @@ function duplicateSelected() {
   duplicateNodes(ids);
 }
 
+function archiveSelected() {
+  if (!_sbSelected.size) return;
+  const ids = [..._sbSelected];
+  const allArchived = ids.every(id => S.nodes.find(n => n.id === id)?.archived);
+  ids.forEach(id => {
+    const n = S.nodes.find(x => x.id === id);
+    if (n) { n.archived = !allArchived; n.updated = new Date().toISOString(); }
+  });
+  _sbSelected.clear();
+  updateSelBar();
+  autoSaveLS();
+  renderList(); renderEditor();
+  if (typeof renderGantt === 'function') renderGantt();
+  if (typeof renderGraph === 'function') renderGraph();
+  toggleSbSelectMode();
+  showIndicator(!allArchived ? t('common.archived') : t('common.unarchived'));
+}
+
 function deleteSelected() {
   if (!_sbSelected.size) return;
   const ids = [..._sbSelected];
