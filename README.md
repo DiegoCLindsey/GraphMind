@@ -2,7 +2,7 @@
 
 > Gestor de proyectos visual basado en teoría de grafos — HTML autocontenido, sin servidor, sin suscripción.
 
-[![version](https://img.shields.io/badge/version-1.5.0-6ee7b7?style=flat-square&labelColor=111)](https://github.com/DiegoCLindsey/GraphMind/releases/tag/v1.5.0)
+[![version](https://img.shields.io/badge/version-1.6.0-6ee7b7?style=flat-square&labelColor=111)](https://github.com/DiegoCLindsey/GraphMind/releases/tag/v1.6.0)
 [![license](https://img.shields.io/badge/license-CC%20BY%204.0-a78bfa?style=flat-square&labelColor=111)](https://creativecommons.org/licenses/by/4.0/)
 [![deploy](https://img.shields.io/badge/GitHub%20Pages-live-60a5fa?style=flat-square&labelColor=111)](https://diegoclindsey.github.io/GraphMind/)
 
@@ -70,6 +70,15 @@ Los archivos fuente de la ayuda son [`components/help/es.md`](components/help/es
 ---
 
 ## Changelog
+
+### v1.6.0 — 2026-03-30
+
+- **Planificador avanzado de tiempo (GMND-062/063)** — calendario laboral configurable: días de la semana, horario de entrada/salida y horas por jornada; duración de tareas en horas de trabajo en lugar de días; cálculo de fechas saltando fines de semana y días no laborables
+- **Barras Gantt segmentadas** — cada tarea se dibuja como bloques independientes por día trabajado; los fines de semana y festivos quedan visualmente libres
+- **Festivos y vacaciones** — lista global de días no laborables + festivos personales por asignado; se combinan automáticamente al calcular fechas
+- **Calendario por asignado (Modo +)** — override completo: días de la semana, horario y festivos propios; las flechas de dependencia apuntan exactamente al inicio del segmento destino
+- **Selector de vista de calendario en Gantt** — desplegable «Vista cal.» para ver el sombreado de horas/días según el calendario global, el de un asignado concreto o sin filtro
+- **Correcciones de cálculo** — `recalcAllBlockedDates` ahora cubre tareas con `workHours`; `startHour` se propaga correctamente a `workHoursToEnd`; recalculo de fechas bloqueadas en el arranque
 
 ### v1.5.0 — 2026-03-30
 
