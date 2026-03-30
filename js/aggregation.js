@@ -260,8 +260,8 @@ function recalcAllBlockedDates() {
     if (hasBlockers && typeof computeNodeDates === 'function') {
       computeNodeDates(n);
       n.updated = new Date().toISOString();
-    } else if (n.start && n.days) {
-      // No blockers: ensure end = start + days  
+    } else if (n.start && (n.days || n.workHours)) {
+      // No blockers: recompute end and endHour (planner: uses workHours; normal: uses days)
       if (typeof calcEndFromDuration === 'function') calcEndFromDuration(n);
     }
   });
