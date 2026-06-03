@@ -1,91 +1,1599 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GraphMind v1.6.0</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<!-- Markdown + Mermaid -->
-<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<!-- Base: design tokens, reset, layout -->
-<link rel="stylesheet" href="css/base.css">
-<!-- Components -->
-<link rel="stylesheet" href="components/topbar/topbar.css">
-<link rel="stylesheet" href="components/sidebar/sidebar.css">
-<link rel="stylesheet" href="components/editor/editor.css">
-<link rel="stylesheet" href="components/graph/graph.css">
-<link rel="stylesheet" href="components/gantt/gantt.css">
-<link rel="stylesheet" href="components/help/help.css">
-<link rel="stylesheet" href="components/config/config.css">
-<link rel="stylesheet" href="components/modals/modals.css">
-<!-- Responsive cross-component (load last) -->
-<link rel="stylesheet" href="css/responsive.css">
+<title>GanttFlow — Gestión de Proyectos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f1117;--bg2:#171a24;--bg3:#1e2235;--bg4:#252a3d;
+  --border:#2d3350;--border2:#3d4468;
+  --text:#e8eaf6;--text2:#9da3c8;--text3:#5c6494;
+  --accent:#6c8cff;--accent2:#4a6bdf;
+  --green:#4caf82;--amber:#f0a832;--red:#e05555;
+  --critical:#ff6b6b;--leveled:#f0a832;--purple:#a78bfa;--teal:#38c9b0;
+  --font:'Syne',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --r:6px;--r2:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* HEADER */
+header{display:flex;align-items:center;gap:12px;padding:0 16px;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+header h1{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
+header h1 span{color:var(--accent);}
+.project-name{font-size:13px;border:1px solid var(--border);background:var(--bg3);padding:4px 10px;border-radius:var(--r);outline:none;font-family:var(--font);color:var(--text);width:180px;}
+.project-name:focus{border-color:var(--accent);}
+.header-spacer{flex:1;}
+.header-actions{display:flex;gap:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--bg4);color:var(--text);border-color:var(--accent);}
+.btn.primary{background:var(--accent2);border-color:var(--accent);color:#fff;}
+.btn.primary:hover{background:var(--accent);}
+.btn svg{width:13px;height:13px;flex-shrink:0;}
+.btn.warn{border-color:#f0a83280;color:var(--amber);}
+.btn.warn:hover{background:#2a2010;border-color:var(--amber);}
+
+/* TABS */
+.nav-tabs{display:flex;gap:2px;padding:0 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{padding:9px 14px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tab:hover{color:var(--text2);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* MAIN */
+.main{display:flex;flex:1;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:300px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-header{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.sidebar-header span{font-size:11px;font-weight:600;letter-spacing:.8px;color:var(--text3);text-transform:uppercase;flex:1;}
+.task-list{flex:1;overflow-y:auto;padding:6px;}
+.task-row{display:flex;align-items:center;gap:5px;padding:5px 7px;border-radius:var(--r);transition:background .1s;cursor:pointer;}
+.task-row:hover{background:var(--bg3);}
+.task-row.selected{background:var(--bg4);}
+.task-row.critical-task .task-name{color:var(--critical);}
+.task-row.leveled-task .task-name{color:var(--leveled);}
+.expand-btn{width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:transform .15s;flex-shrink:0;}
+.expand-btn.open{transform:rotate(90deg);}
+.expand-btn svg{width:9px;height:9px;}
+.task-color{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.task-name{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.task-badge{font-size:10px;padding:1px 5px;border-radius:3px;font-family:var(--mono);}
+.badge-progress{background:#1a2a4a;color:var(--accent);}
+.badge-done{background:#1a3a2a;color:var(--green);}
+.badge-blocked{background:#3a1a1a;color:var(--red);}
+.badge-leveled{background:#2a200a;color:var(--amber);}
+
+/* CONTENT */
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.view{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.view.active{display:flex;}
+
+/* GANTT */
+.gantt-toolbar{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--bg2);flex-wrap:wrap;}
+.gantt-toolbar label{font-size:11px;color:var(--text3);}
+.gantt-toolbar select,.gantt-toolbar input[type=number],.gantt-toolbar input[type=date]{font-family:var(--font);font-size:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 7px;border-radius:var(--r);outline:none;}
+.gantt-wrap{flex:1;overflow:auto;}
+.gantt-table{display:flex;min-height:100%;}
+.gantt-labels{width:230px;flex-shrink:0;border-right:1px solid var(--border);}
+.gantt-labels-header{height:48px;border-bottom:1px solid var(--border);padding:0 10px;display:flex;align-items:center;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.5px;background:var(--bg2);position:sticky;top:0;z-index:10;}
+.gantt-label-row{height:34px;display:flex;align-items:center;padding:0 10px;gap:5px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;transition:background .1s;}
+.gantt-label-row:hover{background:var(--bg3);}
+.gantt-label-row.selected{background:var(--bg4);}
+.gantt-label-row.critical-row .gl-name{color:var(--critical);}
+.gantt-label-row.leveled-row .gl-name{color:var(--leveled);}
+.gl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.gl-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gl-days{font-family:var(--mono);font-size:10px;color:var(--text3);flex-shrink:0;}
+.gantt-chart-area{flex:1;}
+.gantt-header{height:48px;position:sticky;top:0;z-index:10;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-direction:column;}
+.gantt-month{border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;flex-shrink:0;}
+.gantt-days-row{display:flex;height:20px;}
+.gantt-day-cell{flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3);border-right:1px solid rgba(255,255,255,.03);font-family:var(--mono);}
+.gantt-day-cell.weekend{background:rgba(255,255,255,.02);}
+.gantt-day-cell.holiday{background:rgba(240,168,50,.06);color:var(--amber);}
+.gantt-day-cell.today-col{background:rgba(108,140,255,.08);color:var(--accent);font-weight:600;}
+.gantt-rows-area{position:relative;}
+.gantt-row-bg{height:34px;border-bottom:1px solid var(--border);display:flex;position:relative;}
+.gantt-row-bg:hover{background:rgba(255,255,255,.015);}
+.gantt-cell-bg{flex-shrink:0;border-right:1px solid rgba(255,255,255,.02);height:100%;}
+.gantt-cell-bg.weekend{background:rgba(255,255,255,.01);}
+.gantt-cell-bg.holiday{background:rgba(240,168,50,.04);}
+.gantt-cell-bg.today-col{background:rgba(108,140,255,.04);}
+.gantt-bar{position:absolute;height:18px;top:8px;border-radius:3px;display:flex;align-items:center;padding:0 5px;font-size:10px;font-weight:600;overflow:hidden;white-space:nowrap;cursor:pointer;pointer-events:all;transition:opacity .15s;}
+.gantt-bar:hover{opacity:.85;}
+.gantt-bar.critical{box-shadow:0 0 0 1px var(--critical);}
+.gantt-bar.leveled{box-shadow:0 0 0 1px var(--leveled);}
+.bar-progress{position:absolute;left:0;top:0;bottom:0;border-radius:3px;opacity:.35;}
+.bar-label{overflow:hidden;text-overflow:ellipsis;position:relative;font-family:var(--mono);}
+.today-line{position:absolute;top:0;bottom:0;width:1px;background:var(--accent);opacity:.5;pointer-events:none;z-index:5;}
+
+/* DETAIL PANEL */
+.detail-panel{width:290px;flex-shrink:0;border-left:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;overflow:hidden;}
+.detail-panel.hidden{display:none;}
+.dp-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.dp-header h3{font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dp-close{cursor:pointer;color:var(--text3);flex-shrink:0;}
+.dp-close:hover{color:var(--text);}
+.dp-body{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
+.field-group{display:flex;flex-direction:column;gap:3px;}
+.field-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;}
+.field-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:var(--r);font-family:var(--font);font-size:12px;outline:none;width:100%;}
+.field-input:focus{border-color:var(--accent);}
+.field-input[type=number]{font-family:var(--mono);}
+select.field-input{cursor:pointer;}
+textarea.field-input{resize:vertical;min-height:60px;line-height:1.5;}
+.field-row{display:flex;gap:7px;}
+.field-row .field-group{flex:1;}
+.comment-list{display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;}
+.comment-item{background:var(--bg3);border-radius:var(--r);padding:7px 9px;font-size:11px;}
+.comment-meta{font-size:10px;color:var(--text3);margin-bottom:3px;font-family:var(--mono);}
+.dp-section-title{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border);margin-top:2px;}
+.dep-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.dep-chip{display:flex;align-items:center;gap:3px;background:var(--bg4);border:1px solid var(--border);border-radius:3px;padding:2px 6px;font-size:11px;font-family:var(--mono);}
+.dep-chip button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;line-height:1;}
+.dep-chip button:hover{color:var(--red);}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.stat-cell{background:var(--bg3);border-radius:var(--r);padding:7px 9px;}
+.stat-val{font-size:15px;font-weight:700;font-family:var(--mono);color:var(--accent);}
+.stat-lab{font-size:10px;color:var(--text3);margin-top:1px;}
+.deviation-pos{color:var(--red);}
+.deviation-neg{color:var(--green);}
+
+/* LEVELING ALERT */
+.leveling-alert{background:#1e1a08;border:1px solid #f0a83240;border-radius:var(--r);padding:8px 10px;font-size:11px;color:var(--amber);display:flex;gap:6px;align-items:flex-start;}
+.leveling-alert svg{flex-shrink:0;margin-top:1px;}
+
+/* PERT */
+.graph-view{flex:1;overflow:hidden;position:relative;background:var(--bg);}
+#pert-canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.graph-toolbar{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;background:var(--bg2);font-size:12px;color:var(--text2);}
+.graph-legend{display:flex;gap:10px;margin-left:auto;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+
+/* COSTS */
+.cost-table{width:100%;border-collapse:collapse;font-size:12px;}
+.cost-table th{text-align:left;padding:5px 7px;color:var(--text3);font-size:10px;font-weight:600;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+.cost-table td{padding:5px 7px;border-bottom:1px solid rgba(255,255,255,.04);font-family:var(--mono);}
+.cost-table .total-row{font-weight:600;color:var(--text);border-top:1px solid var(--border);}
+
+/* TEAM VIEW */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:20px;}
+.member-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;flex-direction:column;gap:10px;}
+.member-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+.member-header{display:flex;align-items:center;gap:10px;}
+.member-info{flex:1;}
+.member-name{font-size:14px;font-weight:600;}
+.member-role{font-size:11px;color:var(--text3);}
+.member-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.meta-chip{font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:2px 7px;color:var(--text2);font-family:var(--mono);}
+.absence-list{display:flex;flex-direction:column;gap:4px;}
+.absence-item{display:flex;align-items:center;gap:6px;font-size:11px;background:var(--bg3);border-radius:var(--r);padding:4px 8px;}
+.absence-item .absence-dates{font-family:var(--mono);color:var(--text2);flex:1;}
+.absence-item .absence-type{font-size:10px;padding:1px 5px;border-radius:3px;}
+.absence-vac{background:#1a2a1a;color:var(--green);}
+.absence-hol{background:#2a200a;color:var(--amber);}
+.absence-other{background:#1a1a2a;color:var(--purple);}
+.workload-bar{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-top:2px;}
+.workload-fill{height:100%;border-radius:3px;transition:width .3s;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);width:520px;max-height:85vh;overflow-y:auto;padding:22px;}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:14px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.modal-section{margin-bottom:16px;}
+.modal-section-title{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px;}
+
+/* DAY GRID */
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:8px 0;}
+.day-toggle{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.day-toggle input{display:none;}
+.day-box{width:34px;height:34px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text3);transition:all .15s;}
+.day-toggle input:checked+.day-box{background:var(--accent2);border-color:var(--accent);color:#fff;}
+.day-name{font-size:9px;color:var(--text3);letter-spacing:.3px;}
+.equiv-display{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin:8px 0;}
+.equiv-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:12px;}
+.equiv-row:last-child{margin-bottom:0;}
+.equiv-num{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--accent);min-width:26px;}
+.presets{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.preset-btn{padding:3px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:11px;cursor:pointer;transition:all .12s;}
+.preset-btn:hover{border-color:var(--accent);color:var(--text);}
+
+/* HOLIDAY LIST */
+.holiday-list{display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;}
+.holiday-item{display:flex;align-items:center;gap:6px;background:var(--bg3);border-radius:var(--r);padding:5px 8px;font-size:12px;}
+.holiday-item .hdate{font-family:var(--mono);flex:1;}
+.holiday-item button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;}
+.holiday-item button:hover{color:var(--red);}
+
+/* LEVELS */
+.levels-control{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+.level-btn{width:22px;height:22px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.level-btn.active{background:var(--accent2);border-color:var(--accent);color:#fff;}
+
+/* ISHIKAWA */
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+/* TOOLTIP */
+.tooltip{position:fixed;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r);padding:6px 10px;font-size:11px;pointer-events:none;z-index:999;display:none;max-width:240px;line-height:1.6;}
+.tooltip.show{display:block;}
+</style>
 </head>
 <body>
 
-<!-- Anclas estructurales — loader.js inyecta los components/ HTML aquí -->
-<div id="app">
-  <div id="main"></div>
+<header>
+  <h1>Gantt<span>Flow</span></h1>
+  <input class="project-name" type="text" id="projectName" placeholder="Nombre del proyecto..." value="Proyecto Alpha">
+  <div class="header-spacer"></div>
+  <div class="header-actions">
+    <button class="btn" onclick="addTask(null)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>Nueva tarea
+    </button>
+    <button class="btn" onclick="openCalendarConfig()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5 1v4M11 1v4"/></svg>Calendario
+    </button>
+    <button class="btn" onclick="exportJSON()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 10V3M5 7l3 3 3-3M3 13h10"/></svg>Exportar
+    </button>
+    <label class="btn" style="cursor:pointer">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6v7M5 9l3-3 3 3M3 3h10"/></svg>Importar
+      <input type="file" accept=".json" style="display:none" onchange="importJSON(event)">
+    </label>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <div class="tab active" onclick="switchTab('gantt',this)">Diagrama Gantt</div>
+  <div class="tab" onclick="switchTab('pert',this)">Grafo PERT</div>
+  <div class="tab" onclick="switchTab('team',this)">Equipo</div>
+  <div class="tab" onclick="switchTab('costs',this)">Costes</div>
+  <div class="tab" onclick="switchTab('ishikawa',this)">Ishikawa</div>
 </div>
 
-<!-- i18n: motor primero, luego todos los archivos de idioma -->
-<script src="i18n/engine.js"></script>
-<script src="i18n/es/common.js"></script>
-<script src="i18n/es/topbar.js"></script>
-<script src="i18n/es/sidebar.js"></script>
-<script src="i18n/es/editor.js"></script>
-<script src="i18n/es/graph.js"></script>
-<script src="i18n/es/gantt.js"></script>
-<script src="i18n/es/modals.js"></script>
-<script src="i18n/es/config.js"></script>
-<script src="i18n/en/common.js"></script>
-<script src="i18n/en/topbar.js"></script>
-<script src="i18n/en/sidebar.js"></script>
-<script src="i18n/en/editor.js"></script>
-<script src="i18n/en/graph.js"></script>
-<script src="i18n/en/gantt.js"></script>
-<script src="i18n/en/modals.js"></script>
-<script src="i18n/en/config.js"></script>
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span>Tareas</span>
+      <div class="levels-control">
+        <div class="level-btn active" id="lvl-all" onclick="setLevel(99)">All</div>
+        <div class="level-btn" id="lvl-0" onclick="setLevel(0)">1</div>
+        <div class="level-btn" id="lvl-1" onclick="setLevel(1)">2</div>
+        <div class="level-btn" id="lvl-2" onclick="setLevel(2)">3</div>
+      </div>
+    </div>
+    <div class="task-list" id="taskList"></div>
+    <div style="padding:8px 10px;border-top:1px solid var(--border);flex-shrink:0;">
+      <button class="btn" style="width:100%;justify-content:center" onclick="addTask(null)">+ Añadir tarea raíz</button>
+    </div>
+  </div>
 
-<!-- Markdown/Mermaid helper -->
-<script src="js/markdown.js"></script>
-<!-- Help component -->
-<script src="components/help/help.js"></script>
+  <!-- VIEWS -->
+  <div class="content">
 
-<!-- Core: estado global, datos, cálculos (sin componente) -->
-<script src="js/defaults.js"></script>
-<script src="js/state.js"></script>
-<script src="js/planner.js"></script>
-<script src="js/crud.js"></script>
-<script src="js/aggregation.js"></script>
+    <!-- GANTT -->
+    <div class="view active" id="view-gantt" style="flex-direction:row">
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="gantt-toolbar">
+          <label>Zoom:</label>
+          <select id="ganttZoom" onchange="renderGantt()">
+            <option value="20">20px/día</option>
+            <option value="12" selected>12px/día</option>
+            <option value="6">6px/día</option>
+          </select>
+          <label>Inicio:</label>
+          <input type="date" id="ganttStart" class="field-input" style="width:130px" onchange="renderGantt()">
+          <label>Días:</label>
+          <input type="number" id="ganttDays" class="field-input" style="width:62px;font-family:var(--mono)" value="120" onchange="renderGantt()">
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text3)">
+            <span><span style="display:inline-block;width:9px;height:3px;background:var(--critical);border-radius:2px;vertical-align:middle;margin-right:3px"></span>Crítico</span>
+            <span><span style="display:inline-block;width:9px;height:3px;background:var(--leveled);border-radius:2px;vertical-align:middle;margin-right:3px"></span>Desplazado (org.)</span>
+            <span><span style="display:inline-block;width:9px;height:3px;background:var(--accent);border-radius:2px;vertical-align:middle;margin-right:3px"></span>Normal</span>
+          </div>
+        </div>
+        <div class="gantt-wrap" id="ganttWrap">
+          <div class="gantt-table" id="ganttTable"></div>
+        </div>
+      </div>
+      <div class="detail-panel hidden" id="detailPanel"></div>
+    </div>
 
-<!-- Editor component -->
-<script src="components/editor/render.js"></script>
-<script src="components/editor/tags.js"></script>
-<script src="components/editor/connections.js"></script>
-<script src="components/editor/comments.js"></script>
-<script src="components/editor/breakdown.js"></script>
+    <!-- PERT -->
+    <div class="view" id="view-pert" style="flex-direction:column">
+      <div class="graph-toolbar">
+        <span style="font-size:12px">Arrastra nodos · Doble clic = detalle</span>
+        <button class="btn" onclick="autoLayoutPert()">Auto-layout</button>
+        <button class="btn" onclick="savePertLayout()">Guardar pos.</button>
+        <div class="graph-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--critical)"></div>Crítico</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--leveled)"></div>Desplazado</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Normal</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Completado</div>
+        </div>
+      </div>
+      <div class="graph-view">
+        <canvas id="pert-canvas"></canvas>
+      </div>
+    </div>
 
-<!-- Graph component -->
-<script src="components/graph/graph.js"></script>
+    <!-- TEAM -->
+    <div class="view" id="view-team" style="flex-direction:column;overflow:hidden">
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;background:var(--bg2);">
+        <span style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;">Equipo del proyecto</span>
+        <div style="flex:1"></div>
+        <button class="btn primary" onclick="openAddMember()">+ Añadir miembro</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;">
+        <div class="team-grid" id="teamGrid"></div>
+      </div>
+    </div>
 
-<!-- Persistencia e IO -->
-<script src="js/storage.js"></script>
+    <!-- COSTS -->
+    <div class="view" id="view-costs" style="flex-direction:column;overflow:auto;padding:20px">
+      <div id="costsContent"></div>
+    </div>
 
-<!-- UI e inicialización (cross-componente) -->
-<script src="js/ui.js"></script>
-<script src="js/init.js"></script>
+    <!-- ISHIKAWA -->
+    <div class="view" id="view-ishikawa" style="flex-direction:column">
+      <div class="graph-toolbar" style="gap:10px">
+        <label style="font-size:12px">Tarea:</label>
+        <select id="ishikawaTarget" class="field-input" style="width:180px;padding:3px 7px" onchange="renderIshikawa()"></select>
+        <button class="btn" onclick="addIshikawaCause()">+ Causa</button>
+        <button class="btn" onclick="addIshikawaCategory()">+ Categoría</button>
+      </div>
+      <div style="flex:1;overflow:auto;padding:16px">
+        <canvas id="fish-canvas"></canvas>
+      </div>
+    </div>
 
-<!-- Gantt component -->
-<script src="components/gantt/gantt.js"></script>
+  </div>
+</div>
 
-<!-- Config component -->
-<script src="components/config/config.js"></script>
+<div class="modal-overlay" id="modalOverlay" onclick="handleModalClick(event)">
+  <div class="modal" id="modalContent"></div>
+</div>
+<div class="tooltip" id="tooltip"></div>
 
-<!-- Loader: fetch components/ HTML y arranca la app -->
-<script src="js/loader.js"></script>
+<script>
+// ================================================================
+// STATE
+// ================================================================
+let state = {
+  project: { name:'Proyecto Alpha', workDays:[1,2,3,4,5], hoursPerDay:8, calendarStart:null },
+  tasks: [],
+  team: [],         // array of member objects
+  holidays: [],     // array of 'YYYY-MM-DD' strings (global)
+  pertLayout: {},
+  ishikawa: {}
+};
 
+const COLORS = ['#6c8cff','#38c9b0','#f0a832','#a78bfa','#4caf82','#e05555','#f06292','#4dd0e1','#aed581','#ff8a65'];
+const AVATAR_COLORS = ['#4a6bdf','#0f6e56','#993c1d','#534ab7','#3b6d11','#993556'];
+let nextId = 1;
+let selectedTaskId = null;
+let maxLevel = 99;
+
+// ================================================================
+// UTILS
+// ================================================================
+function mkId(){ return nextId++; }
+function getColor(idx){ return COLORS[idx % COLORS.length]; }
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function truncate(s,n){ return s.length>n?s.slice(0,n-1)+'…':s; }
+function toDateStr(d){ return d.toISOString().slice(0,10); }
+function parseDate(s){ return s?new Date(s+'T00:00:00'):null; }
+function fmtDate(s){ return s?new Date(s+'T00:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}):'—'; }
+function initials(name){ return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+// ================================================================
+// TREE HELPERS
+// ================================================================
+function getAllTasks(tasks=state.tasks,out=[]){
+  for(const t of tasks){ out.push(t); if(t.subtasks) getAllTasks(t.subtasks,out); }
+  return out;
+}
+function findTask(id,tasks=state.tasks){
+  for(const t of tasks){
+    if(t.id===id) return t;
+    if(t.subtasks){ const f=findTask(id,t.subtasks); if(f) return f; }
+  }
+  return null;
+}
+function removeTask(id,tasks=state.tasks){
+  for(let i=0;i<tasks.length;i++){
+    if(tasks[i].id===id){ tasks.splice(i,1); return true; }
+    if(tasks[i].subtasks&&removeTask(id,tasks[i].subtasks)) return true;
+  }
+  return false;
+}
+function flattenVisible(tasks=state.tasks,level=0,out=[]){
+  for(const t of tasks){
+    out.push({task:t,level});
+    if(t.expanded&&t.subtasks&&t.subtasks.length&&level<maxLevel)
+      flattenVisible(t.subtasks,level+1,out);
+  }
+  return out;
+}
+
+// ================================================================
+// CALENDAR
+// ================================================================
+function getWorkDays(){ return state.project.workDays&&state.project.workDays.length?state.project.workDays:[1,2,3,4,5]; }
+function workDaysPerWeek(){ return getWorkDays().length; }
+function workDaysToCalDays(wd){ return workDaysPerWeek()===0?wd:Math.round(wd*7/workDaysPerWeek()); }
+
+const _holidaySet = new Set();
+function rebuildHolidaySet(){
+  _holidaySet.clear();
+  for(const h of state.holidays) _holidaySet.add(h);
+  // also personal holidays/absences of all members
+  for(const m of state.team){
+    for(const ab of (m.absences||[])){
+      let d=new Date(ab.start+'T00:00:00');
+      const end=new Date(ab.end+'T00:00:00');
+      while(d<=end){ _holidaySet.add(toDateStr(d)); d.setDate(d.getDate()+1); }
+    }
+  }
+}
+function isHoliday(date){ return _holidaySet.has(toDateStr(date)); }
+
+function isMemberAvailableOn(memberId, date){
+  const m = state.team.find(x=>x.id===memberId);
+  if(!m) return true;
+  const ds = toDateStr(date);
+  for(const ab of (m.absences||[])){
+    if(ds>=ab.start && ds<=ab.end) return false;
+  }
+  return true;
+}
+
+function isWorkingDay(date, memberId=null){
+  if(!getWorkDays().includes(date.getDay())) return false;
+  if(state.holidays.includes(toDateStr(date))) return false;
+  if(memberId && !isMemberAvailableOn(memberId, date)) return false;
+  return true;
+}
+
+// Add N working days from start (optionally skipping member absences + holidays)
+function addWorkDays(start, days, memberId=null){
+  if(days<=0) return new Date(start);
+  const d=new Date(start);
+  let added=0;
+  while(added<days){
+    d.setDate(d.getDate()+1);
+    if(isWorkingDay(d,memberId)) added++;
+  }
+  return d;
+}
+
+// Advance date to next working day for member (inclusive from d)
+function nextWorkingDay(d, memberId=null){
+  const r=new Date(d);
+  while(!isWorkingDay(r,memberId)) r.setDate(r.getDate()+1);
+  return r;
+}
+
+function calStart(){
+  if(state.project.calendarStart) return new Date(state.project.calendarStart);
+  const all=getAllTasks();
+  let min=null;
+  for(const t of all) if(t.startDate){ const d=new Date(t.startDate+'T00:00:00'); if(!min||d<min) min=d; }
+  if(min) return min;
+  const d=new Date(); d.setDate(1); return d;
+}
+
+// ================================================================
+// PHASE 1 — CPM (pure technical dependencies)
+// Units: work-days (integers)
+// ================================================================
+function computeCPM(){
+  const all=getAllTasks();
+  const byId={};
+  for(const t of all) byId[t.id]=t;
+
+  // Forward pass
+  for(const t of all){
+    let es=0;
+    if(t.dependencies&&t.dependencies.length)
+      for(const dId of t.dependencies){ const dep=byId[dId]; if(dep&&(dep.earlyFinish||0)>es) es=dep.earlyFinish||0; }
+    t.earlyStart=es;
+    t.earlyFinish=es+(t.duration||1);
+  }
+  let projEnd=0;
+  for(const t of all) if((t.earlyFinish||0)>projEnd) projEnd=t.earlyFinish;
+
+  // Backward pass
+  for(const t of all) t.lateFinish=projEnd;
+  for(const t of [...all].reverse()){
+    const succs=all.filter(x=>x.dependencies&&x.dependencies.includes(t.id));
+    if(succs.length) t.lateFinish=Math.min(...succs.map(s=>s.lateStart||projEnd));
+    t.lateStart=t.lateFinish-(t.duration||1);
+    t.totalFloat=t.lateStart-t.earlyStart;
+    t.isCritical=(t.totalFloat===0);
+  }
+  return projEnd;
+}
+
+// ================================================================
+// PHASE 2 — RESOURCE LEVELING
+// After CPM gives earlyStart (work-day units), convert to calendar
+// dates and push tasks forward when member is over capacity.
+// ================================================================
+function resourceLeveling(){
+  rebuildHolidaySet();
+  const base=calStart();
+  const all=getAllTasks();
+  const byId={};
+  for(const t of all) byId[t.id]=t;
+
+  // Sort tasks by earlyStart (CPM order)
+  const ordered=[...all].sort((a,b)=>(a.earlyStart||0)-(b.earlyStart||0));
+
+  // Member schedule: memberId -> array of {start:Date, end:Date, taskId}
+  const memberSchedule={};
+  function getSchedule(mid){ return memberSchedule[mid]||(memberSchedule[mid]=[]); }
+
+  // Count concurrent tasks for member on a given calendar date
+  function concurrentCount(mid, date){
+    const ds=date.getTime();
+    return getSchedule(mid).filter(s=>s.start.getTime()<=ds&&s.end.getTime()>ds).length;
+  }
+
+  // Find first calendar date >= candidateDate where member has < maxParallel tasks
+  // and the date itself is a working day for that member
+  function findAvailableStart(mid, candidateDate, duration, maxParallel){
+    let d=nextWorkingDay(new Date(candidateDate), mid);
+    let safetyCounter=0;
+    while(safetyCounter<1000){
+      if(isWorkingDay(d,mid) && concurrentCount(mid,d)<maxParallel) return d;
+      d.setDate(d.getDate()+1);
+      d=nextWorkingDay(new Date(d),mid);
+      safetyCounter++;
+    }
+    return d;
+  }
+
+  // Work-day offset from base to a calendar date
+  function calDateFromWDOffset(offset){
+    return addWorkDays(base, offset, null);
+  }
+
+  for(const t of ordered){
+    // Earliest start by CPM (calendar date)
+    let cpStart=calDateFromWDOffset(t.earlyStart||0);
+    // Respect explicit startDate if set
+    if(t.startDate){
+      const explicit=parseDate(t.startDate);
+      if(explicit>cpStart) cpStart=explicit;
+    }
+    cpStart=nextWorkingDay(cpStart, null);
+
+    let scheduledStart=new Date(cpStart);
+    let wasLeveled=false;
+
+    if(t.assignee){
+      const member=state.team.find(m=>m.name===t.assignee||m.id===t.assignee);
+      if(member){
+        const maxP=member.maxParallel||2;
+        const mid=member.id;
+        const available=findAvailableStart(mid, cpStart, t.duration||1, maxP);
+        if(available>cpStart){ scheduledStart=available; wasLeveled=true; }
+        else scheduledStart=cpStart;
+        // Also ensure start is a working day for this member
+        scheduledStart=nextWorkingDay(new Date(scheduledStart), mid);
+        // Register in member schedule
+        const endDate=addWorkDays(scheduledStart, t.duration||1, mid);
+        getSchedule(mid).push({start:scheduledStart, end:endDate, taskId:t.id});
+      }
+    }
+
+    t._scheduledStart=new Date(scheduledStart);
+    const endDate=addWorkDays(scheduledStart, t.duration||1, t.assignee?((state.team.find(m=>m.name===t.assignee||m.id===t.assignee)||{}).id||null):null);
+    t._scheduledEnd=new Date(endDate);
+    t._wasLeveled=wasLeveled;
+    if(!t.startDate) t.startDate=toDateStr(scheduledStart);
+  }
+}
+
+function scheduleTasks(){
+  computeCPM();
+  resourceLeveling();
+}
+
+// ================================================================
+// SIDEBAR
+// ================================================================
+function renderSidebar(){
+  const list=document.getElementById('taskList');
+  const flat=flattenVisible();
+  if(!flat.length){
+    list.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Sin tareas. Añade una.</div>';
+    return;
+  }
+  list.innerHTML=flat.map(({task:t,level})=>{
+    const hasSubs=t.subtasks&&t.subtasks.length>0;
+    const status=t.progress>=100?'done':t.status==='blocked'?'blocked':'progress';
+    const badgeClass=t._wasLeveled?'badge-leveled':status==='done'?'badge-done':status==='blocked'?'badge-blocked':'badge-progress';
+    const badgeText=status==='done'?'✓':status==='blocked'?'⊘':t.progress+'%';
+    const rowClass=t.isCritical?' critical-task':t._wasLeveled?' leveled-task':'';
+    return `<div style="padding-left:${level*12}px">
+      <div class="task-row${selectedTaskId===t.id?' selected':''}${rowClass}" onclick="selectTask(${t.id})">
+        <div class="expand-btn${t.expanded?' open':''}" onclick="toggleExpand(event,${t.id})">${hasSubs?`<svg viewBox="0 0 10 10" fill="currentColor"><path d="M3 2l4 3-4 3"/></svg>`:'<svg></svg>'}</div>
+        <div class="task-color" style="background:${t.color||getColor(t.id)}"></div>
+        <span class="task-name">${escHtml(t.name)}</span>
+        <span class="task-badge ${badgeClass}">${badgeText}</span>
+        <button onclick="addTask(${t.id},event)" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 2px">+</button>
+        <button onclick="deleteTask(${t.id},event)" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExpand(e,id){ e.stopPropagation(); const t=findTask(id); if(t){t.expanded=!t.expanded;renderAll();} }
+function selectTask(id){ selectedTaskId=id; renderSidebar(); renderDetailPanel(); }
+
+// ================================================================
+// TASK CRUD
+// ================================================================
+function addTask(parentId=null,e=null){
+  if(e) e.stopPropagation();
+  const id=mkId();
+  const task={
+    id,name:'Nueva tarea',duration:5,progress:0,status:'in-progress',
+    assignee:'',hourlyRate:0,startDate:'',dependencies:[],subtasks:[],
+    expanded:true,color:getColor(getAllTasks().length),comments:[],description:'',
+    estimatedDays:5,realDays:0,estimatedCost:0,realCost:0,resources:1,
+    isCritical:false,_wasLeveled:false
+  };
+  if(parentId){ const p=findTask(parentId); if(p){p.subtasks=p.subtasks||[];p.subtasks.push(task);p.expanded=true;} }
+  else state.tasks.push(task);
+  selectedTaskId=id;
+  scheduleTasks(); renderAll(); renderDetailPanel();
+}
+
+function deleteTask(id,e){
+  if(e) e.stopPropagation();
+  if(!confirm('¿Eliminar esta tarea y sus subtareas?')) return;
+  removeTask(id);
+  if(selectedTaskId===id){ selectedTaskId=null; document.getElementById('detailPanel').classList.add('hidden'); }
+  scheduleTasks(); renderAll();
+}
+
+function updateTask(id,key,value){
+  const t=findTask(id); if(!t) return;
+  t[key]=value;
+  scheduleTasks(); renderAll();
+  if(key==='name') renderSidebar();
+}
+
+function addDep(taskId,depId){
+  if(!depId) return;
+  const t=findTask(taskId); if(!t||t.dependencies.includes(depId)) return;
+  t.dependencies.push(depId); scheduleTasks(); renderAll(); renderDetailPanel();
+}
+function removeDep(taskId,depId){
+  const t=findTask(taskId); if(!t) return;
+  t.dependencies=t.dependencies.filter(d=>d!==depId); scheduleTasks(); renderAll(); renderDetailPanel();
+}
+function addComment(taskId){
+  const t=findTask(taskId); const txt=document.getElementById('commentText').value.trim();
+  if(!t||!txt) return;
+  t.comments=t.comments||[];
+  t.comments.push({author:'Usuario',date:new Date().toLocaleDateString('es-ES'),text:txt});
+  renderDetailPanel();
+}
+
+// ================================================================
+// DETAIL PANEL
+// ================================================================
+function renderDetailPanel(){
+  const panel=document.getElementById('detailPanel');
+  if(!selectedTaskId){panel.classList.add('hidden');return;}
+  const t=findTask(selectedTaskId);
+  if(!t){panel.classList.add('hidden');return;}
+  panel.classList.remove('hidden');
+
+  const all=getAllTasks();
+  const others=all.filter(x=>x.id!==t.id);
+  const depsHtml=(t.dependencies||[]).map(dId=>{
+    const dep=findTask(dId);
+    return dep?`<div class="dep-chip"><span>${escHtml(dep.name)}</span><button onclick="removeDep(${t.id},${dId})">×</button></div>`:'';
+  }).join('');
+
+  const devDays=t.realDays?((t.realDays-t.estimatedDays)/t.estimatedDays*100).toFixed(1):'—';
+  const devCost=t.realCost?((t.realCost-t.estimatedCost)/(t.estimatedCost||1)*100).toFixed(1):'—';
+  const comments=(t.comments||[]).map(c=>`<div class="comment-item"><div class="comment-meta">${escHtml(c.author)} · ${c.date}</div>${escHtml(c.text)}</div>`).join('');
+
+  const memberOptions=state.team.map(m=>`<option value="${escHtml(m.name)}"${t.assignee===m.name?' selected':''}>${escHtml(m.name)}</option>`).join('');
+  const unassignedOption=`<option value=""${!t.assignee?' selected':''}>Sin asignar</option>`;
+
+  const leveledAlert=t._wasLeveled?`<div class="leveling-alert">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2l6 12H2z"/><path d="M8 7v3M8 12v.5"/></svg>
+    <span>Fecha desplazada por restricción de capacidad de <b>${escHtml(t.assignee)}</b>. CPM: día ${t.earlyStart} · Programado: ${fmtDate(toDateStr(t._scheduledStart))}.</span>
+  </div>`:'';
+
+  panel.innerHTML=`
+    <div class="dp-header">
+      <h3>${escHtml(t.name)}</h3>
+      <div class="dp-close" onclick="document.getElementById('detailPanel').classList.add('hidden')">✕</div>
+    </div>
+    <div class="dp-body">
+      ${leveledAlert}
+      <div class="field-group"><label class="field-label">Nombre</label>
+        <input class="field-input" type="text" value="${escHtml(t.name)}" onchange="updateTask(${t.id},'name',this.value)"></div>
+      <div class="field-group"><label class="field-label">Descripción</label>
+        <textarea class="field-input" onchange="updateTask(${t.id},'description',this.value)">${escHtml(t.description||'')}</textarea></div>
+      <div class="field-row">
+        <div class="field-group"><label class="field-label">Est. días</label>
+          <input class="field-input" type="number" min="1" value="${t.estimatedDays||t.duration}" onchange="updateTask(${t.id},'estimatedDays',+this.value);updateTask(${t.id},'duration',+this.value)"></div>
+        <div class="field-group"><label class="field-label">Real días</label>
+          <input class="field-input" type="number" min="0" value="${t.realDays||0}" onchange="updateTask(${t.id},'realDays',+this.value)"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label class="field-label">Inicio (manual)</label>
+          <input class="field-input" type="date" value="${t.startDate||''}" onchange="updateTask(${t.id},'startDate',this.value)"></div>
+        <div class="field-group"><label class="field-label">Recursos</label>
+          <input class="field-input" type="number" min="1" value="${t.resources||1}" onchange="updateTask(${t.id},'resources',+this.value)"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label class="field-label">Coste est. (€)</label>
+          <input class="field-input" type="number" min="0" value="${t.estimatedCost||0}" onchange="updateTask(${t.id},'estimatedCost',+this.value)"></div>
+        <div class="field-group"><label class="field-label">Coste real (€)</label>
+          <input class="field-input" type="number" min="0" value="${t.realCost||0}" onchange="updateTask(${t.id},'realCost',+this.value)"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label class="field-label">Tarifa/h (€)</label>
+          <input class="field-input" type="number" min="0" value="${t.hourlyRate||0}" onchange="updateTask(${t.id},'hourlyRate',+this.value)"></div>
+        <div class="field-group"><label class="field-label">Progreso %</label>
+          <input class="field-input" type="number" min="0" max="100" value="${t.progress||0}" onchange="updateTask(${t.id},'progress',+this.value)"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label class="field-label">Estado</label>
+          <select class="field-input" onchange="updateTask(${t.id},'status',this.value)">
+            <option value="not-started"${t.status==='not-started'?' selected':''}>Sin iniciar</option>
+            <option value="in-progress"${t.status==='in-progress'?' selected':''}>En curso</option>
+            <option value="blocked"${t.status==='blocked'?' selected':''}>Bloqueada</option>
+            <option value="done"${t.status==='done'?' selected':''}>Completada</option>
+          </select></div>
+        <div class="field-group"><label class="field-label">Asignado a</label>
+          <select class="field-input" onchange="updateTask(${t.id},'assignee',this.value)">
+            ${unassignedOption}${memberOptions}
+          </select></div>
+      </div>
+      <div><div class="dp-section-title">CPM &amp; scheduling</div>
+        <div class="stats-grid" style="margin-top:7px">
+          <div class="stat-cell"><div class="stat-val">${t.earlyStart||0}→${t.earlyFinish||0}</div><div class="stat-lab">ES→EF (WD)</div></div>
+          <div class="stat-cell"><div class="stat-val">${t.totalFloat||0}d</div><div class="stat-lab">Holgura CPM</div></div>
+          <div class="stat-cell"><div class="stat-val ${parseFloat(devDays)>0?'deviation-pos':parseFloat(devDays)<0?'deviation-neg':''}">${devDays}${devDays!=='—'?'%':''}</div><div class="stat-lab">Desv. tiempo</div></div>
+          <div class="stat-cell"><div class="stat-val ${parseFloat(devCost)>0?'deviation-pos':parseFloat(devCost)<0?'deviation-neg':''}">${devCost}${devCost!=='—'?'%':''}</div><div class="stat-lab">Desv. coste</div></div>
+        </div>
+      </div>
+      <div><div class="dp-section-title">Dependencias (bloqueado por)</div>
+        <div class="dep-chips" style="margin-top:7px">${depsHtml}</div>
+        <select class="field-input" style="margin-top:7px" onchange="addDep(${t.id},+this.value);this.value=''">
+          <option value="">+ Añadir dependencia...</option>
+          ${others.map(x=>`<option value="${x.id}">${escHtml(x.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div><div class="dp-section-title">Comentarios</div>
+        <div class="comment-list" style="margin-top:7px">${comments||'<div style="font-size:11px;color:var(--text3)">Sin comentarios.</div>'}</div>
+        <div style="display:flex;gap:6px;margin-top:7px">
+          <textarea class="field-input" id="commentText" placeholder="Añadir comentario..." style="min-height:38px;flex:1"></textarea>
+          <button class="btn" onclick="addComment(${t.id})">↵</button>
+        </div>
+      </div>
+      <div style="padding-bottom:16px">
+        <button class="btn" style="width:100%;justify-content:center;color:var(--red)" onclick="deleteTask(${t.id})">Eliminar tarea</button>
+      </div>
+    </div>`;
+}
+
+// ================================================================
+// GANTT
+// ================================================================
+function renderGantt(){
+  scheduleTasks();
+  const wrap=document.getElementById('ganttTable');
+  const dayW=parseInt(document.getElementById('ganttZoom').value)||12;
+  const totalDays=parseInt(document.getElementById('ganttDays').value)||120;
+  const startInput=document.getElementById('ganttStart').value;
+  const base=startInput?parseDate(startInput):calStart();
+  const flat=flattenVisible();
+
+  // Build columns
+  const cols=[];
+  for(let i=0;i<totalDays;i++){
+    const d=new Date(base); d.setDate(d.getDate()+i);
+    const wd=d.getDay();
+    const isWE=wd===0||wd===6;
+    const isHol=isHoliday(d);
+    const isToday=d.toDateString()===new Date().toDateString();
+    cols.push({date:d,isWE,isHol,isToday});
+  }
+
+  // Months
+  const months=[];let cur=null;
+  cols.forEach((c,i)=>{
+    const mk=c.date.getFullYear()+'-'+c.date.getMonth();
+    if(!cur||cur.key!==mk){ cur={key:mk,label:c.date.toLocaleDateString('es-ES',{month:'short',year:'numeric'}),count:0}; months.push(cur); }
+    cur.count++;
+  });
+
+  // Labels column
+  const labels=document.createElement('div');
+  labels.className='gantt-labels';
+  const lHdr=document.createElement('div');
+  lHdr.className='gantt-labels-header';
+  lHdr.textContent='TAREA';
+  labels.appendChild(lHdr);
+  flat.forEach(({task:t,level})=>{
+    const row=document.createElement('div');
+    row.className='gantt-label-row'+(selectedTaskId===t.id?' selected':'')+(t.isCritical?' critical-row':t._wasLeveled?' leveled-row':'');
+    row.onclick=()=>selectTask(t.id);
+    row.innerHTML=`<div style="width:${level*12}px;flex-shrink:0"></div><div class="gl-dot" style="background:${t.color||getColor(t.id)}"></div><span class="gl-name">${escHtml(t.name)}</span><span class="gl-days">${t.duration}d</span>`;
+    labels.appendChild(row);
+  });
+
+  // Chart
+  const chart=document.createElement('div');
+  chart.className='gantt-chart-area';
+  chart.style.minWidth=(totalDays*dayW)+'px';
+
+  const hdr=document.createElement('div');
+  hdr.className='gantt-header';
+  const mRow=document.createElement('div');
+  mRow.style.cssText='display:flex;height:28px';
+  months.forEach(m=>{
+    const el=document.createElement('div');
+    el.className='gantt-month';
+    el.style.width=(m.count*dayW)+'px';
+    el.textContent=m.label.toUpperCase();
+    mRow.appendChild(el);
+  });
+  const dRow=document.createElement('div');
+  dRow.className='gantt-days-row';
+  cols.forEach(c=>{
+    const el=document.createElement('div');
+    el.className='gantt-day-cell'+(c.isHol?' holiday':c.isWE?' weekend':'')+(c.isToday?' today-col':'');
+    el.style.width=dayW+'px';
+    if(dayW>=14) el.textContent=c.date.getDate();
+    dRow.appendChild(el);
+  });
+  hdr.appendChild(mRow); hdr.appendChild(dRow); chart.appendChild(hdr);
+
+  // SVG for dep arrows
+  const svgNS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(svgNS,'svg');
+  svg.style.cssText=`position:absolute;top:0;left:0;pointer-events:none;z-index:3;width:${totalDays*dayW}px`;
+  const defs=document.createElementNS(svgNS,'defs');
+  ['arrow-normal','arrow-critical','arrow-leveled'].forEach((id,i)=>{
+    const marker=document.createElementNS(svgNS,'marker');
+    marker.setAttribute('id',id);
+    marker.setAttribute('markerWidth','6');marker.setAttribute('markerHeight','6');
+    marker.setAttribute('refX','6');marker.setAttribute('refY','3');marker.setAttribute('orient','auto');
+    const p=document.createElementNS(svgNS,'path');
+    p.setAttribute('d','M0,0 L6,3 L0,6 Z');
+    p.setAttribute('fill',i===1?'#ff6b6b':i===2?'#f0a832':'#6c8cff');
+    p.setAttribute('fill-opacity','0.7');
+    marker.appendChild(p); defs.appendChild(marker);
+  });
+  svg.appendChild(defs);
+
+  const rowsArea=document.createElement('div');
+  rowsArea.className='gantt-rows-area';
+  rowsArea.style.position='relative';
+
+  const rowMap={};
+  flat.forEach(({task:t},rowIdx)=>{
+    const row=document.createElement('div');
+    row.className='gantt-row-bg';
+    cols.forEach(c=>{
+      const cell=document.createElement('div');
+      cell.className='gantt-cell-bg'+(c.isHol?' holiday':c.isWE?' weekend':'')+(c.isToday?' today-col':'');
+      cell.style.width=dayW+'px';
+      row.appendChild(cell);
+    });
+
+    // Bar position from scheduled dates
+    const startD=t._scheduledStart||parseDate(t.startDate)||base;
+    const endD=t._scheduledEnd||base;
+    const startOff=Math.floor((startD-base)/86400000);
+    const endOff=Math.ceil((endD-base)/86400000);
+    const barLeft=Math.max(0,startOff*dayW);
+    const barW=Math.max((endOff-startOff)*dayW,dayW);
+
+    const bar=document.createElement('div');
+    bar.className='gantt-bar'+(t.isCritical?' critical':t._wasLeveled?' leveled':'');
+    const barColor=t.isCritical?'var(--critical)':t._wasLeveled?'var(--leveled)':(t.color||getColor(t.id));
+    const barBg=t.isCritical?'rgba(255,107,107,0.2)':t._wasLeveled?'rgba(240,168,50,0.15)':'rgba(108,140,255,0.15)';
+    bar.style.cssText=`left:${barLeft}px;width:${barW}px;background:${barBg};border:1px solid ${barColor};color:${t.isCritical?'var(--critical)':t._wasLeveled?'var(--leveled)':'var(--text)'};pointer-events:all;`;
+    const prog=document.createElement('div');
+    prog.className='bar-progress';
+    prog.style.cssText=`width:${t.progress||0}%;background:${barColor}`;
+    const lbl=document.createElement('span');
+    lbl.className='bar-label';
+    lbl.textContent=t.name;
+    bar.appendChild(prog); bar.appendChild(lbl);
+    bar.onclick=()=>selectTask(t.id);
+
+    // Tooltip
+    bar.addEventListener('mousemove',ev=>{
+      const tip=document.getElementById('tooltip');
+      const leveledNote=t._wasLeveled?`<br><span style="color:var(--amber)">⚠ Desplazado por cap. de ${escHtml(t.assignee)}</span>`:'';
+      tip.innerHTML=`<b>${escHtml(t.name)}</b><br>Inicio: ${toDateStr(t._scheduledStart||base)}<br>Fin: ${toDateStr(t._scheduledEnd||base)}<br>Duración: ${t.duration}WD<br>CPM ES: día ${t.earlyStart||0}<br>Holgura: ${t.totalFloat||0}d${leveledNote}`;
+      tip.className='tooltip show';
+      tip.style.left=(ev.clientX+12)+'px';
+      tip.style.top=(ev.clientY-10)+'px';
+    });
+    bar.addEventListener('mouseleave',()=>{document.getElementById('tooltip').className='tooltip';});
+
+    const bc=document.createElement('div');
+    bc.style.cssText='position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;';
+    bc.appendChild(bar); row.appendChild(bc);
+    rowsArea.appendChild(row);
+    rowMap[t.id]={rowIdx,centerY:rowIdx*34+17,barLeft,barW};
+  });
+
+  // Today line
+  const todayOff=Math.floor((new Date()-base)/86400000);
+  if(todayOff>=0&&todayOff<totalDays){
+    const tl=document.createElement('div');
+    tl.className='today-line';
+    tl.style.left=(todayOff*dayW+dayW/2)+'px';
+    rowsArea.appendChild(tl);
+  }
+
+  // Dep arrows
+  svg.style.height=(flat.length*34)+'px';
+  flat.forEach(({task:t})=>{
+    for(const depId of (t.dependencies||[])){
+      const from=rowMap[depId]; const to=rowMap[t.id];
+      if(!from||!to) continue;
+      const x1=from.barLeft+from.barW, y1=from.centerY;
+      const x2=to.barLeft, y2=to.centerY;
+      const path=document.createElementNS(svgNS,'path');
+      const mx=(x1+x2)/2;
+      path.setAttribute('d',`M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
+      const arrowId=t.isCritical?'arrow-critical':t._wasLeveled?'arrow-leveled':'arrow-normal';
+      path.setAttribute('stroke',t.isCritical?'#ff6b6b':t._wasLeveled?'#f0a832':'#6c8cff');
+      path.setAttribute('stroke-width','1.5');
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke-opacity','0.5');
+      path.setAttribute('marker-end',`url(#${arrowId})`);
+      svg.appendChild(path);
+    }
+  });
+  rowsArea.appendChild(svg);
+  chart.appendChild(rowsArea);
+
+  wrap.innerHTML='';
+  wrap.appendChild(labels);
+  wrap.appendChild(chart);
+}
+
+// ================================================================
+// PERT
+// ================================================================
+let pertDrag=null,pertOff={x:0,y:0},pertPan={x:0,y:0,dragging:false,sx:0,sy:0};
+
+function autoLayoutPert(){
+  scheduleTasks();
+  const all=getAllTasks();
+  const byId={};
+  for(const t of all) byId[t.id]=t;
+  const levels={};
+  function getLevel(t){
+    if(levels[t.id]!==undefined) return levels[t.id];
+    if(!t.dependencies||!t.dependencies.length){levels[t.id]=0;return 0;}
+    const mx=Math.max(...t.dependencies.map(d=>byId[d]?getLevel(byId[d]):0));
+    levels[t.id]=mx+1; return mx+1;
+  }
+  for(const t of all) getLevel(t);
+  const byLevel={};
+  for(const t of all){ const l=levels[t.id]; byLevel[l]=byLevel[l]||[]; byLevel[l].push(t); }
+  for(const [l,tasks] of Object.entries(byLevel))
+    tasks.forEach((t,i)=>{ state.pertLayout[t.id]={x:parseInt(l)*210+50,y:i*110+50}; });
+  renderPert();
+}
+
+function savePertLayout(){ alert('Posiciones guardadas. Se incluyen al exportar JSON.'); }
+
+function renderPert(){
+  const canvas=document.getElementById('pert-canvas');
+  const par=canvas.parentElement;
+  canvas.width=par.clientWidth||800; canvas.height=par.clientHeight||600;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  scheduleTasks();
+  const all=getAllTasks();
+  let needLayout=all.some(t=>!state.pertLayout[t.id]);
+  if(needLayout){autoLayoutPert();return;}
+  ctx.save();
+  ctx.translate(pertPan.x,pertPan.y);
+  const NW=150,NH=60;
+
+  // Edges
+  for(const t of all){
+    for(const dId of (t.dependencies||[])){
+      const from=state.pertLayout[dId]; const to=state.pertLayout[t.id];
+      if(!from||!to) continue;
+      const x1=from.x+NW,y1=from.y+NH/2,x2=to.x,y2=to.y+NH/2;
+      ctx.beginPath(); ctx.moveTo(x1,y1);
+      const cp=(x2-x1)*0.5;
+      ctx.bezierCurveTo(x1+cp,y1,x2-cp,y2,x2,y2);
+      ctx.strokeStyle=t.isCritical?'rgba(255,107,107,.7)':t._wasLeveled?'rgba(240,168,50,.6)':'rgba(108,140,255,.4)';
+      ctx.lineWidth=t.isCritical?2:1.5; ctx.stroke();
+      const angle=Math.atan2(y2-y1,x2-x1);
+      ctx.save(); ctx.translate(x2,y2); ctx.rotate(angle);
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-10,-5); ctx.lineTo(-10,5); ctx.closePath();
+      ctx.fillStyle=t.isCritical?'rgba(255,107,107,.8)':t._wasLeveled?'rgba(240,168,50,.8)':'rgba(108,140,255,.6)';
+      ctx.fill(); ctx.restore();
+    }
+  }
+
+  // Nodes
+  for(const t of all){
+    const pos=state.pertLayout[t.id]; if(!pos) continue;
+    const {x,y}=pos; const isSel=t.id===selectedTaskId;
+    ctx.beginPath(); roundRect(ctx,x,y,NW,NH,8);
+    ctx.fillStyle=t.progress>=100?'rgba(76,175,130,.15)':t.isCritical?'rgba(255,107,107,.15)':t._wasLeveled?'rgba(240,168,50,.12)':'rgba(30,34,53,.9)';
+    ctx.fill();
+    ctx.strokeStyle=t.progress>=100?'#4caf82':t.isCritical?'#ff6b6b':t._wasLeveled?'#f0a832':(isSel?'#6c8cff':(t.color||getColor(t.id)));
+    ctx.lineWidth=isSel?2:1; ctx.stroke();
+    ctx.fillStyle=t.isCritical?'#ff6b6b':t._wasLeveled?'#f0a832':'#e8eaf6';
+    ctx.font='500 12px Syne,sans-serif';
+    ctx.fillText(truncate(t.name,17),x+8,y+18);
+    ctx.fillStyle='#9da3c8'; ctx.font='11px IBM Plex Mono,monospace';
+    ctx.fillText(`ES:${t.earlyStart||0} EF:${t.earlyFinish||0}`,x+8,y+33);
+    ctx.fillText(`TF:${t.totalFloat||0}d  ${t.duration}WD`,x+8,y+47);
+    if(t._wasLeveled){
+      ctx.fillStyle='#f0a832';
+      ctx.fillText(`⚠ ${toDateStr(t._scheduledStart)}`,x+8,y+58);
+    }
+  }
+  ctx.restore();
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);
+  ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
+}
+
+function getNodeAt(cx,cy){
+  const NW=150,NH=60;
+  const px=cx-pertPan.x,py=cy-pertPan.y;
+  for(const t of getAllTasks()){
+    const pos=state.pertLayout[t.id]; if(!pos) continue;
+    if(px>=pos.x&&px<=pos.x+NW&&py>=pos.y&&py<=pos.y+NH) return t;
+  }
+  return null;
+}
+
+function initPertEvents(){
+  const c=document.getElementById('pert-canvas');
+  c.addEventListener('mousedown',e=>{
+    const r=c.getBoundingClientRect();
+    const cx=e.clientX-r.left,cy=e.clientY-r.top;
+    const node=getNodeAt(cx,cy);
+    if(node){ pertDrag=node; const p=state.pertLayout[node.id]; pertOff.x=cx-pertPan.x-p.x; pertOff.y=cy-pertPan.y-p.y; }
+    else{ pertPan.dragging=true; pertPan.sx=cx-pertPan.x; pertPan.sy=cy-pertPan.y; }
+  });
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    const cx=e.clientX-r.left,cy=e.clientY-r.top;
+    if(pertDrag){ state.pertLayout[pertDrag.id]={x:cx-pertPan.x-pertOff.x,y:cy-pertPan.y-pertOff.y}; renderPert(); }
+    else if(pertPan.dragging){ pertPan.x=cx-pertPan.sx; pertPan.y=cy-pertPan.sy; renderPert(); }
+  });
+  c.addEventListener('mouseup',()=>{ pertDrag=null; pertPan.dragging=false; });
+  c.addEventListener('dblclick',e=>{
+    const r=c.getBoundingClientRect();
+    const node=getNodeAt(e.clientX-r.left,e.clientY-r.top);
+    if(node){ selectedTaskId=node.id; renderDetailPanel(); document.getElementById('detailPanel').classList.remove('hidden'); }
+  });
+}
+
+// ================================================================
+// TEAM VIEW
+// ================================================================
+function renderTeam(){
+  const grid=document.getElementById('teamGrid');
+  if(!state.team.length){
+    grid.innerHTML='<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text3);font-size:13px">Sin miembros. Añade el equipo del proyecto.</div>';
+    return;
+  }
+  const allTasks=getAllTasks();
+  grid.innerHTML=state.team.map((m,mi)=>{
+    const assigned=allTasks.filter(t=>t.assignee===m.name||t.assignee===m.id);
+    const totalWD=assigned.reduce((s,t)=>s+(t.duration||0),0);
+    const completedWD=assigned.filter(t=>t.progress>=100).reduce((s,t)=>s+(t.duration||0),0);
+    const pct=totalWD?Math.round(completedWD/totalWD*100):0;
+    const wlColor=pct>=80?'var(--red)':pct>=50?'var(--amber)':'var(--green)';
+    const abHtml=(m.absences||[]).map((ab,ai)=>`
+      <div class="absence-item">
+        <div class="absence-dates">${ab.start} → ${ab.end}</div>
+        <span class="absence-type ${ab.type==='vacaciones'?'absence-vac':ab.type==='festivo'?'absence-hol':'absence-other'}">${escHtml(ab.type||'ausencia')}</span>
+        <button onclick="removeMemberAbsence(${m.id},${ai})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">×</button>
+      </div>`).join('');
+    const avatarColor=AVATAR_COLORS[mi%AVATAR_COLORS.length];
+    return `<div class="member-card">
+      <div class="member-header">
+        <div class="member-avatar" style="background:${avatarColor}20;color:${avatarColor}">${initials(m.name)}</div>
+        <div class="member-info">
+          <div class="member-name">${escHtml(m.name)}</div>
+          <div class="member-role">${escHtml(m.role||'—')}</div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn" onclick="openEditMember(${m.id})">✎</button>
+          <button class="btn" style="color:var(--red)" onclick="deleteMember(${m.id})">×</button>
+        </div>
+      </div>
+      <div class="member-meta">
+        <div class="meta-chip">Max ${m.maxParallel||2} tareas/vez</div>
+        <div class="meta-chip">${assigned.length} tareas</div>
+        <div class="meta-chip">${totalWD}WD total</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px">
+          <span>Carga completada</span><span style="font-family:var(--mono)">${pct}%</span>
+        </div>
+        <div class="workload-bar"><div class="workload-fill" style="width:${pct}%;background:${wlColor}"></div></div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin-bottom:5px">AUSENCIAS / FESTIVOS</div>
+        <div class="absence-list">${abHtml||'<div style="font-size:11px;color:var(--text3)">Sin ausencias registradas.</div>'}</div>
+        <button class="btn" style="margin-top:6px;width:100%;justify-content:center;font-size:11px" onclick="openAddAbsence(${m.id})">+ Añadir ausencia</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddMember(){
+  document.getElementById('modalContent').innerHTML=`
+    <h2>Nuevo miembro del equipo</h2>
+    <div class="modal-section">
+      <div class="field-group" style="margin-bottom:10px"><label class="field-label">Nombre</label><input class="field-input" id="nm-name" placeholder="Nombre completo"></div>
+      <div class="field-group" style="margin-bottom:10px"><label class="field-label">Rol</label><input class="field-input" id="nm-role" placeholder="Desarrollador, PM..."></div>
+      <div class="field-group"><label class="field-label">Máx. tareas en paralelo</label>
+        <input class="field-input" id="nm-maxp" type="number" min="1" max="20" value="2" style="font-family:var(--mono)"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="saveMember()">Añadir</button>
+    </div>`;
+  openModal();
+}
+
+function openEditMember(id){
+  const m=state.team.find(x=>x.id===id); if(!m) return;
+  document.getElementById('modalContent').innerHTML=`
+    <h2>Editar miembro</h2>
+    <div class="modal-section">
+      <div class="field-group" style="margin-bottom:10px"><label class="field-label">Nombre</label><input class="field-input" id="nm-name" value="${escHtml(m.name)}"></div>
+      <div class="field-group" style="margin-bottom:10px"><label class="field-label">Rol</label><input class="field-input" id="nm-role" value="${escHtml(m.role||'')}"></div>
+      <div class="field-group"><label class="field-label">Máx. tareas en paralelo</label>
+        <input class="field-input" id="nm-maxp" type="number" min="1" max="20" value="${m.maxParallel||2}" style="font-family:var(--mono)"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="saveMember(${id})">Guardar</button>
+    </div>`;
+  openModal();
+}
+
+function saveMember(editId=null){
+  const name=document.getElementById('nm-name').value.trim();
+  const role=document.getElementById('nm-role').value.trim();
+  const maxP=parseInt(document.getElementById('nm-maxp').value)||2;
+  if(!name) return alert('El nombre es obligatorio.');
+  if(editId){
+    const m=state.team.find(x=>x.id===editId);
+    if(m){ m.name=name; m.role=role; m.maxParallel=maxP; }
+  } else {
+    state.team.push({id:mkId(),name,role,maxParallel:maxP,absences:[]});
+  }
+  closeModal(); scheduleTasks(); renderAll();
+}
+
+function deleteMember(id){
+  if(!confirm('¿Eliminar este miembro?')) return;
+  state.team=state.team.filter(m=>m.id!==id);
+  scheduleTasks(); renderAll();
+}
+
+function openAddAbsence(memberId){
+  document.getElementById('modalContent').innerHTML=`
+    <h2>Añadir ausencia</h2>
+    <div class="modal-section">
+      <div class="field-row" style="margin-bottom:10px">
+        <div class="field-group"><label class="field-label">Desde</label><input class="field-input" id="ab-start" type="date"></div>
+        <div class="field-group"><label class="field-label">Hasta</label><input class="field-input" id="ab-end" type="date"></div>
+      </div>
+      <div class="field-group"><label class="field-label">Tipo</label>
+        <select class="field-input" id="ab-type">
+          <option value="vacaciones">Vacaciones</option>
+          <option value="festivo">Festivo local</option>
+          <option value="baja">Baja</option>
+          <option value="otro">Otro</option>
+        </select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="saveAbsence(${memberId})">Añadir</button>
+    </div>`;
+  openModal();
+}
+
+function saveAbsence(memberId){
+  const start=document.getElementById('ab-start').value;
+  const end=document.getElementById('ab-end').value;
+  const type=document.getElementById('ab-type').value;
+  if(!start||!end) return alert('Fechas obligatorias.');
+  if(end<start) return alert('La fecha de fin debe ser posterior al inicio.');
+  const m=state.team.find(x=>x.id===memberId); if(!m) return;
+  m.absences=m.absences||[];
+  m.absences.push({start,end,type});
+  closeModal(); scheduleTasks(); renderAll();
+}
+
+function removeMemberAbsence(memberId,absIdx){
+  const m=state.team.find(x=>x.id===memberId); if(!m) return;
+  m.absences.splice(absIdx,1);
+  scheduleTasks(); renderAll();
+}
+
+// ================================================================
+// CALENDAR CONFIG MODAL
+// ================================================================
+const DAY_NAMES=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const DAY_SHORT=['D','L','M','X','J','V','S'];
+
+function openCalendarConfig(){
+  const wd=getWorkDays();
+  const hols=state.holidays;
+  document.getElementById('modalContent').innerHTML=`
+    <h2>Configuración de calendario</h2>
+    <div class="modal-section">
+      <div class="modal-section-title">Días laborables</div>
+      <div class="presets">
+        <button class="preset-btn" onclick="applyPreset([1,2,3,4,5])">Lun–Vie</button>
+        <button class="preset-btn" onclick="applyPreset([1,2,3,4,5,6])">Lun–Sáb</button>
+        <button class="preset-btn" onclick="applyPreset([0,1,2,3,4,5,6])">Todos</button>
+        <button class="preset-btn" onclick="applyPreset([6,0])">Fin de semana</button>
+      </div>
+      <div class="day-grid">
+        ${[0,1,2,3,4,5,6].map(i=>`<label class="day-toggle">
+          <input type="checkbox" value="${i}" ${wd.includes(i)?'checked':''} onchange="updateEquiv()">
+          <div class="day-box">${DAY_SHORT[i]}</div>
+          <span class="day-name">${DAY_NAMES[i]}</span></label>`).join('')}
+      </div>
+      <div class="equiv-display" id="equivDisplay"></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-top:8px">
+        Horas/día:
+        <input type="number" min="1" max="24" value="${state.project.hoursPerDay||8}" id="hoursPerDay"
+          class="field-input" style="width:64px;display:inline-block;padding:3px 7px;font-family:var(--mono)">
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Festivos globales del proyecto</div>
+      <div class="holiday-list" id="holidayList"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input type="date" id="newHolidayDate" class="field-input" style="flex:1">
+        <input type="text" id="newHolidayLabel" class="field-input" placeholder="Descripción (opcional)" style="flex:2">
+        <button class="btn" onclick="addHoliday()">+</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="saveCalendarConfig()">Aplicar</button>
+    </div>`;
+  updateEquiv();
+  renderHolidayList();
+  openModal();
+}
+
+function renderHolidayList(){
+  const el=document.getElementById('holidayList'); if(!el) return;
+  if(!state.holidays.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3)">Sin festivos globales.</div>'; return; }
+  el.innerHTML=state.holidays.map((h,i)=>`
+    <div class="holiday-item">
+      <span class="hdate">${h.date}</span>
+      <span style="flex:1;font-size:11px;color:var(--text2)">${escHtml(h.label||'')}</span>
+      <button onclick="removeHoliday(${i})">×</button>
+    </div>`).join('');
+}
+
+function addHoliday(){
+  const date=document.getElementById('newHolidayDate').value;
+  const label=document.getElementById('newHolidayLabel').value.trim();
+  if(!date) return;
+  if(!state.holidays.find(h=>h.date===date)) state.holidays.push({date,label});
+  document.getElementById('newHolidayDate').value='';
+  document.getElementById('newHolidayLabel').value='';
+  renderHolidayList();
+  rebuildHolidaySet();
+}
+
+function removeHoliday(i){
+  state.holidays.splice(i,1);
+  renderHolidayList(); rebuildHolidaySet();
+}
+
+function applyPreset(days){
+  document.querySelectorAll('#dayGrid input[type=checkbox]').forEach(cb=>{ cb.checked=days.includes(parseInt(cb.value)); });
+  updateEquiv();
+}
+
+function updateEquiv(){
+  const checked=[...document.querySelectorAll('#dayGrid input:checked')].map(c=>parseInt(c.value));
+  const el=document.getElementById('equivDisplay'); if(!el) return;
+  if(!checked.length){ el.innerHTML='<span style="color:var(--red);font-size:12px">Selecciona al menos un día.</span>'; return; }
+  el.innerHTML=[1,5,10,20].map(wd=>`<div class="equiv-row">
+    <span class="equiv-num">${wd}WD</span>
+    <span style="color:var(--text3);margin:0 4px">=</span>
+    <span style="color:var(--text2);font-size:12px">${Math.round(wd*7/checked.length)} días calendario</span>
+    <span style="color:var(--text3);font-size:10px;margin-left:auto;font-family:var(--mono)">(${checked.length}d lab/sem)</span>
+  </div>`).join('');
+}
+
+function saveCalendarConfig(){
+  const checked=[...document.querySelectorAll('#dayGrid input:checked')].map(c=>parseInt(c.value));
+  if(!checked.length) return alert('Selecciona al menos un día laborable.');
+  state.project.workDays=checked;
+  const h=parseInt(document.getElementById('hoursPerDay').value);
+  if(h>0) state.project.hoursPerDay=h;
+  closeModal(); rebuildHolidaySet(); scheduleTasks(); renderAll();
+}
+
+// ================================================================
+// COSTS VIEW
+// ================================================================
+function renderCosts(){
+  const all=getAllTasks(); scheduleTasks();
+  let totEstD=0,totRealD=0,totEstC=0,totRealC=0;
+  for(const t of all){
+    totEstD+=t.estimatedDays||t.duration||0;
+    totRealD+=t.realDays||0;
+    const ac=(t.estimatedDays||t.duration||0)*(t.hourlyRate||0)*(state.project.hoursPerDay||8)*(t.resources||1);
+    totEstC+=t.estimatedCost||ac;
+    totRealC+=t.realCost||0;
+  }
+  const devDP=totEstD?((totRealD-totEstD)/totEstD*100).toFixed(1):0;
+  const devCP=totEstC?((totRealC-totEstC)/totEstC*100).toFixed(1):0;
+
+  const rows=all.map(t=>{
+    const ac=(t.estimatedDays||t.duration||0)*(t.hourlyRate||0)*(state.project.hoursPerDay||8)*(t.resources||1);
+    const ec=t.estimatedCost||ac; const rc=t.realCost||0;
+    const dd=t.realDays?((t.realDays-(t.estimatedDays||t.duration))/((t.estimatedDays||t.duration)||1)*100).toFixed(0):'—';
+    const dc=rc&&ec?((rc-ec)/ec*100).toFixed(0):'—';
+    const dc2=parseFloat(dc);const dd2=parseFloat(dd);
+    return `<tr>
+      <td><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${t.color||getColor(t.id)};margin-right:5px;vertical-align:middle"></span>${escHtml(t.name)}</td>
+      <td>${t.estimatedDays||t.duration||0}</td><td>${t.realDays||'—'}</td>
+      <td style="color:${dd2>0?'var(--red)':dd2<0?'var(--green)':'var(--text3)'}">${dd!=='—'?(dd2>0?'+':'')+dd+'%':'—'}</td>
+      <td>${ec?ec.toLocaleString('es-ES')+'€':'—'}</td><td>${rc?rc.toLocaleString('es-ES')+'€':'—'}</td>
+      <td style="color:${dc2>0?'var(--red)':dc2<0?'var(--green)':'var(--text3)'}">${dc!=='—'?(dc2>0?'+':'')+dc+'%':'—'}</td>
+      <td>${t.resources||1}×</td><td>${escHtml(t.assignee||'—')}</td>
+      <td style="color:${t._wasLeveled?'var(--amber)':t.isCritical?'var(--critical)':'var(--text3)'}">${t._wasLeveled?'⚠ Org.':t.isCritical?'★ Crít.':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('costsContent').innerHTML=`
+    <h2 style="font-size:14px;font-weight:600;margin-bottom:14px">Resumen del proyecto</h2>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+      <div class="stat-cell" style="background:var(--bg3);border-radius:8px;padding:12px"><div class="stat-val">${totEstD}WD</div><div class="stat-lab">Días estimados</div></div>
+      <div class="stat-cell" style="background:var(--bg3);border-radius:8px;padding:12px"><div class="stat-val ${parseFloat(devDP)>0?'deviation-pos':parseFloat(devDP)<0?'deviation-neg':''}">${devDP}%</div><div class="stat-lab">Desv. tiempo</div></div>
+      <div class="stat-cell" style="background:var(--bg3);border-radius:8px;padding:12px"><div class="stat-val">${totEstC.toLocaleString('es-ES')}€</div><div class="stat-lab">Coste estimado</div></div>
+      <div class="stat-cell" style="background:var(--bg3);border-radius:8px;padding:12px"><div class="stat-val ${parseFloat(devCP)>0?'deviation-pos':parseFloat(devCP)<0?'deviation-neg':''}">${devCP}%</div><div class="stat-lab">Desv. coste</div></div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <table class="cost-table"><thead><tr>
+        <th>Tarea</th><th>Est.d</th><th>Real d</th><th>Desv.t</th>
+        <th>Est.€</th><th>Real €</th><th>Desv.€</th><th>Rec.</th><th>Asignado</th><th>Tipo</th>
+      </tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr class="total-row">
+        <td><b>TOTAL</b></td><td>${totEstD}</td><td>${totRealD||'—'}</td>
+        <td style="color:${parseFloat(devDP)>0?'var(--red)':'var(--green)'}">${devDP}%</td>
+        <td>${totEstC.toLocaleString('es-ES')}€</td><td>${totRealC.toLocaleString('es-ES')}€</td>
+        <td style="color:${parseFloat(devCP)>0?'var(--red)':'var(--green)'}">${devCP}%</td>
+        <td></td><td></td><td></td>
+      </tr></tfoot></table>
+    </div>`;
+}
+
+// ================================================================
+// ISHIKAWA
+// ================================================================
+function renderIshikawaSelect(){
+  const sel=document.getElementById('ishikawaTarget');
+  const all=getAllTasks();
+  sel.innerHTML='<option value="">Selecciona tarea...</option>'+all.map(t=>`<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+}
+function getIshikawa(taskId){
+  if(!state.ishikawa[taskId]) state.ishikawa[taskId]={categories:['Personas','Proceso','Materiales','Entorno','Método','Medición'],causes:{'Personas':[],'Proceso':[],'Materiales':[],'Entorno':[],'Método':[],'Medición':[]}};
+  return state.ishikawa[taskId];
+}
+function addIshikawaCause(){
+  const tid=document.getElementById('ishikawaTarget').value; if(!tid) return alert('Selecciona tarea.');
+  const d=getIshikawa(tid); const cat=prompt('Categoría:\n'+d.categories.join(', ')); if(!cat||!d.causes[cat]) return alert('Categoría inválida.');
+  const cause=prompt('Causa:'); if(cause){d.causes[cat].push(cause);renderIshikawa();}
+}
+function addIshikawaCategory(){
+  const tid=document.getElementById('ishikawaTarget').value; if(!tid) return alert('Selecciona tarea.');
+  const name=prompt('Nueva categoría:'); if(!name) return;
+  const d=getIshikawa(tid); d.categories.push(name); d.causes[name]=[]; renderIshikawa();
+}
+function renderIshikawa(){
+  const tid=document.getElementById('ishikawaTarget').value;
+  const canvas=document.getElementById('fish-canvas');
+  if(!tid){canvas.width=0;canvas.height=0;return;}
+  const task=findTask(parseInt(tid)); if(!task) return;
+  const d=getIshikawa(tid);
+  const W=900,H=500; canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#0f1117'; ctx.fillRect(0,0,W,H);
+  const SPINE_Y=H/2, HEAD_X=W-80, SPINE_START=60, SPINE_END=HEAD_X-60;
+  ctx.beginPath(); ctx.moveTo(SPINE_START,SPINE_Y); ctx.lineTo(SPINE_END,SPINE_Y);
+  ctx.strokeStyle='#9da3c8'; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(HEAD_X-60,SPINE_Y-30); ctx.lineTo(HEAD_X,SPINE_Y); ctx.lineTo(HEAD_X-60,SPINE_Y+30); ctx.closePath();
+  ctx.fillStyle='rgba(108,140,255,.3)'; ctx.fill(); ctx.strokeStyle='#6c8cff'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle='#e8eaf6'; ctx.font='500 12px Syne'; ctx.textAlign='center';
+  ctx.fillText(truncate(task.name,14),HEAD_X-30,SPINE_Y+5);
+  const top=d.categories.filter((_,i)=>i%2===0);
+  const bot=d.categories.filter((_,i)=>i%2===1);
+  const colC=Math.max(top.length,bot.length);
+  const spacing=(SPINE_END-SPINE_START)/(colC+0.5);
+  function drawBone(cat,xPos,isTop){
+    const bY=isTop?SPINE_Y-100:SPINE_Y+100;
+    ctx.beginPath(); ctx.moveTo(xPos,SPINE_Y); ctx.lineTo(xPos-20,bY);
+    ctx.strokeStyle='#5c6494'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#9da3c8'; ctx.font='600 11px Syne'; ctx.textAlign='center';
+    ctx.fillText(cat,xPos-25,isTop?bY-14:bY+14);
+    (d.causes[cat]||[]).forEach((cause,ci)=>{
+      const cy=isTop?SPINE_Y-100-(ci+1)*22:SPINE_Y+100+(ci+1)*22;
+      ctx.beginPath(); ctx.moveTo(xPos-20,isTop?SPINE_Y-100:SPINE_Y+100); ctx.lineTo(xPos-35,cy);
+      ctx.strokeStyle='#3d4468'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='#e8eaf6'; ctx.font='11px IBM Plex Mono'; ctx.textAlign='right';
+      ctx.fillText(cause,xPos-38,cy+4);
+    });
+  }
+  top.forEach((cat,i)=>drawBone(cat,SPINE_START+spacing*(i+1),true));
+  bot.forEach((cat,i)=>drawBone(cat,SPINE_START+spacing*(i+1),false));
+}
+
+// ================================================================
+// LEVEL / TAB / MODAL
+// ================================================================
+function setLevel(l){
+  maxLevel=l;
+  document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
+  if(l===99) document.getElementById('lvl-all').classList.add('active');
+  else document.getElementById('lvl-'+l).classList.add('active');
+  renderAll();
+}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='gantt') renderGantt();
+  else if(tab==='pert') setTimeout(()=>renderPert(),50);
+  else if(tab==='team') renderTeam();
+  else if(tab==='costs') renderCosts();
+  else if(tab==='ishikawa'){renderIshikawaSelect();renderIshikawa();}
+}
+
+function openModal(){ document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+function handleModalClick(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+// ================================================================
+// EXPORT / IMPORT
+// ================================================================
+function exportJSON(){
+  const data={...state,project:{...state.project,name:document.getElementById('projectName').value}};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=(document.getElementById('projectName').value||'proyecto')+'.ganttflow.json'; a.click();
+}
+function importJSON(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      state.tasks=data.tasks||[]; state.project=data.project||state.project;
+      state.team=data.team||[]; state.holidays=data.holidays||[];
+      state.pertLayout=data.pertLayout||{}; state.ishikawa=data.ishikawa||{};
+      nextId=Math.max(...getAllTasks().map(t=>t.id),...state.team.map(m=>m.id),0)+1;
+      document.getElementById('projectName').value=state.project.name||'';
+      rebuildHolidaySet(); scheduleTasks(); renderAll();
+    }catch(err){alert('Error al importar: '+err.message);}
+  };
+  reader.readAsText(file);
+}
+
+// ================================================================
+// RENDER ALL
+// ================================================================
+function renderAll(){
+  renderSidebar();
+  const activeView=document.querySelector('.view.active');
+  if(activeView){
+    const id=activeView.id;
+    if(id==='view-gantt') renderGantt();
+    else if(id==='view-pert') renderPert();
+    else if(id==='view-team') renderTeam();
+    else if(id==='view-costs') renderCosts();
+    else if(id==='view-ishikawa'){renderIshikawaSelect();renderIshikawa();}
+  }
+}
+
+// ================================================================
+// SAMPLE DATA
+// ================================================================
+function loadSample(){
+  const t=()=>mkId();
+  // Team
+  const m1={id:mkId(),name:'Ana García',role:'Tech Lead',maxParallel:2,absences:[{start:'2025-08-01',end:'2025-08-15',type:'vacaciones'}]};
+  const m2={id:mkId(),name:'Carlos Ruiz',role:'Backend Dev',maxParallel:2,absences:[]};
+  const m3={id:mkId(),name:'María López',role:'Frontend Dev',maxParallel:2,absences:[{start:'2025-07-21',end:'2025-07-25',type:'festivo'}]};
+  const m4={id:mkId(),name:'Luis Torres',role:'QA Engineer',maxParallel:1,absences:[]};
+  state.team=[m1,m2,m3,m4];
+
+  // Holidays
+  state.holidays=[
+    {date:'2025-08-15',label:'Asunción de la Virgen'},
+    {date:'2025-10-12',label:'Día de la Hispanidad'}
+  ];
+
+  const id1=mkId(),id2=mkId(),id3a=mkId(),id3b=mkId(),id3c=mkId(),id3=mkId(),id4=mkId(),id5=mkId();
+  const mk=(id,name,dur,dep,assignee,col,est,estC)=>({
+    id,name,duration:dur,progress:0,status:'in-progress',assignee,
+    hourlyRate:50,startDate:'',dependencies:dep,subtasks:[],expanded:true,
+    color:col,comments:[],description:'',estimatedDays:est||dur,realDays:0,
+    estimatedCost:estC||0,realCost:0,resources:1,isCritical:false,_wasLeveled:false
+  });
+  const t1=mk(id1,'Análisis de requisitos',5,[],m1.name,COLORS[0],5,2000); t1.progress=100;
+  const t2=mk(id2,'Diseño arquitectura',8,[id1],m1.name,COLORS[1],8,4000);
+  const t3a=mk(id3a,'Módulo autenticación',6,[id2],m2.name,COLORS[2],6,2400);
+  const t3b=mk(id3b,'API REST core',10,[id2],m2.name,COLORS[3],10,5000);
+  const t3c=mk(id3c,'Base de datos',7,[id2],m2.name,COLORS[4],7,2800);
+  const t3=mk(id3,'Desarrollo backend',10,[id2],m2.name,COLORS[5],10,0);
+  t3.subtasks=[t3a,t3b,t3c];
+  const t4front=mk(id4,'Frontend UI',8,[id2],m3.name,COLORS[6],8,3200);
+  const t5=mk(id5,'Testing QA',5,[id3,id4],m4.name,COLORS[7],5,1500);
+  state.tasks=[t1,t2,t3,t4front,t5];
+  nextId=50;
+}
+
+// ================================================================
+// INIT
+// ================================================================
+window.addEventListener('load',()=>{
+  loadSample();
+  rebuildHolidaySet();
+  scheduleTasks();
+  const base=calStart();
+  document.getElementById('ganttStart').value=toDateStr(base);
+  renderAll();
+  initPertEvents();
+  document.getElementById('projectName').addEventListener('input',e=>{ state.project.name=e.target.value; });
+  window.addEventListener('resize',()=>{
+    if(document.getElementById('view-pert').classList.contains('active')) renderPert();
+    if(document.getElementById('view-ishikawa').classList.contains('active')) renderIshikawa();
+  });
+});
+</script>
 </body>
 </html>
